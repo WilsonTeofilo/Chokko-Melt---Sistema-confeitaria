@@ -1,0 +1,69 @@
+:root {
+    --marrom: #4E342E;
+    --rosa: #E7A1B0;
+    --rosa-claro: #FCE4EC;
+    --branco: #FAF7F5;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+body { background-color: var(--branco); padding-bottom: 90px;}
+
+/* Header e Logo */
+.main-header {
+    background: var(--marrom);
+    padding: 0 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 40px;
+}
+
+.logo { font-family: 'Lily Script One', cursive; color: #fff; font-size: 1.8rem; }
+.logo span {font-family: 'Lily Script One', cursive; color: var(--rosa); }
+.status-badge { background: #2E7D32; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; }
+
+/* Banner */
+.hero-banner { height: 60px; background: var(--marrom); display: flex; align-items: center; justify-content: center; color: #fff; margin-bottom: 10px; }
+
+/* Categorias */
+.categories { display: flex; gap: 10px; padding: 10px 5%; }
+
+.cat-btn { padding: 6px 18px; border-radius: 50px; border: 1.5px solid var(--marrom); background: #fff; color: var(--marrom); font-weight: 600; cursor: pointer; transition: 0.3s; }
+
+.cat-btn:hover { background: var(--rosa-claro); border-color: var(--rosa); }
+.cat-btn.active { background: var(--marrom); color: #fff; }
+
+/* Grid e Cards */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 15px; padding: 15px; max-width: 1000px; margin: 0 auto;
+}
+
+.product-card {
+    background: #fff; border-radius: 12px; border: 1px solid #eee;
+    overflow: hidden; transition: 0.3s; display: flex; flex-direction: column;
+}
+.product-card:hover { background-color: var(--rosa-claro); border-color: var(--rosa);  }
+
+.product-image { width: 100%; height: 130px; overflow: hidden; }
+.product-image img { width: 100%; height: 100%; object-fit: cover; }
+
+.product-info { padding: 10px; text-align: center; flex-grow: 1; }
+.product-info h3 { font-size: 0.85rem; color: var(--marrom); margin-bottom: 5px; min-height: 2.4em; }
+.product-price { font-weight: 800; color: var(--marrom); display: block; margin-bottom: 10px; }
+
+.add-btn {
+    width: 100%; background: var(--marrom); color: #fff; border: none;
+    padding: 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: 0.3s;
+}
+.product-card:hover .add-btn { background: var(--rosa); color: var(--marrom); }
+
+/* Menu Fixo */
+.bottom-nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; }
+
+.nav-item { text-decoration: none; color: #999; display: flex; flex-direction: column; align-items: center; font-size: 0.6rem; font-weight: bold; }
+
+.nav-item.active { color: var(--marrom); }
+.nav-item i { font-size: 1.2rem; margin-bottom: 2px; }

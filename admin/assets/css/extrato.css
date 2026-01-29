@@ -1,0 +1,77 @@
+/* Importando a base do Admin para manter o Header e Sidebar iguais */
+@import url('admin.css');
+
+/* ================= COMPONENTES DO EXTRATO ================= */
+
+/* Filtros com Hover Rosa Paleta */
+.filters-container {
+    background: var(--branco);
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+}
+
+.btn-filter {
+    padding: 10px 20px;
+    border: 1px solid var(--marrom);
+    background: transparent;
+    color: var(--marrom);
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+    margin-right: 5px;
+}
+
+.btn-filter:hover, .btn-filter.active {
+    background-color: var(--rosa-chokko) !important;
+    color: white !important;
+    border-color: var(--rosa-chokko);
+}
+
+/* Estilo do Calendário */
+.input-date {
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: var(--marrom);
+    accent-color: var(--rosa-chokko); /* Cor do dia selecionado */
+    outline: none;
+}
+
+.input-date::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: sepia(100%) saturate(200%) brightness(50%) hue-rotate(330deg); /* Ícone marrom */
+}
+
+.btn-filter-icon {
+    background: var(--marrom);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: 0.3s;
+}
+
+.btn-filter-icon:hover {
+    background: var(--rosa-chokko);
+}
+
+/* Cores específicas dos cards de faturamento */
+/* As transições de "levante" já vêm do admin.css via @import */
+.brown { color: var(--cor-dinheiro); }
+.brown:hover { border-color: var(--cor-dinheiro); }
+
+/* Ajuste fino na tabela para ícones de pagamento */
+.admin-table td i {
+    margin-right: 10px;
+    color: var(--marrom);
+    width: 20px;
+    text-align: center;
+}
