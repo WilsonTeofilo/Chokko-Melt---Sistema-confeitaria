@@ -1,0 +1,233 @@
+/* =========================================
+   PRODUTOS.CSS (Painel Admin)
+   Estilos específicos da página de Produtos
+   ========================================= */
+
+/* ── ACTION BAR ── */
+.action-bar { 
+    margin-bottom: 20px; 
+    display: flex; 
+    gap: 15px; 
+    align-items: center; 
+}
+.btn-icon { 
+    padding: 10px 20px; 
+    font-size: 14px; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+}
+.search-bar { 
+    flex-grow: 1; 
+    display: flex; 
+    align-items: center; 
+    background: white; 
+    border: 1px solid #ddd; 
+    padding: 0 15px; 
+    border-radius: 5px; 
+    transition: all 0.3s ease;
+}
+.search-bar:focus-within {
+    border-color: var(--marrom);
+    box-shadow: 0 0 0 3px rgba(78, 52, 46, 0.1);
+}
+.search-bar i { color: #999; }
+.search-bar input { 
+    border: none; 
+    outline: none; 
+    padding: 10px; 
+    width: 100%; 
+    background: transparent;
+}
+.filter-select { 
+    padding: 10px; 
+    border: 1px solid #ddd; 
+    border-radius: 5px; 
+    outline: none; 
+    background: white;
+    cursor: pointer;
+}
+
+/* ── TABELA DE PRODUTOS ── */
+.prod-info-cell { 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+}
+.prod-info-cell img { 
+    width: 50px; 
+    height: 50px; 
+    border-radius: 8px; 
+    object-fit: cover; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.prod-info-cell span { font-weight: 600; }
+.bold-text { font-weight: bold; }
+
+/* Badges de Status */
+.badge-ativo { background: #43A047; }
+.badge-congelado { background: #757575; }
+
+/* Botões de Ação na Tabela */
+.btn-edit { background: #1976D2; }
+.btn-edit:hover { background: #1565C0; transform: scale(1.05); }
+.btn-del { background: #D32F2F; }
+.btn-del:hover { background: #B71C1C; transform: scale(1.05); }
+.btn-freeze { background: #757575; }
+.btn-freeze:hover { background: #616161; transform: scale(1.05); }
+.btn-unfreeze { background: #F57C00; }
+.btn-unfreeze:hover { background: #EF6C00; transform: scale(1.05); }
+
+/* ── TABS DE STATUS ── */
+.status-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 8px 15px;
+    font-size: 0.95rem;
+    color: #777;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.2s;
+}
+.tab-btn:hover {
+    background: #f0f0f0;
+}
+.tab-btn.active {
+    background: var(--marrom);
+    color: white;
+    font-weight: 600;
+}
+
+/* ── MODAL PRODUTOS ── */
+.modal-overlay { 
+    display: none; 
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.6); 
+    backdrop-filter: blur(3px);
+    z-index: 2000; 
+    align-items: center; 
+    justify-content: center; 
+}
+.modal-content { 
+    background: white; 
+    border-radius: 12px; 
+    padding: 30px; 
+    box-shadow: 0 15px 35px rgba(0,0,0,0.25); 
+    animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.modal-lg {
+    width: 650px;
+}
+@keyframes modalPop {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.modal-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 20px; 
+    border-bottom: 1px solid #eee; 
+    padding-bottom: 15px; 
+}
+.modal-title { 
+    font-size: 1.3rem; 
+    color: var(--marrom); 
+    margin: 0;
+}
+.btn-close-modal { 
+    background: none; 
+    border: none; 
+    font-size: 1.8rem; 
+    cursor: pointer; 
+    color: #999; 
+    line-height: 1;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+.form-group { margin-bottom: 15px; }
+.flex-1 { flex: 1; }
+.flex-2 { flex: 2; }
+
+.form-label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; color: #555; }
+.form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; }
+.form-control:focus { border-color: var(--marrom); }
+
+.btn-outline-upload {
+    background: white;
+    border: 1px solid #ddd;
+    color: #555;
+    padding: 0 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.btn-text-add {
+    background: none;
+    border: none;
+    color: var(--marrom);
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0;
+}
+
+.adicional-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    margin-bottom: 6px;
+}
+
+.modal-footer { 
+    margin-top: 30px; 
+    display: flex; 
+    justify-content: flex-end; 
+    gap: 12px; 
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+.btn-cancel { padding: 10px 24px; background: #eee; border: none; border-radius: 6px; cursor: pointer; color: #555; font-weight: 600; }
+.btn-save { padding: 10px 24px; border-radius: 6px; font-weight: 600; }
+
+/* =========================================
+   RESPONSIVIDADE - PRODUTOS E MÓDULOS 
+   ========================================= */
+@media (max-width: 768px) {
+    .action-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .search-bar {
+        width: 100%;
+    }
+    
+    .filter-select {
+        width: 100%;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0px;
+    }
+}
+

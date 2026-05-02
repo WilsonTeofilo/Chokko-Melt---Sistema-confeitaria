@@ -1,0 +1,103 @@
+﻿CHOKKO MELT — Regras de Negócio e Funcionamento do Sistema
+1. Definição do Sistema
+O sistema Chokko Melt é uma plataforma digital para gestão e realização de pedidos de uma confeitaria, sendo dividido em duas frentes principais:
+•	Interface do Cliente: responsável pela visualização do cardápio e realização de pedidos.
+•	Painel Administrativo: destinado ao controle operacional, financeiro e de produtos.
+As regras de negócio foram definidas considerando o contexto de um projeto acadêmico, priorizando clareza de fluxo, aderência ao funcionamento real do estabelecimento e viabilidade técnica.
+________________________________________
+2. Interface do Cliente (Usuário)
+•	Conceito: Desenvolvimento com abordagem Mobile First, adaptável para dispositivos desktop.
+•	Acesso: O usuário acessa diretamente o cardápio, sem necessidade de login inicial.
+•	Rodapé de Acesso Rápido:
+o	Início: Exibição do cardápio completo.
+o	Pedidos: Exibe o número do pedido, itens solicitados e status atual.
+o	Detalhes do Pedido: Apresenta o histórico do pedido (realizado, em produção, saiu para entrega e finalizado).
+o	Carrinho: Gerenciamento dos itens selecionados pelo usuário.
+O cliente acompanha em tempo real as atualizações de status do pedido conforme alterações realizadas no painel administrativo.
+________________________________________
+3. Cardápio e Categorias
+O cardápio é organizado por categorias, contendo descrição, valor e imagem ilustrativa dos produtos:
+•	Bolos de Pote (300ml): Valores entre R$ 10,00 e R$ 13,00.
+•	Tortas de Pote (300ml): Sabores doces e salgados por R$ 10,00.
+•	Brigadeiros Gourmet: Kits com 4 unidades por R$ 13,00.
+•	Salgados: Pastéis (R$ 12,00 a R$ 14,00) e empadão (R$ 10,00).
+•	Bebidas: Latas 300ml (R$ 5,00) e garrafas 2L (R$ 11,00).
+•	Kits Mini Salgados: Opções de 50, 100 e 150 unidades.
+•	Bolos Grandes: Opções de 2kg, com valores entre R$ 130,00 e R$ 150,00.
+•	Kit Festa: Valor fixo de R$ 335,00, com seleção obrigatória de 1 sabor de bolo e 2 refrigerantes.
+________________________________________
+4. Fluxo de Compra e Detalhes do Produto
+1.	Ao selecionar um produto, o sistema exibe a tela de Detalhes do Produto, permitindo a escolha de adicionais e bebidas (limite de 10 unidades de refrigerante).
+2.	Após a seleção, é apresentada uma janela sobreposta para inclusão de observações e opção de continuar comprando ou acessar o carrinho.
+3.	No carrinho, o usuário pode ajustar quantidades, remover itens ou limpar a lista.
+4.	Cada pedido é limitado a 10 produtos distintos.
+________________________________________
+5. Login e Cadastro
+•	O login é exigido apenas no momento da finalização do pedido.
+•	Caso não possua cadastro, o usuário deverá realizá-lo para prosseguir.
+•	Dados de Cadastro:
+o	Telefone (utilizado como identificador único para fins acadêmicos)
+o	Nome completo
+o	Bairro (seleção restrita ao distrito do Grajaú – SP)
+o	CEP
+o	Rua
+o	Número
+o	Complemento
+o	Ponto de referência
+Os itens adicionados ao carrinho antes da autenticação permanecem salvos após o login.
+________________________________________
+6. Finalização do Pedido e Pagamento
+•	Forma de Recebimento:
+o	Pagar na Entrega
+o	Consumir no Local
+o	Retirar Pedido
+•	A escolha da forma de pagamento é liberada após a definição do recebimento.
+•	Formas de Pagamento:
+o	Pix
+o	Cartão (Débito ou Crédito)
+o	Dinheiro (com campo obrigatório para informar troco)
+Regra de Sessão: Caso a página seja atualizada antes da finalização, o usuário permanece autenticado e o carrinho é mantido.
+________________________________________
+7. Regras de Negócio e Restrições Gerais
+•	Horário de Funcionamento: O sistema aceita pedidos apenas das 15h às 22h. Fora desse período, a loja é exibida como "Fechada".
+•	Área de Atuação: Pedidos disponíveis exclusivamente para o distrito do Grajaú, São Paulo.
+•	Autenticação: Apenas usuários autenticados podem finalizar pedidos.
+•	Disponibilidade de Produtos: Produtos podem ser temporariamente congelados pelo administrador, ficando indisponíveis para o cliente.
+•	Limitações do Projeto Acadêmico:
+o	Não haverá chat interno.
+o	Não haverá link de pagamento online.
+o	Não será realizado cálculo de lucro, apenas faturamento bruto.
+o	Não existirão cupons, promoções ou campanhas automatizadas.
+________________________________________
+8. Painel Administrativo (Admin)
+8.1 Gestão de Pedidos
+•	Recebimento de pedidos com dados do cliente, itens e forma de pagamento.
+•	O administrador pode aceitar ou recusar pedidos.
+o	Aceito: Gera impressão térmica (80mm) e altera o status para "Em Produção".
+o	Saiu para Entrega: Alteração manual realizada pelo administrador.
+o	Finalizado: Pedido encerrado após confirmação do recebimento do valor.
+o	Recusado: Requer justificativa obrigatória, enviada ao cliente. O pedido permanece apenas para fins de histórico.
+8.2 Financeiro
+•	Relatórios de faturamento bruto por:
+o	Dia
+o	Semana
+o	Período personalizado
+•	Os valores são agrupados por método de pagamento.
+8.3 Gerenciar Produtos
+•	Cadastro de produtos com nome, imagem, preço e categoria.
+•	Congelar Produto: Remove o item da visualização do cliente, mantendo-o no banco de dados.
+•	Excluir Produto: Remove permanentemente o item do sistema.
+8.4 Níveis de Acesso
+•	Administrador: Permissão total sobre o sistema.
+•	Funcionário: Acesso restrito à visualização de pedidos e relatórios financeiros.
+________________________________________
+9. Identidade Visual
+•	Cores:
+o	Marrom: #4E342E
+o	Rosa: #E7A1B0 / #D32F2F
+o	Branco Quente: #FAF7F5
+o	Cinza Texto: #424242
+o	Cinza Claro: #E0E0E0
+•	Tipografia:
+o	Lily Script One (logotipos e títulos)
+o	Segoe UI (textos, formulários e tabelas)

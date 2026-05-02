@@ -1,0 +1,128 @@
+/* =========================================
+   CONFIG.CSS (Painel Admin)
+   Estilos específicos da página de Configurações
+   ========================================= */
+
+.config-wrapper { 
+    max-width: 800px; 
+}
+.config-section { 
+    margin-bottom: 25px; 
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+.config-title { 
+    margin-bottom: 20px; 
+    color: var(--marrom); 
+    border-bottom: 1px solid #eee; 
+    padding-bottom: 10px; 
+    font-size: 1.1rem;
+}
+
+/* ── FORMULÁRIOS ── */
+.form-group { 
+    margin-bottom: 18px; 
+}
+.form-label { 
+    display: block; 
+    font-size: 14px; 
+    font-weight: 600; 
+    margin-bottom: 8px; 
+    color: #555;
+}
+.form-control { 
+    width: 100%; 
+    padding: 12px; 
+    border: 1px solid #ddd; 
+    border-radius: 6px; 
+    outline: none; 
+    transition: all 0.3s ease;
+}
+.form-control:focus {
+    border-color: var(--marrom);
+    box-shadow: 0 0 0 3px rgba(78, 52, 46, 0.1);
+}
+.config-short-input { 
+    width: 150px; 
+}
+
+/* ── COMPONENTE TOGGLE (Switch) ── */
+.toggle-container { 
+    margin-bottom: 20px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    background: #f8f8f8; 
+    padding: 18px; 
+    border-radius: 8px; 
+    border: 1px solid #ddd; 
+}
+.toggle-label { 
+    display: block; 
+    font-size: 15px; 
+    font-weight: 600;
+    color: var(--marrom);
+}
+.toggle-desc { 
+    font-size: 13px; 
+    color: #777; 
+    margin-top: 4px;
+    display: block;
+}
+
+.switch { 
+    position: relative; 
+    display: inline-block; 
+    width: 50px; 
+    height: 26px; 
+}
+.switch input { 
+    opacity: 0; 
+    width: 0; 
+    height: 0; 
+}
+.slider { 
+    position: absolute; 
+    cursor: pointer; 
+    top: 0; left: 0; right: 0; bottom: 0; 
+    background-color: #ccc; 
+    transition: .4s; 
+    border-radius: 26px; 
+}
+.slider:before { 
+    position: absolute; 
+    content: ""; 
+    height: 20px; 
+    width: 20px; 
+    left: 3px; 
+    bottom: 3px; 
+    background-color: white; 
+    transition: .4s; 
+    border-radius: 50%; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+input:checked + .slider { 
+    background-color: #43A047; 
+}
+input:checked + .slider:before { 
+    transform: translateX(24px); 
+}
+
+/* ── FOOTER DA CONFIG ── */
+.config-footer { 
+    text-align: right; 
+    margin-top: 20px;
+}
+.config-save-btn { 
+    padding: 14px 35px; 
+    font-size: 16px; 
+    border-radius: 8px;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(78, 52, 46, 0.2);
+}
+.config-save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(78, 52, 46, 0.3);
+}

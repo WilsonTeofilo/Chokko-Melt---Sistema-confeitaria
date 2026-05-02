@@ -1,0 +1,98 @@
+﻿DOCUMENTAÇÃO GERAL DO TCC
+SISTEMA WEB DE PEDIDOS PARA CONFEITARIA — CHOKKO MELT
+________________________________________
+1. INTRODUÇÃO
+O crescimento do uso de dispositivos móveis e da internet impulsionou a digitalização de pequenos negócios, especialmente no setor alimentício. No ramo da confeitaria, muitos estabelecimentos ainda realizam pedidos de forma manual, utilizando anotações em papel ou mensagens em aplicativos, o que pode gerar erros, atrasos, perda de informações e dificuldade no controle financeiro.
+Diante desse cenário, este trabalho propõe o desenvolvimento de um sistema web de pedidos, voltado para uma confeitaria localizada no distrito do Grajaú – São Paulo, com foco em organização, agilidade no atendimento e controle operacional.
+O sistema permitirá que clientes realizem pedidos diretamente pelo site e acompanhem o status de suas solicitações, enquanto o administrador poderá gerenciar pedidos, produtos e visualizar o faturamento diário.
+________________________________________
+2. OBJETIVOS
+2.1 Objetivo Geral
+Desenvolver um sistema web responsivo que permita o gerenciamento completo de pedidos de uma confeitaria, desde a escolha dos produtos pelo cliente até o controle de faturamento pelo administrador.
+2.2 Objetivos Específicos
+•	Permitir que clientes visualizem o cardápio sem necessidade de login prévio;
+•	Possibilitar a realização e acompanhamento de pedidos online;
+•	Implementar controle de status dos pedidos (pendente, em produção, entregue, finalizado e cancelado);
+•	Desenvolver um painel administrativo para gestão de pedidos e produtos;
+•	Gerar extratos financeiros baseados em faturamento bruto;
+•	Aplicar boas práticas de UX/UI com foco em Mobile First.
+________________________________________
+3. JUSTIFICATIVA
+A escolha do tema se justifica pela necessidade real de pequenos empreendimentos alimentícios em otimizar seus processos internos, reduzir erros humanos e melhorar a experiência do cliente. Além disso, o projeto permite a aplicação prática dos conhecimentos adquiridos ao longo do curso de Desenvolvimento de Sistemas, integrando front-end, back-end e banco de dados em um sistema funcional.
+O sistema proposto apresenta escopo bem definido, evitando funcionalidades complexas e desnecessárias para o contexto do negócio, garantindo viabilidade técnica e clareza na implementação.
+________________________________________
+4. FUNDAMENTAÇÃO TEÓRICA
+4.1 Sistemas Web
+Sistemas web são aplicações acessadas por meio de navegadores, sem a necessidade de instalação local, permitindo compatibilidade com diferentes dispositivos e sistemas operacionais.
+4.2 Mobile First
+A abordagem Mobile First consiste em projetar a interface inicialmente para dispositivos móveis, garantindo melhor usabilidade, desempenho e adaptação a telas maiores.
+4.3 UX/UI
+UX (User Experience) refere-se à experiência do usuário ao interagir com o sistema, enquanto UI (User Interface) trata da interface visual. Ambos são essenciais para garantir facilidade de uso, clareza e eficiência.
+4.4 Banco de Dados Relacional
+Bancos de dados relacionais organizam informações em tabelas relacionadas entre si, garantindo integridade, consistência e facilidade de manutenção dos dados.
+4.5 CRUD
+CRUD representa as operações básicas de um sistema: Criar (Create), Ler (Read), Atualizar (Update) e Deletar (Delete), fundamentais para a manipulação de dados.
+4.6 Segurança da Informação
+O projeto adota boas práticas de segurança, como uso de sessões, prepared statements e controle de acesso, visando evitar acessos não autorizados e vulnerabilidades como SQL Injection.
+________________________________________
+5. METODOLOGIA
+5.1 Organização da Equipe
+O desenvolvimento do sistema foi realizado em equipe, com divisão clara de responsabilidades:
+•	Scrum Master / Líder: coordenação do projeto e organização das tarefas;
+•	Front-End: desenvolvimento das interfaces do usuário e administrador;
+•	Back-End: implementação das regras de negócio e integração com o banco de dados;
+•	Banco de Dados: modelagem e criação da base de dados;
+•	Documentação: elaboração do material acadêmico do projeto.
+5.2 Ferramentas Utilizadas
+•	Figma (prototipação);
+•	Visual Studio Code;
+•	MySQL Workbench;
+•	PHP;
+•	HTML, CSS e JavaScript.
+________________________________________
+6. ANÁLISE DE REQUISITOS
+6.1 Requisitos Funcionais
+•	O sistema deve permitir que o cliente visualize o cardápio;
+•	O cliente deve adicionar produtos ao carrinho;
+•	O cliente deve finalizar pedidos após login ou cadastro;
+•	O administrador deve aceitar ou recusar pedidos;
+•	O administrador deve gerenciar produtos;
+•	O sistema deve gerar extrato de faturamento.
+6.2 Requisitos Não Funcionais
+•	Sistema web responsivo;
+•	Disponível apenas das 15h às 22h;
+•	Atendimento restrito ao distrito do Grajaú;
+•	Não possuir pagamento online.
+6.3 Regras de Negócio
+•	Pedido máximo de 10 unidades por produto;
+•	Pedido só é faturado após ser finalizado;
+•	Produtos podem ser congelados sem exclusão definitiva;
+•	Cancelamentos não entram no faturamento.
+________________________________________
+7. MODELAGEM DO BANCO DE DADOS
+O banco de dados foi modelado utilizando o MySQL Workbench, iniciando pelo modelo conceitual, seguido do modelo lógico, garantindo integridade e normalização dos dados.
+Principais entidades:
+•	Cliente
+•	Endereço
+•	Produto
+•	Pedido
+•	Itens do Pedido
+•	Pagamento
+Foram aplicadas chaves primárias e estrangeiras para manter a integridade referencial.
+________________________________________
+8. DESENVOLVIMENTO DO SISTEMA
+8.1 Front-End
+O front-end foi desenvolvido com HTML semântico, CSS com abordagem Mobile First e Flexbox, garantindo responsividade e boa experiência do usuário.
+8.2 Back-End
+O back-end foi desenvolvido em PHP, utilizando PDO para conexão segura com o banco de dados, controle de sessões e implementação do CRUD.
+8.3 Banco de Dados
+O banco foi criado no MySQL, com exportação do arquivo .sql para versionamento e integração.
+________________________________________
+9. RESULTADOS
+O sistema desenvolvido permite a realização completa de pedidos online, controle administrativo e geração de extratos financeiros, atendendo aos objetivos propostos.
+________________________________________
+10. CONCLUSÃO
+Conclui-se que o sistema Chokko Melt atende às necessidades da confeitaria, proporcionando maior organização, agilidade e controle dos pedidos. O projeto permitiu a aplicação prática dos conhecimentos adquiridos durante o curso, evidenciando a importância do planejamento e da modelagem antes da implementação.
+Como trabalhos futuros, podem ser adicionadas funcionalidades como pagamento online, promoções e relatórios mais detalhados.
+________________________________________
+Projeto desenvolvido como Trabalho de Conclusão de Curso – Desenvolvimento de Sistemas

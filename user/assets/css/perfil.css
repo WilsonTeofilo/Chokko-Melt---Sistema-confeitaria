@@ -1,0 +1,287 @@
+/* ==========================================================
+   PERFIL.CSS — Estilos exclusivos da página de Perfil.
+   Não redefinir fontes ou variáveis globais aqui.
+   O design system base está em style.css
+   ========================================================== */
+
+/* Variáveis locais que não existem no style.css global */
+:root {
+    --primary-brown: #4a362d; 
+    --light-brown: #d7ccc8;  
+    --green-action: #3a833c;  
+    --bg-color: #fdfcfb;      
+    --white: #ffffff;         
+    --border: #e0e0e0;        
+}
+
+body.perfil-bg { 
+    background-color: var(--bg-color); 
+    color: #333; 
+    padding-bottom: 100px; 
+    background: url('../photos/fundo.png') center/cover fixed !important;
+}
+
+/* ==========================================================
+   ESTRUTURA PRINCIPAL E CONTAINERS
+   ========================================================== */
+.screen {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.container {
+    width: 100%;
+    max-width: 1000px;
+    background-color: transparent;
+    border: 2px solid rgba(255, 255, 255, .10);
+    border-radius: 10px;
+    padding: 30px 40px;
+    backdrop-filter: blur(10px);
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, 
+                rgba(0, 0, 0, 0.12) 0px -12px 30px;
+    margin: 20px auto; 
+    color: #000000;
+}
+
+.content { 
+    padding: 30px 20px;
+}
+
+/* --- HEADER FIXO NO TOPO --- */
+.app-header {
+    background-color: var(--primary-brown);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    width: 100%;
+    border-radius: 10px;
+}
+.header-titles p { 
+    font-size: 50px; 
+    opacity: 0.8; 
+}
+
+/* ==========================================================
+   CARDS (PERFIL, ENDEREÇOS, ETC)
+   ========================================================== */
+.user-card, .cart-card, .card-branco {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    border: 1px solid var(--border);
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.avatar { 
+    width: 90px; height: 90px; 
+    border-radius: 50%; 
+    border: 3px solid var(--primary-brown); 
+    margin-right: 20px; 
+    object-fit: cover;
+}
+
+.profile-info { 
+    display: flex; 
+    align-items: center; 
+}
+
+.btn-edit-info {
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-edit-info:hover {
+    transform: scale(1.05);
+}
+
+/* ==========================================================
+   BOTÕES E AÇÕES
+   ========================================================== */
+.btn-add-address { 
+    width: 100%; 
+    background: var(--primary-brown); 
+    color: white; 
+    border: none; 
+    padding: 15px; 
+    border-radius: 8px; 
+    margin: 20px 0; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: 0.3s;
+}
+.btn-add-address:hover {
+    transform: scale(1.05);
+}
+
+.badge-default { 
+    background: var(--green-action); 
+    color: white; 
+    font-size: 10px; 
+    padding: 3px 8px; 
+    border-radius: 10px; 
+}
+
+.address-footer { 
+    display: flex; 
+    gap: 10px; 
+    margin-top: 20px; 
+}
+
+.btn-outline, .btn-outline-danger { 
+    flex: 1; 
+    background: none; 
+    padding: 10px; 
+    border-radius: 8px; 
+    border: 1px solid var(--primary-brown); 
+    color: var(--primary-brown); 
+    cursor: pointer; 
+    transition: 0.3s;
+}
+.btn-outline {
+    border-color: #3a833c; 
+    color: white; 
+    background-color: #3a833c;
+}
+.btn-outline:hover {
+    transform: scale(1.05);
+}
+
+.btn-outline-danger { 
+    border-color: #d32f2f; 
+    color: white; 
+    background-color: #d32f2f; 
+}
+.btn-outline-danger:hover {
+    transform: scale(1.05);
+}
+
+.btn-finish { 
+    width: 100%; 
+    background: var(--green-action); 
+    color: white; 
+    border: none; 
+    padding: 16px; 
+    border-radius: 10px; 
+    font-weight: 700; 
+    font-size: 16px; 
+    margin-top: 20px; 
+    cursor: pointer; 
+    transition: 0.3s;
+}
+.btn-finish:hover {
+    transform: scale(1.05);
+}
+
+
+
+/* ==========================================================
+   MODAL DE EDIÇÃO
+   ========================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.modal-card {
+    background: white;
+    width: 90%;
+    max-width: 400px;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-card h3 { 
+    margin-bottom: 20px; 
+    color: var(--primary-brown); 
+}
+
+.modal-card input,
+.modal-card select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+    color: #333;
+}
+
+/* Label acima do select de apelido */
+.modal-select-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary-brown);
+    margin-bottom: 4px;
+    letter-spacing: .3px;
+}
+
+/* Select estilizado */
+.modal-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%234a362d' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    cursor: pointer;
+    border: 2px solid var(--primary-brown) !important;
+    font-weight: 600;
+    color: var(--primary-brown);
+}
+.modal-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(74,54,45,.15);
+}
+
+
+.modal-footer { 
+    display: flex; 
+    gap: 10px; 
+    justify-content: flex-end; 
+}
+
+.btn-cancel { 
+    background: none; 
+    border: none; 
+    color: #777; 
+    cursor: pointer; 
+    font-weight: 600; 
+    transition: 0.3s;
+}
+.btn-cancel:hover {
+    background-color: #d32f2f;
+    color: white;
+    padding: 10px 20px; 
+    border-radius: 8px; 
+}
+
+.btn-save { 
+    background: var(--green-action); 
+    color: white; 
+    border: none; 
+    padding: 10px 20px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-weight: 600; 
+    transition: 0.3s;
+}
+.btn-save:hover {
+    transform: scale(1.05);
+}

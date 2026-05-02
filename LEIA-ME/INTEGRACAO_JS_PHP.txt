@@ -1,0 +1,94 @@
+================================================================================
+  CHOKKO MELT — Como o JavaScript conversa com o PHP (guia para iniciante)
+================================================================================
+
+Se você só sabe PHP, pense assim:
+
+  • PHP roda NO SERVIDOR, antes da página chegar no navegador.
+  • JavaScript roda NO NAVEGADOR, depois que a página já foi enviada.
+
+Para "juntar" os dois, quase sempre você usa UM destes caminhos:
+
+  1) PHP GERA HTML que o JS lê
+     Exemplo: <?php foreach ($produtos as $p): ?>
+              <article data-id="<?= $p['id'] ?>" data-price="<?= $p['preco'] ?>">
+              O cardapio.js lê dataset.id e dataset.price no clique.
+
+  2) PHP IMPRIME JSON dentro de uma variável JS (cuidado com XSS — use json_encode)
+     Exemplo: const produtos = <?= json_encode($produtos, JSON_HEX_TAG) ?>;
+
+  3) JavaScript chama um arquivo PHP via fetch (AJAX)
+     fetch('api/salvar_pedido.php', { method:'POST', body: formData })
+     O PHP recebe $_POST ou php://input, fala com MySQL e devolve JSON:
+     header('Content-Type: application/json');
+     echo json_encode(['ok' => true]);
+
+  4) Formulário clássico (sem JS ou com pouco JS)
+     <form action="gravar.php" method="post"> — o navegador envia e a página recarrega.
+
+--------------------------------------------------------------------------------
+  Onde está cada coisa neste projeto
+--------------------------------------------------------------------------------
+
+Área do CLIENTE (pasta user/)
+  • main.js          — carregado em user_footer.php em TODAS as páginas user.
+                       Horário da loja hoje vem do localStorage (mock).
+                       PHP futuro: endpoint GET user/api/config_loja.php que lê tabela config_loja.
+
+  • cardapio.js      — só index.php. Lê data-* nos .product-card (hoje mock).
+                       PHP: gerar cards a partir do SELECT em produto + adicionais.
+
+  • carrinho.js      — carrinho.php. Carrinho no localStorage.
+                       PHP: ao finalizar, enviar JSON do carrinho para api/gravar_pedido.php.
+
+  • perfil.js        — perfil.php. Modal de edição só mexe no DOM (mock).
+                       PHP: POST para atualizar cliente/endereco no banco.
+
+  • finalizarPedido.php — tem <script> inline + main.js.
+                       Troco/CPF: main.js; PHP deve receber os campos no POST ao gravar pedido.
+
+  • login.php        — JS simula login com localStorage.
+                       PHP: form action login.php ou api/login.php + session_start().
+
+Área do ADMIN (pasta admin/)
+  • pedidos.js       — pedidos.php. Status e dados mock.
+                       PHP: tabela HTML vinda do MySQL; POST api/atualizar_status_pedido.php.
+
+  • produtos.js      — produtos.php. CRUD visual mock.
+                       PHP: INSERT/UPDATE produto, produto_adicional.
+
+  • usuarios.js      — usuarios.php idem.
+
+  • financeiro.js    — financeiro.php. Filtros mock.
+                       PHP: SELECT com datas e agrupa por forma_pagamento.
+
+  • config.js        — config.php. Salva horário no localStorage.
+                       PHP: UPDATE config_loja e o cliente lê via API.
+
+--------------------------------------------------------------------------------
+  Sessão (login) — o elo mais importante
+--------------------------------------------------------------------------------
+
+  No PHP, depois do login bem-sucedido:
+    session_start();
+    $_SESSION['cliente_id'] = ...;   // ou usuario_id para admin
+
+  Para o JS saber se está logado SEM recarregar a página:
+    criar user/api/check_session.php:
+      session_start();
+      header('Content-Type: application/json');
+      echo json_encode(['logado' => isset($_SESSION['cliente_id'])]);
+
+  O carrinho.js já tem comentário onde trocar o mock por fetch('api/check_session.php').
+
+--------------------------------------------------------------------------------
+  Segurança mínima (não confie só no JS)
+--------------------------------------------------------------------------------
+
+  • Validação de CPF, troco, estoque: refaça no PHP ao gravar o pedido.
+  • Nunca grave pedido só porque o JS mandou; verifique sessão e dados no servidor.
+  • Use prepared statements (PDO) nas queries.
+
+================================================================================
+  Fim do guia — detalhes por arquivo estão nos comentários no topo dos .js
+================================================================================

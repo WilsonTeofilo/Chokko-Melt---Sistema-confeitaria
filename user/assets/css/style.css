@@ -1,69 +1,282 @@
+/* ========================================
+   CHOKKO MELT — DESIGN SYSTEM UNIFICADO (BASE GLOBAL)
+   ======================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Lily+Script+One&display=swap');
+
 :root {
-    --marrom: #4E342E;
-    --rosa: #E7A1B0;
-    --rosa-claro: #FCE4EC;
-    --branco: #FAF7F5;
+  --marrom:        #4E342E;
+  --marrom-dark:   #3B261E;
+  --marrom-light:  #7B5E57;
+  --rosa:          #E7A1B0;
+  --rosa-escuro:   #D32F2F;
+  --rosa-claro:    #FCE4EC;
+  --branco:        #FAF7F5;
+  --cinza-texto:   #424242;
+  --cinza-medio:   #757575;
+  --cinza-claro:   #E0E0E0;
+  --verde:         #2E7D32;
+  --verde-claro:   #E8F5E9;
+  --bg:            #F5F0EE;
+  --card-bg:       #FFFFFF;
+  --shadow-sm:     0 2px 8px rgba(78,52,46,.08);
+  --shadow-md:     0 6px 20px rgba(78,52,46,.12);
+  --shadow-lg:     0 12px 40px rgba(78,52,46,.18);
+  --radius-sm:     10px;
+  --radius-md:     16px;
+  --radius-lg:     24px;
+  --radius-full:   999px;
+  --transition:    all .25s cubic-bezier(.4,0,.2,1);
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+/* ── Reset ── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background-color: var(--bg);
+  color: var(--cinza-texto);
+  padding-bottom: 80px;
+  min-height: 100vh;
+}
+img { display:block; max-width:100%; }
+button { font-family: inherit; cursor: pointer; border: none; }
+a { text-decoration: none; color: inherit; }
 
-body { background-color: var(--branco); padding-bottom: 90px;}
+/* ── Tipografia ── */
+.font-script { font-family: 'Lily Script One', cursive; }
 
-/* Header e Logo */
+/* ========================================
+   HEADERS
+   ======================================== */
 .main-header {
-    background: var(--marrom);
-    padding: 0 5%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 40px;
+  background: var(--marrom);
+  padding: 0 20px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,.2);
 }
 
-.logo { font-family: 'Lily Script One', cursive; color: #fff; font-size: 1.8rem; }
-.logo span {font-family: 'Lily Script One', cursive; color: var(--rosa); }
-.status-badge { background: #2E7D32; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; }
+.logo {
+  font-family: 'Lily Script One', cursive;
+  color: #fff;
+  font-size: 1.6rem;
+  letter-spacing: .5px;
+  line-height: 1;
+}
+.logo span { color: var(--rosa); }
 
-/* Banner */
-.hero-banner { height: 60px; background: var(--marrom); display: flex; align-items: center; justify-content: center; color: #fff; margin-bottom: 10px; }
-
-/* Categorias */
-.categories { display: flex; gap: 10px; padding: 10px 5%; }
-
-.cat-btn { padding: 6px 18px; border-radius: 50px; border: 1.5px solid var(--marrom); background: #fff; color: var(--marrom); font-weight: 600; cursor: pointer; transition: 0.3s; }
-
-.cat-btn:hover { background: var(--rosa-claro); border-color: var(--rosa); }
-.cat-btn.active { background: var(--marrom); color: #fff; }
-
-/* Grid e Cards */
-.products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 15px; padding: 15px; max-width: 1000px; margin: 0 auto;
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--verde);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+.status-badge::before {
+  content: '';
+  width: 7px; height: 7px;
+  background: #A5D6A7;
+  border-radius: 50%;
+  animation: pulse-dot 1.5s infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity:1; } 50% { opacity:.3; }
 }
 
-.product-card {
-    background: #fff; border-radius: 12px; border: 1px solid #eee;
-    overflow: hidden; transition: 0.3s; display: flex; flex-direction: column;
+/* Header de subpágina (Sacola, Pedidos, etc.) */
+.page-header-wrap {
+  background: var(--marrom);
+  box-shadow: 0 2px 12px rgba(0,0,0,.2);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
-.product-card:hover { background-color: var(--rosa-claro); border-color: var(--rosa);  }
-
-.product-image { width: 100%; height: 130px; overflow: hidden; }
-.product-image img { width: 100%; height: 100%; object-fit: cover; }
-
-.product-info { padding: 10px; text-align: center; flex-grow: 1; }
-.product-info h3 { font-size: 0.85rem; color: var(--marrom); margin-bottom: 5px; min-height: 2.4em; }
-.product-price { font-weight: 800; color: var(--marrom); display: block; margin-bottom: 10px; }
-
-.add-btn {
-    width: 100%; background: var(--marrom); color: #fff; border: none;
-    padding: 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: 0.3s;
+.page-header {
+  background: transparent; /* a cor vem do wrap */
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #fff;
 }
-.product-card:hover .add-btn { background: var(--rosa); color: var(--marrom); }
+.page-header .back-btn {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.15);
+  border-radius: var(--radius-full);
+  color: #fff;
+  font-size: .9rem;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.page-header .back-btn:hover { background: rgba(255,255,255,.25); }
 
-/* Menu Fixo */
-.bottom-nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; }
+.page-header .logo-mini {
+  font-family: 'Lily Script One', cursive;
+  font-size: 1.35rem;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: .4px;
+}
+.page-header .logo-mini span { color: var(--rosa); }
+.page-header .page-subtitle {
+  font-size: .75rem;
+  color: rgba(255,255,255,.6);
+  margin-top: 2px;
+  letter-spacing: .3px;
+}
 
-.nav-item { text-decoration: none; color: #999; display: flex; flex-direction: column; align-items: center; font-size: 0.6rem; font-weight: bold; }
-
+/* ========================================
+   BARRA DE NAVEGAÇÃO INFERIOR
+   ======================================== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0;
+  width: 100%;
+  height: 68px;
+  background: #fff;
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid var(--cinza-claro);
+  box-shadow: 0 -4px 20px rgba(0,0,0,.07);
+  z-index: 500;
+  border-radius: 18px 18px 0 0;
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--cinza-medio);
+  font-size: .65rem;
+  font-weight: 600;
+  letter-spacing: .3px;
+  transition: var(--transition);
+  position: relative;
+}
+.nav-item i { font-size: 1.25rem; transition: var(--transition); }
 .nav-item.active { color: var(--marrom); }
-.nav-item i { font-size: 1.2rem; margin-bottom: 2px; }
+.nav-item.active i { transform: scale(1.1); }
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 28px; height: 3px;
+  background: var(--marrom);
+  border-radius: 0 0 4px 4px;
+}
+.nav-item:hover { color: var(--marrom); }
+
+.nav-item .badge-count {
+  position: absolute;
+  top: 8px; right: calc(50% - 18px);
+  background: var(--rosa-escuro);
+  color: #fff;
+  font-size: .6rem;
+  font-weight: 700;
+  min-width: 16px; height: 16px;
+  padding: 0 3px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.nav-item .badge-count.has-items {
+  display: flex;
+}
+
+/* ========================================
+   CARDS GENÉRICOS
+   ======================================== */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,.04);
+  margin-bottom: 14px;
+}
+
+/* ========================================
+   BOTÕES GLOBAIS
+   ======================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: var(--radius-sm);
+  font-size: .88rem;
+  font-weight: 600;
+  transition: var(--transition);
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+.btn-primary { background: var(--marrom); color: #fff; box-shadow: 0 4px 14px rgba(78,52,46,.25); }
+.btn-primary:hover { background: var(--marrom-dark); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-success { background: var(--verde); color: #fff; box-shadow: 0 4px 14px rgba(46,125,50,.25); }
+.btn-success:hover { background: #1B5E20; transform: translateY(-1px); }
+
+.btn-danger  { background: var(--rosa-escuro); color: #fff; }
+.btn-danger:hover { background: #B71C1C; transform: translateY(-1px); }
+
+.btn-outline { background: transparent; color: var(--marrom); border: 1.5px solid var(--marrom); }
+.btn-outline:hover { background: var(--marrom); color: #fff; }
+
+.btn-ghost { background: transparent; color: var(--cinza-medio); border: 1.5px solid var(--cinza-claro); }
+.btn-ghost:hover { background: var(--cinza-claro); color: var(--cinza-texto); }
+
+.btn-sm { padding: 7px 14px; font-size: .8rem; }
+.btn-auto { width: auto; }
+
+/* ========================================
+   UTILITÁRIOS GLOBAIS
+   ======================================== */
+.page-pad { padding: 16px; }
+.mb-8  { margin-bottom: 8px; }
+.mb-14 { margin-bottom: 14px; }
+.mb-20 { margin-bottom: 20px; }
+.text-center { text-align: center; }
+.text-muted { color: var(--cinza-medio); font-size: .85rem; }
+.divider {
+  height: 1px;
+  background: var(--cinza-claro);
+  margin: 16px 0;
+}
+/* Estilo de formulários base (usado no finalizar pedido) */
+.form-control {
+  width: 100%;
+  padding: 13px 14px;
+  background: var(--bg);
+  border: 1.5px solid var(--cinza-claro);
+  border-radius: var(--radius-sm);
+  font-size: .9rem;
+  color: var(--cinza-texto);
+  transition: var(--transition);
+  outline: none;
+  font-family: inherit;
+}
+.form-control:focus {
+  border-color: var(--marrom);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(78,52,46,.08);
+}

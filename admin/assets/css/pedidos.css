@@ -1,0 +1,48 @@
+/* =========================================
+   PEDIDOS.CSS (Painel Admin)
+   Estilos específicos da página de Pedidos
+   ========================================= */
+
+/* ── TABS DE STATUS ── */
+.status-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    flex-wrap: wrap;
+}
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    color: #777;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.2s;
+}
+.tab-btn:hover { background: #f0f0f0; }
+.tab-btn.active { background: var(--marrom); color: white; font-weight: 600; }
+
+/* ── BADGES DE STATUS ── */
+.badge-pendente  { background: #FB8C00; }
+.badge-preparo   { background: #1976D2; }
+.badge-enviado   { background: #7B1FA2; }
+.badge-entregue  { background: #43A047; }
+.badge-cancelado { background: #E53935; }
+
+/* ── BOTÕES DE AÇÃO ── */
+.acoes-pedido { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-aceitar  { background: #43A047; }
+.btn-aceitar:hover  { background: #388E3C; }
+.btn-cancelar { background: #E53935; }
+.btn-cancelar:hover { background: #C62828; }
+.btn-enviar   { background: #7B1FA2; }
+.btn-enviar:hover   { background: #6A1B9A; }
+.btn-entregar { background: #1976D2; }
+.btn-entregar:hover { background: #1565C0; }
+.btn-detalhes { background: #607D8B; }
+.btn-detalhes:hover { background: #455A64; }
+
+.bold-text { font-weight: bold; }

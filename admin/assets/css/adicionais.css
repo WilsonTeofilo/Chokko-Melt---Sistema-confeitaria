@@ -1,0 +1,11 @@
+/* =========================================
+   MODAL ADICIONAL (Painel Admin)
+   ========================================= */
+
+#modal-novo-adicional .modal-content {
+    width: 400px;
+}
+
+#modal-novo-adicional .form-group {
+    margin-bottom: 20px;
+}

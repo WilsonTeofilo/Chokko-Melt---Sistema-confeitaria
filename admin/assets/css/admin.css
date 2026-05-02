@@ -2,7 +2,7 @@
     --marrom: #4E342E;
     --bege-bg: #F5F5F5;
     --branco: #FFFFFF;
-    --rosa-chokko: #D32F2F;
+    --rosa-chokko: #E7A1B0;
     --texto: #424242;
     --cor-pendente: #FB8C00;
     --cor-aceito: #43A047;
@@ -12,6 +12,8 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
 body { background-color: var(--bege-bg); color: var(--texto); }
+
+.required { color: #E53935; font-weight: bold; margin-left: 2px; }
 
 /* HEADER COM CONTRASTE BRANCO */
 .top-header {
@@ -49,8 +51,17 @@ body { background-color: var(--bege-bg); color: var(--texto); }
 .side-link:hover:not(.active) { background-color: #f8f8f8; padding-left: 35px; color: var(--marrom); }
 .side-link.active { background-color: var(--marrom); color: white !important; }
 
+/* AREA DE BEM VINDO */
+.welcome-area { margin-bottom: 30px; }
+.welcome-area h1 { font-size: 2rem; color: var(--marrom); margin-bottom: 5px; }
+.welcome-area p { color: #666; font-size: 1rem; }
+
 /* CARDS COM TRANSITION SUTIL */
-.admin-content { flex: 1; padding: 40px; }
+.admin-content { 
+    flex: 1; 
+    padding: 40px; 
+    min-width: 0; /* TRUQUE FLEXBOX: Impede que filhos como tabelas estourem a largura da tela no mobile */
+}
 
 .metrics-container {
     display: grid;
@@ -102,3 +113,109 @@ body { background-color: var(--bege-bg); color: var(--texto); }
     padding: 8px 16px; border-radius: 4px; cursor: pointer; transition: 0.3s;
 }
 .btn-action-accept:hover { background: var(--rosa-chokko); }
+
+/* =========================================
+   RESPONSIVIDADE GERAL (TABLETS E MOBILE)
+   ========================================= */
+
+@media (max-width: 992px) {
+    .metrics-container {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    /* O Layout flex horizontal vira coluna (sidebar em cima, content em baixo) */
+    .admin-layout {
+        flex-direction: column;
+    }
+
+    /* Sidebar vira um menu horizontal rolável no topo */
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        padding: 10px;
+        overflow-x: auto;
+        white-space: nowrap; /* Impede quebra de linha dos botões de menu */
+        background: var(--branco);
+        position: sticky;
+        top: 75px; /* Altura do header */
+        z-index: 999;
+    }
+
+    .sidebar nav {
+        display: flex;
+        gap: 10px;
+    }
+
+    .side-link {
+        padding: 12px 20px;
+        border-radius: 8px;
+    }
+
+    .side-link:hover:not(.active) { 
+        padding-left: 20px; /* Anula o padding de hover no mobile para nao "pular" */
+        background-color: #f8f8f8; 
+    }
+
+    /* Reduz paddings internos gerais */
+    .admin-content {
+        padding: 20px 15px;
+    }
+    
+    .top-header {
+        padding: 0 20px;
+    }
+
+    .admin-title {
+        font-size: 1.5rem;
+    }
+
+    /* Força rolagem horizontal nas tabelas para nao quebrar a tela */
+    .table-wrapper {
+        padding: 15px;
+        overflow-x: auto; /* IMPORTANTE: Deixa a tabela scrollável */
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        max-width: 100vw;
+    }
+
+    .admin-table {
+        min-width: 700px; /* Garante que a tabela tenha um tamanho mínimo antes de gerar scroll */
+    }
+
+    /* Modais fluidos na tela pequena */
+    .modal-content {
+        width: 95% !important;
+        max-width: 95% !important;
+        margin: 20px auto;
+        padding: 20px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .metrics-container {
+        grid-template-columns: 1fr; /* Um card embaixo do outro em tela de cel */
+    }
+    
+    .top-header {
+        padding: 0 10px;
+    }
+
+    .admin-title {
+        font-size: 1.2rem;
+    }
+    
+    /* Botões da tabela aproveitam o scroll horizontal, não precisam empilhar apertados */
+    .acoes-pedido {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .btn-action-accept {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+}
+

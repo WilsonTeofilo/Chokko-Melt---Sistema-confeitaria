@@ -1,0 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lily+Script+One&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: url('../photos/fundo.png');
+    background-size: cover;
+    background-position: center;
+    background-color: #4E342E;
+    padding: 20px;
+}
+
+/* Botões de "criar conta" e do ícone */
+.btn-default {
+    background-color: #4E342E;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffffff;
+    cursor: pointer;
+    height: fit-content;
+    gap: 8px;
+    transition: 0.3s;
+}
+
+.btn-default:hover {
+    background-color: #9b3f21;
+    border: 2px solid rgba(255, 255, 255, .3);
+}
+
+/* Todo o conteúdo */
+#form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%;
+    width: 100%;
+    max-width: 420px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, .3);
+    border-radius: 10px;
+    color: #000000;
+    padding: 30px 40px;
+    box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+#form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#form-title {
+    font-family: "Lily Script One", cursive;
+    font-weight: 100;
+    position: relative;
+    font-size: 40px;
+    text-align: center;
+    color: #4E342E;
+}
+
+/* Linha embaixo de Criar Conta */
+#form-title::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    max-width: 200px;
+    height: 3px;
+    border-radius: 50px;
+    background-color: #9b3f21;
+    left: 0;
+    bottom: -5px;
+}
+
+#form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    height: 100%;
+}
+
+/* Container de inputs */
+#input_container {
+    display: grid;
+    gap: 15px;
+}
+
+/* Labels */
+.form-label {
+    font-size: 15px;
+    color: #000000;
+    font-weight: 600;
+    margin-bottom: 5px;
+    display: inline-block;
+}
+
+/* Container do input */
+.input-box {
+    width: 100%;
+}
+
+.input-field {
+    display: flex;
+    align-items: center;
+    border-radius: 8px;
+    background-color: rgba(255,255,255,0.4);
+    padding: 0 10px;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.input-field input {
+    padding: 10px;
+    width: 100%;
+    border: none;
+    background: transparent;
+    outline: none;
+}
+
+.input-field i {
+    color: #4E342E;
+    font-size: 16px;
+    width: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+/* Radios de Gênero */
+.radio-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#gender-inputs {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.radio-box {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Responsividade extra */
+@media (max-width: 480px) {
+    #form-container {
+        padding: 30px 20px;
+    }
+    #form-title {
+        font-size: 32px;
+    }
+}

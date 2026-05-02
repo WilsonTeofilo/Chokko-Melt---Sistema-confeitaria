@@ -1,0 +1,197 @@
+/* =========================================
+   FINALIZAR.CSS
+   Estilos exclusivos da tela de finalização
+   ========================================= */
+
+/* ── Botão Trocar endereço ── */
+.btn-trocar-end {
+    background: none;
+    border: 1.5px solid var(--marrom);
+    color: var(--marrom);
+    font-size: .78rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.btn-trocar-end:hover {
+    background: var(--marrom);
+    color: #fff;
+}
+
+/* ── Opções de pagamento ── */
+.pay-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--cinza-claro);
+    cursor: pointer;
+    transition: var(--transition);
+}
+.pay-option:hover { background: transparent; opacity: .85; }
+
+/* ═══════════════════════════════════════════
+   BOTTOM SHEET — Selecionar Endereço
+   ═══════════════════════════════════════════ */
+
+/* Overlay escuro atrás do sheet */
+.sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .28s ease;
+}
+.sheet-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Sheet em si — sobe de baixo */
+.sheet {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    z-index: 201;
+    transform: translateY(100%);
+    transition: transform .32s cubic-bezier(.4,0,.2,1);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+.sheet.active {
+    transform: translateY(0);
+}
+
+/* Alça visual */
+.sheet-handle {
+    width: 40px; height: 4px;
+    background: var(--cinza-claro);
+    border-radius: 2px;
+    margin: 12px auto 0;
+    flex-shrink: 0;
+}
+
+/* Header do sheet */
+.sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--cinza-claro);
+}
+.sheet-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--cinza-texto);
+}
+.sheet-close {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    color: var(--cinza-medio);
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    transition: var(--transition);
+}
+.sheet-close:hover { color: var(--cinza-texto); }
+
+/* Body do sheet — scroll se tiver muitos endereços */
+.sheet-body {
+    overflow-y: auto;
+    flex: 1;
+    padding: 8px 0;
+}
+
+/* Cada opção de endereço */
+.addr-option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: background .15s;
+    border-bottom: 1px solid var(--cinza-claro);
+    position: relative;
+}
+.addr-option:last-child { border-bottom: none; }
+.addr-option:hover { background: var(--bg); }
+
+/* Selecionado */
+.addr-option--selected { background: #FFF8F4; }
+.addr-option--selected .addr-apelido { color: var(--marrom); }
+
+/* Ícone emoji */
+.addr-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+}
+
+/* Textos */
+.addr-info { flex: 1; min-width: 0; }
+.addr-apelido {
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--cinza-texto);
+}
+.addr-rua, .addr-bairro {
+    font-size: .76rem;
+    color: var(--cinza-medio);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Check de selecionado */
+.addr-check {
+    font-size: 1.1rem;
+    color: var(--cinza-claro);
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.addr-option--selected .addr-check {
+    color: var(--marrom);
+}
+
+/* Footer do sheet */
+.sheet-footer {
+    padding: 14px 20px 20px;
+    border-top: 1px solid var(--cinza-claro);
+    flex-shrink: 0;
+}
+
+/* Desktop: sheet vira modal centralizado */
+@media (min-width: 720px) {
+    .sheet {
+        max-width: 480px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%) translateY(100%);
+        border-radius: 16px;
+        bottom: auto;
+        top: 50%;
+        transform: translateX(-50%) translateY(-50%) scale(.96);
+        opacity: 0;
+        transition: opacity .25s ease, transform .25s ease;
+        max-height: 85vh;
+    }
+    .sheet.active {
+        transform: translateX(-50%) translateY(-50%) scale(1);
+        opacity: 1;
+    }
+    .sheet-handle { display: none; }
+}

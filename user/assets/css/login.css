@@ -1,0 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lily+Script+One&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3 {
+    font-family: "Lily Script One", cursive;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: url('../photos/8.png') center/cover no-repeat;
+    background-color: #4E342E;
+    color: #333;
+    padding: 20px;
+}
+
+/* Container do Form */
+.container {
+    width: 100%;
+    max-width: 420px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    color: #000000;
+    padding: 30px 40px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.container h1 {
+    font-size: 40px;
+    text-align: center;
+    color: #4E342E;
+    margin-bottom: 20px;
+}
+
+/* Inputs */
+.input-box {
+    position: relative;
+    width: 100%;
+    height: 50px;
+    margin: 20px 0;
+}
+
+.input-box input {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 40px;
+    outline: none;
+    font-size: 16px;
+    color: #000;
+    padding: 20px 45px 20px 20px;
+    transition: 0.3s;
+}
+
+.input-box input:focus {
+    border-color: #4E342E;
+    background-color: rgba(255,255,255,0.2);
+}
+
+.input-box i {
+    position: absolute;
+    right: 20px;
+    font-size: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #4E342E;
+}
+
+/* Lembrar senha */
+.remember-forgot {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    color: #4E342E;
+    margin: -5px 0 15px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.remember-forgot label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.remember-forgot label input {
+    accent-color: #9b3f21;
+    margin-right: 5px;
+}
+
+.remember-forgot a {
+    text-decoration: none;
+    color: #4E342E;
+}
+
+.remember-forgot a:hover {
+    text-decoration: underline;
+}
+
+/* Botão de Login */
+.login {
+    color: white;
+    margin-top: 10px;
+    width: 100%;
+    height: 50px;
+    background-color: #4E342E;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+    transition: 0.3s;
+}
+
+.login:hover {
+    background-color: #9b3f21;
+}
+
+/* Link de Registro */
+.register-link {
+    font-size: 14px;
+    text-align: center;
+    margin: 20px 0 10px;
+}
+
+.register-link a {
+    text-decoration: none;
+    color: #9b3f21;
+    font-weight: 600;
+}
+.register-link a:hover {
+    text-decoration: underline;
+}
+
+/* Responsividade extra */
+@media (max-width: 480px) {
+    .container {
+        padding: 30px 20px;
+    }
+    .container h1 {
+        font-size: 32px;
+    }
+}

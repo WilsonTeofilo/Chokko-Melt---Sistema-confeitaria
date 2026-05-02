@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dicionário de Dados — Chokko Melt</title>
+  <style>
+    :root {
+      --marrom: #4E342E;
+      --rosa: #E7A1B0;
+      --fundo: #FAF7F5;
+      --texto: #424242;
+      --borda: #E0E0E0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: var(--texto);
+      line-height: 1.55;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 12mm 16mm 20mm;
+      background: #fff;
+      font-size: 10.5pt;
+    }
+    h1 {
+      color: var(--marrom);
+      font-size: 22pt;
+      margin: 0 0 8px;
+      border-bottom: 3px solid var(--rosa);
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: var(--marrom);
+      font-size: 14pt;
+      margin: 28px 0 10px;
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 11.5pt;
+      color: #5D4037;
+      margin: 18px 0 8px;
+      page-break-after: avoid;
+    }
+    p { margin: 8px 0; }
+    .sub { color: #666; font-size: 10pt; margin-bottom: 20px; }
+    .caixa {
+      background: var(--fundo);
+      border: 1px solid var(--borda);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 12px 0;
+    }
+    .caixa strong { color: var(--marrom); }
+    table.dict {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 9.5pt;
+      page-break-inside: avoid;
+    }
+    table.dict th, table.dict td {
+      border: 1px solid var(--borda);
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    table.dict th { background: #EFEBE9; color: var(--marrom); }
+    code { background: #f5f5f5; padding: 1px 5px; border-radius: 3px; font-size: 9pt; }
+    ul { margin: 8px 0; padding-left: 22px; }
+    li { margin: 4px 0; }
+    .rel {
+      font-family: Consolas, monospace;
+      font-size: 9pt;
+      background: #fff;
+      padding: 10px 12px;
+      border-left: 4px solid var(--marrom);
+      margin: 10px 0;
+      white-space: pre-wrap;
+    }
+    .page-break { page-break-before: always; }
+    @media print {
+      body { padding: 0; }
+      h2 { page-break-after: avoid; }
+      .no-print { display: none; }
+    }
+    .toc a { color: var(--marrom); text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    footer {
+      margin-top: 24px;
+      font-size: 9pt;
+      color: #888;
+      border-top: 1px solid var(--borda);
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <p class="no-print" style="background:#FFF3E0;padding:8px 12px;border-radius:6px;font-size:9.5pt;">
+    <strong>PDF:</strong> no navegador, use <kbd>Ctrl+P</kbd> → “Salvar como PDF”, ou use o arquivo <code>gerar_pdf_dicionario.bat</code> na pasta <code>database</code> (se o Edge estiver instalado).
+  </p>
+
+  <h1>Dicionário de Dados</h1>
+  <p class="sub"><strong>Sistema:</strong> Chokko Melt — gestão de pedidos para confeitaria<br>
+  <strong>Público:</strong> quem está começando em programação e banco de dados<br>
+  <strong>Versão do modelo:</strong> alinhada ao script <code>chokko_melt.sql</code></p>
+
+  <h2 id="sumario">Sumário</h2>
+  <ul class="toc">
+    <li><a href="#sec1">1. O que é um banco de dados (do jeito mais simples)</a></li>
+    <li><a href="#sec2">2. Palavras que você vai ver em todo lugar</a></li>
+    <li><a href="#sec3">3. Por que o modelo é assim (ideia geral do Chokko Melt)</a></li>
+    <li><a href="#sec4">4. Mapa das tabelas e quem “conversa” com quem</a></li>
+    <li><a href="#sec5">5. Dicionário tabela a tabela</a></li>
+    <li><a href="#sec6">6. Um pedido do início ao fim (passo a passo mental)</a></li>
+    <li><a href="#sec7">7. Glossário rápido</a></li>
+  </ul>
+
+  <h2 id="sec1">1. O que é um banco de dados (do jeito mais simples)</h2>
+  <p>Imagine uma <strong>planilha</strong> que salva informações de verdade: clientes, produtos, pedidos. Só que, em vez de uma planilha gigante e bagunçada, a gente divide em <strong>várias tabelas menores</strong>, cada uma com um assunto.</p>
+  <div class="caixa">
+    <strong>Por quê?</strong> Porque assim não repete o mesmo dado dez vezes, não mistura “cadastro de pessoa” com “linha de compra”, e o sistema continua rápido e organizado quando crescer.
+  </div>
+  <p>Cada <strong>tabela</strong> tem:</p>
+  <ul>
+    <li><strong>Linhas</strong> = cada registro (ex.: um cliente, um produto).</li>
+    <li><strong>Colunas</strong> = os campos (ex.: nome, e-mail, preço).</li>
+  </ul>
+
+  <h2 id="sec2">2. Palavras que você vai ver em todo lugar</h2>
+  <table class="dict">
+    <thead><tr><th>Termo</th><th>O que significa</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Tabela</strong></td><td>Uma “folha” com um tema (ex.: <code>cliente</code> guarda só dados de cliente).</td></tr>
+      <tr><td><strong>Chave primária (PK)</strong></td><td>Identificador único da linha. Ex.: <code>id_cliente</code>. Nunca se repete dentro daquela tabela.</td></tr>
+      <tr><td><strong>Chave estrangeira (FK)</strong></td><td>Uma coluna que aponta para a PK de outra tabela. Ex.: pedido guarda <code>id_cliente</code> para dizer “este pedido é deste cliente”.</td></tr>
+      <tr><td><strong>Integridade referencial</strong></td><td>O banco garante que você não associe um pedido a um cliente que não existe. É o papel das FK.</td></tr>
+      <tr><td><strong>Relacionamento 1:N</strong></td><td>Um cliente tem vários endereços; cada endereço pertence a um cliente.</td></tr>
+      <tr><td><strong>Relacionamento N:N</strong></td><td>Muitos produtos podem ter muitos adicionais. A tabela no meio (<code>produto_adicional</code>) resolve isso.</td></tr>
+      <tr><td><strong>ENUM</strong></td><td>Lista fixa de valores permitidos (ex.: formas de pagamento). Ajuda a evitar erro de digitação.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec3">3. Por que o modelo é assim (ideia geral do Chokko Melt)</h2>
+  <p>O sistema vende doces pela internet/local. Precisa guardar:</p>
+  <ul>
+    <li><strong>Quem vende/controla:</strong> <code>usuario</code> (admin/funcionário).</li>
+    <li><strong>Quem compra:</strong> <code>cliente</code> (com login normal ou Google).</li>
+    <li><strong>Onde entregar:</strong> <code>endereco</code>.</li>
+    <li><strong>O que vende:</strong> <code>categoria</code>, <code>produto</code>, opcionalmente <code>adicional</code>.</li>
+    <li><strong>Carrinho antes de fechar compra:</strong> <code>carrinho</code>, <code>item_carrinho</code>, <code>item_carrinho_adicional</code>.</li>
+    <li><strong>Pedido fechado:</strong> <code>pedido</code>, <code>item_pedido</code>, <code>item_pedido_adicional</code>, <code>status_pedido</code>.</li>
+    <li><strong>Pagamento (sem gateway online obrigatório):</strong> <code>pagamento</code>, <code>status_pagamento</code> (+ troco em dinheiro).</li>
+    <li><strong>Regras da loja:</strong> <code>config_loja</code> (horário, WhatsApp opcional).</li>
+    <li><strong>Satisfação:</strong> <code>avaliacao</code> ligada ao pedido.</li>
+  </ul>
+
+  <h2 id="sec4">4. Mapa das tabelas e quem “conversa” com quem</h2>
+  <div class="rel"><strong>categoria</strong> 1 ——► N <strong>produto</strong>
+<strong>produto</strong> N ——► N <strong>adicional</strong>  (tabela de ligação: <strong>produto_adicional</strong>)
+
+<strong>cliente</strong> 1 ——► N <strong>endereco</strong>
+<strong>cliente</strong> 1 ——► 1 <strong>carrinho</strong>  (único carrinho por cliente no modelo)
+<strong>carrinho</strong> 1 ——► N <strong>item_carrinho</strong> ——► <strong>produto</strong>
+<strong>item_carrinho</strong> 1 ——► N <strong>item_carrinho_adicional</strong> ——► <strong>adicional</strong>
+
+<strong>cliente</strong> 1 ——► N <strong>pedido</strong>
+<strong>pedido</strong> ——► <strong>status_pedido</strong> (situação do pedido)
+<strong>pedido</strong> ——► <strong>usuario</strong> opcional (quem atendeu/processou na loja)
+<strong>pedido</strong> ——► <strong>endereco</strong> opcional (delivery pode precisar; retirada pode não usar)
+<strong>pedido</strong> 1 ——► N <strong>item_pedido</strong> ——► <strong>produto</strong>
+<strong>item_pedido</strong> 1 ——► N <strong>item_pedido_adicional</strong> ——► <strong>adicional</strong>
+
+<strong>pedido</strong> 1 ——► N <strong>pagamento</strong> ——► <strong>status_pagamento</strong>
+<strong>pedido</strong> 0..1 ——► 1 <strong>avaliacao</strong>  (um pedido, no máximo uma avaliação)
+
+<strong>config_loja</strong> (geralmente 1 linha só: horário e taxa padrão)</div>
+
+  <div class="page-break"></div>
+  <h2 id="sec5">5. Dicionário tabela a tabela</h2>
+  <p>Cada bloco abaixo descreve <strong>para que serve</strong> a tabela e <strong>cada campo</strong>. Tipos estão no estilo MySQL.</p>
+
+  <h3>5.1 <code>status_pedido</code></h3>
+  <p><strong>Função:</strong> catálogo dos estados possíveis de um pedido (pendente, aceito, em preparo, etc.). O pedido aponta para um <code>id_status_pedido</code>.</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_status_pedido</code></td><td>INT, PK, auto</td><td>Número interno do status.</td></tr>
+      <tr><td><code>descricao</code></td><td>ENUM</td><td>Texto fixo: PENDENTE, ACEITO, EM_PREPARO, ENVIADO, ENTREGUE, CANCELADO_CLIENTE, CANCELADO_LOJA.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.2 <code>status_pagamento</code></h3>
+  <p><strong>Função:</strong> catálogo do estado financeiro do pagamento (pendente, pago, etc.). Separa “pedido na cozinha” de “dinheiro recebido”.</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_status_pagamento</code></td><td>INT, PK</td><td>Identificador do status de pagamento.</td></tr>
+      <tr><td><code>descricao</code></td><td>ENUM</td><td>PENDENTE, PAGO, CANCELADO, REEMBOLSADO.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.3 <code>config_loja</code></h3>
+  <p><strong>Função:</strong> dados globais da loja: horário de funcionamento e opções úteis (WhatsApp, taxa padrão). Evita ficar mudando só no código.</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_config</code></td><td>TINYINT, PK</td><td>Normalmente só existe a linha 1.</td></tr>
+      <tr><td><code>hora_abre</code> / <code>hora_fecha</code></td><td>TIME</td><td>Início e fim do atendimento (ex.: 15h–22h).</td></tr>
+      <tr><td><code>whatsapp</code></td><td>VARCHAR</td><td>Número para contato (opcional).</td></tr>
+      <tr><td><code>taxa_entrega_padrao</code></td><td>DECIMAL</td><td>Valor de referência da taxa (o pedido pode copiar/usar).</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.4 <code>usuario</code></h3>
+  <p><strong>Função:</strong> quem trabalha no painel (ADMIN ou FUNCIONARIO). Opcionalmente pode ter login Google no futuro.</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_usuario</code></td><td>INT, PK</td><td>Identificação do funcionário/admin.</td></tr>
+      <tr><td><code>nome</code>, <code>email</code>, <code>telefone</code></td><td>TEXTO</td><td>Dados de contato únicos onde marcado UNIQUE.</td></tr>
+      <tr><td><code>senha</code></td><td>VARCHAR(255)</td><td>Hash da senha; pode ser NULL se usar só Google (<code>auth_provider</code>).</td></tr>
+      <tr><td><code>tipo_usuario</code></td><td>ENUM</td><td>ADMIN ou FUNCIONARIO.</td></tr>
+      <tr><td><code>root</code></td><td>BOOLEAN</td><td>Superusuário (dono).</td></tr>
+      <tr><td><code>auth_provider</code></td><td>ENUM</td><td>LOCAL ou GOOGLE.</td></tr>
+      <tr><td><code>google_subject</code></td><td>VARCHAR</td><td>ID estável da conta Google (único).</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.5 <code>cliente</code></h3>
+  <p><strong>Função:</strong> quem compra no site. Pode ter senha local ou conta Google; CPF opcional para nota.</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_cliente</code></td><td>INT, PK</td><td>Identificador do cliente.</td></tr>
+      <tr><td><code>nome_cliente</code></td><td>VARCHAR</td><td>Nome exibido.</td></tr>
+      <tr><td><code>email</code>, <code>telefone</code></td><td>VARCHAR</td><td>Login / contato (únicos).</td></tr>
+      <tr><td><code>senha</code></td><td>VARCHAR</td><td>Hash; NULL se Google.</td></tr>
+      <tr><td><code>auth_provider</code></td><td>ENUM</td><td>LOCAL ou GOOGLE.</td></tr>
+      <tr><td><code>google_subject</code></td><td>VARCHAR</td><td>Identificador Google (único).</td></tr>
+      <tr><td><code>cpf</code></td><td>VARCHAR(14)</td><td>CPF normalizado ou formatado (único se preenchido).</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.6 <code>endereco</code></h3>
+  <p><strong>Função:</strong> endereços do cliente. Um cliente pode ter vários.</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_endereco</code></td><td>INT, PK</td><td>ID do endereço.</td></tr>
+      <tr><td><code>rua</code>, <code>numero</code>, <code>complemento</code>, <code>bairro</code>, <code>cep</code></td><td>VARCHAR</td><td>Partes do endereço.</td></tr>
+      <tr><td><code>ponto_referencia</code></td><td>VARCHAR</td><td>Ajuda o entregador (opcional).</td></tr>
+      <tr><td><code>id_cliente</code></td><td>INT, FK</td><td>Dono do endereço.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.7 <code>categoria</code></h3>
+  <p><strong>Função:</strong> agrupar produtos no cardápio (ex.: bolos de pote).</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_categoria</code></td><td>INT, PK</td><td>ID da categoria.</td></tr>
+      <tr><td><code>nome</code></td><td>VARCHAR(50), UNIQUE</td><td>Nome único para não duplicar no painel.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.8 <code>adicional</code></h3>
+  <p><strong>Função:</strong> lista de extras (cobertura, calda, etc.) com preço e custo opcional para lucro.</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_adicional</code></td><td>INT, PK</td><td>ID do extra.</td></tr>
+      <tr><td><code>nome</code></td><td>VARCHAR, UNIQUE</td><td>Nome do adicional.</td></tr>
+      <tr><td><code>preco</code></td><td>DECIMAL</td><td>Preço atual de venda do extra.</td></tr>
+      <tr><td><code>custo</code></td><td>DECIMAL</td><td>Custo de compra/preparação do extra (para margem).</td></tr>
+      <tr><td><code>ativo</code></td><td>BOOLEAN</td><td>Se aparece ou não nas escolhas.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.9 <code>produto</code></h3>
+  <p><strong>Função:</strong> item vendável na loja.</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_produto</code></td><td>INT, PK</td><td>ID do produto.</td></tr>
+      <tr><td><code>nome</code>, <code>descricao</code>, <code>imagem</code></td><td>VARCHAR</td><td>Vitrine do produto.</td></tr>
+      <tr><td><code>disponibilidade</code></td><td>BOOLEAN</td><td>“Congelar” produto sem apagar linha.</td></tr>
+      <tr><td><code>preco</code></td><td>DECIMAL</td><td>Preço de venda.</td></tr>
+      <tr><td><code>custo_compra</code></td><td>DECIMAL</td><td>Custo base (margem).</td></tr>
+      <tr><td><code>id_categoria</code></td><td>INT, FK</td><td>Categoria do produto.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.10 <code>produto_adicional</code></h3>
+  <p><strong>Função:</strong> dizer quais extras cada produto aceita (relação N:N).</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_produto</code></td><td>INT, PK+FK</td><td>Produto.</td></tr>
+      <tr><td><code>id_adicional</code></td><td>INT, PK+FK</td><td>Adicional permitido.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="page-break"></div>
+
+  <h3>5.11 <code>pedido</code></h3>
+  <p><strong>Função:</strong> “cabecinha” da compra: total, tipo de entrega, status, cliente, opcionalmente endereço e funcionário.</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_pedido</code></td><td>INT, PK</td><td>Número do pedido.</td></tr>
+      <tr><td><code>data_hora</code></td><td>TIMESTAMP</td><td>Quando foi criado.</td></tr>
+      <tr><td><code>valor_total</code></td><td>DECIMAL</td><td>Valor final cobrido.</td></tr>
+      <tr><td><code>subtotal</code>, <code>custo_total</code>, <code>lucro</code></td><td>DECIMAL</td><td>Opcionais: facilitam relatório de lucro sem recalcular tudo sempre.</td></tr>
+      <tr><td><code>observacao</code></td><td>VARCHAR</td><td>Mensagem geral ao restaurante.</td></tr>
+      <tr><td><code>tipo_entrega</code></td><td>ENUM</td><td>DELIVERY (leva), RETIRADA (busca), LOCAL (come na loja).</td></tr>
+      <tr><td><code>taxa_entrega</code></td><td>DECIMAL</td><td>Taxa aplicada naquele pedido.</td></tr>
+      <tr><td><code>cpf_nota</code></td><td>VARCHAR</td><td>CPF pedido na nota naquele pedido (snapshot).</td></tr>
+      <tr><td><code>motivo_cancelamento</code></td><td>VARCHAR</td><td>Texto se cancelado.</td></tr>
+      <tr><td><code>cancelado_por</code></td><td>ENUM</td><td>CLIENTE ou ADMIN.</td></tr>
+      <tr><td><code>cancelado_em</code></td><td>TIMESTAMP</td><td>Quando cancelou.</td></tr>
+      <tr><td><code>id_usuario</code></td><td>INT, FK</td><td>Quem processou (opcional).</td></tr>
+      <tr><td><code>id_status_pedido</code></td><td>INT, FK</td><td>Estágio do pedido.</td></tr>
+      <tr><td><code>id_cliente</code></td><td>INT, FK</td><td>Quem comprou.</td></tr>
+      <tr><td><code>id_endereco</code></td><td>INT, FK</td><td>Onde entregar (pode ser NULL se não precisar).</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.12 <code>item_pedido</code></h3>
+  <p><strong>Função:</strong> uma linha por produto dentro do pedido, com quantidade e preços/custos capturados na hora.</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_item_pedido</code></td><td>INT, PK</td><td>ID da linha.</td></tr>
+      <tr><td><code>preco_unitario</code></td><td>DECIMAL</td><td>Preço por unidade no momento da venda.</td></tr>
+      <tr><td><code>quantidade</code></td><td>INT</td><td>Quantidade.</td></tr>
+      <tr><td><code>custo_unitario</code></td><td>DECIMAL</td><td>Custo por unidade no momento (lucro por item).</td></tr>
+      <tr><td><code>observacao</code></td><td>VARCHAR</td><td>Observação do item (sem substituir o modelo de adicionais).</td></tr>
+      <tr><td><code>id_produto</code></td><td>INT, FK</td><td>Qual produto.</td></tr>
+      <tr><td><code>id_pedido</code></td><td>INT, FK</td><td>Qual pedido.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.13 <code>item_pedido_adicional</code></h3>
+  <p><strong>Função:</strong> extras escolhidos naquele item. Guarda “snapshot” (nome e preço na hora) para histórico fiel mesmo se o cadastro mudar depois.</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_item_pedido_adicional</code></td><td>INT, PK</td><td>ID da linha.</td></tr>
+      <tr><td><code>id_item_pedido</code></td><td>INT, FK</td><td>Item do pedido pai.</td></tr>
+      <tr><td><code>id_adicional</code></td><td>INT, FK, NULL?</td><td>Referência ao catálogo; snapshot preserva mesmo se produto mudar.</td></tr>
+      <tr><td><code>nome_snapshot</code></td><td>VARCHAR</td><td>Nome gravado na compra.</td></tr>
+      <tr><td><code>preco_unitario_snapshot</code></td><td>DECIMAL</td><td>Preço gravado na compra.</td></tr>
+      <tr><td><code>custo_unitario_snapshot</code></td><td>DECIMAL</td><td>Custo do extra na compra (margem).</td></tr>
+      <tr><td><code>quantidade</code></td><td>INT</td><td>Qtd do mesmo extra no item.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.14 <code>avaliacao</code></h3>
+  <p><strong>Função:</strong> nota e comentário do cliente sobre um pedido entregue. Um pedido → no máximo uma avaliação (UNIQUE em <code>id_pedido</code>).</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_avaliacao</code></td><td>INT, PK</td><td>ID.</td></tr>
+      <tr><td><code>estrelas</code></td><td>INT</td><td>1 a 5.</td></tr>
+      <tr><td><code>comentarios</code></td><td>VARCHAR</td><td>Texto livre.</td></tr>
+      <tr><td><code>id_pedido</code></td><td>INT, FK, UNIQUE</td><td>Pedido avaliado.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.15 <code>carrinho</code></h3>
+  <p><strong>Função:</strong> sacola aberta do cliente antes de virar pedido. Uma linha por cliente (UNIQUE <code>id_cliente</code>).</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_carrinho</code></td><td>INT, PK</td><td>ID do carrinho.</td></tr>
+      <tr><td><code>id_cliente</code></td><td>INT, FK, UNIQUE</td><td>Dono.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.16 <code>item_carrinho</code> e <code>item_carrinho_adicional</code></h3>
+  <p><strong>Função:</strong> mesmo papel de <code>item_pedido</code> / <code>item_pedido_adicional</code>, mas enquanto ainda está no carrinho.</p>
+
+  <h3>5.17 <code>pagamento</code></h3>
+  <p><strong>Função:</strong> registrar como vai pagar / pagou. Inclui campos extras para dinheiro na entrega.</p>
+  <table class="dict">
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_pagamento</code></td><td>INT, PK</td><td>ID.</td></tr>
+      <tr><td><code>data_hora</code></td><td>TIMESTAMP</td><td>Registro da transação/info.</td></tr>
+      <tr><td><code>valor_pago</code></td><td>DECIMAL</td><td>Valor do pedido/registro esperado ou confirmado.</td></tr>
+      <tr><td><code>forma_pagamento</code></td><td>ENUM</td><td>PIX, DEBITO, CREDITO, DINHEIRO.</td></tr>
+      <tr><td><code>valor_entregue</code></td><td>DECIMAL</td><td>Quanto o cliente vai entregar em dinheiro.</td></tr>
+      <tr><td><code>troco</code></td><td>DECIMAL</td><td>Troco a devolver.</td></tr>
+      <tr><td><code>id_status_pagamento</code></td><td>INT, FK</td><td>Pendente/pago etc.</td></tr>
+      <tr><td><code>id_pedido</code></td><td>INT, FK</td><td>Pedido associado.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec6">6. Um pedido do início ao fim (passo a passo mental)</h2>
+  <ol>
+    <li>O <strong>cliente</strong> navega pelos <strong>produtos</strong> (e categorias). Se marcar extras, isso vira linhas no <strong>carrinho</strong> e <strong>item_carrinho_adicional</strong>.</li>
+    <li>Ao finalizar, o sistema cria um <strong>pedido</strong> com <code>id_status_pedido</code> = PENDENTE (ou o que sua regra definir), copia itens para <strong>item_pedido</strong> e extras para <strong>item_pedido_adicional</strong> (com snapshot).</li>
+    <li>Cria-se <strong>pagamento</strong> com forma (PIX, cartão, dinheiro) e, se dinheiro, preenche <code>valor_entregue</code> e <code>troco</code>.</li>
+    <li>O painel muda <strong>status_pedido</strong> (aceito, preparo, enviado, entregue) conforme a operação.</li>
+    <li>Se cancelar, preenche <code>motivo_cancelamento</code>, <code>cancelado_por</code>, <code>cancelado_em</code> e o status adequado na tabela de status.</li>
+    <li>Depois de entregue, o cliente pode deixar uma <strong>avaliacao</strong> ligada ao pedido.</li>
+  </ol>
+
+  <h2 id="sec7">7. Glossário rápido</h2>
+  <table class="dict">
+    <thead><tr><th>Termo</th><th>Lembra</th></tr></thead>
+    <tbody>
+      <tr><td>Snapshot</td><td>Cópia do preço/nome na hora da compra para o histórico não mentir quando o cadastro mudar.</td></tr>
+      <tr><td>N:N</td><td>Muitos para muitos; sempre tem uma tabela no meio (ex.: produto_adicional).</td></tr>
+      <tr><td>FK</td><td>“Este número aqui existe lá na outra tabela como ID.”</td></tr>
+      <tr><td>ENUM</td><td>“Só pode ser uma destas opções.” Menos erro que texto solto.</td></tr>
+    </tbody>
+  </table>
+
+  <footer>
+    Documento gerado para o projeto Chokko Melt. Imprima ou salve como PDF pelo navegador para entregar no TCC.
+  </footer>
+</body>
+</html>

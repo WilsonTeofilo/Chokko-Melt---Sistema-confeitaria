@@ -1,0 +1,567 @@
+/* ========================================
+   PEDIDOS.CSS
+   Lista de pedidos + Detalhes do pedido
+   ======================================== */
+
+/* ── Rótulo de seção (Em Andamento / Histórico) ── */
+.orders-section-label {
+    font-size: .74rem;
+    font-weight: 700;
+    color: var(--marrom);
+    letter-spacing: .9px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+/* ── Estado vazio ── */
+.orders-empty {
+    padding: 60px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.orders-empty i {
+    font-size: 3.5rem;
+    color: var(--cinza-claro);
+    margin-bottom: 16px;
+}
+.orders-empty p { color: var(--cinza-medio); font-size: .9rem; }
+
+/* ══════════════════════════════════════
+   CARD DE PEDIDO (lista)
+   ══════════════════════════════════════ */
+.order-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(0,0,0,.06);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 14px;
+    overflow: hidden;
+    transition: var(--transition);
+}
+.order-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+/* Borda lateral colorida por status */
+.order-card--active    { border-left: 4px solid var(--verde); }
+.order-card--cancelado { border-left: 4px solid var(--rosa-escuro); }
+
+/* ── Header do card ── */
+.order-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 16px 16px 10px;
+}
+.order-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.order-number {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--cinza-texto);
+}
+.order-date {
+    font-size: .74rem;
+    color: var(--cinza-medio);
+}
+
+/* ── Badges de status ── */
+.order-status {
+    font-size: .7rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    letter-spacing: .3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.order-status.em-producao  { background: #FFF8E1; color: #F57F17; }
+.order-status.aguardando   { background: #E3F2FD; color: #1565C0; }
+.order-status.saiu-entrega { background: #E8EAF6; color: #3949AB; }
+.order-status.entregue     { background: var(--verde-claro); color: var(--verde); }
+.order-status.cancelado    { background: #FFEBEE; color: var(--rosa-escuro); }
+
+/* ── Lista de itens (preview) ── */
+.order-items-preview {
+    list-style: none;
+    padding: 0 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.order-items-preview li {
+    font-size: .83rem;
+    color: var(--cinza-texto);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.order-items-preview li i {
+    font-size: .45rem;
+    color: var(--marrom);
+    flex-shrink: 0;
+}
+
+/* ── Motivo de cancelamento ── */
+.order-cancel-reason {
+    font-size: .78rem;
+    color: var(--rosa-escuro);
+    padding: 0 16px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ── Footer do card ── */
+.order-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-top: 1px solid var(--cinza-claro);
+    background: var(--bg);
+}
+.order-total {
+    font-size: .95rem;
+    font-weight: 800;
+    color: var(--marrom);
+}
+.order-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Botão "Ver detalhes" */
+.btn-detalhes {
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--marrom);
+    background: none;
+    border: 1.5px solid var(--marrom);
+    border-radius: var(--radius-full);
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: var(--transition);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.btn-detalhes:hover {
+    background: var(--marrom);
+    color: #fff;
+}
+.btn-detalhes i { font-size: .7rem; }
+
+/* Botão "Repetir" */
+.btn-repetir {
+    font-size: .8rem;
+    font-weight: 600;
+    color: #fff;
+    background: var(--marrom);
+    border: none;
+    border-radius: var(--radius-full);
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+.btn-repetir:hover { background: var(--marrom-dark); transform: translateY(-1px); }
+
+
+/* ══════════════════════════════════════
+   DETALHES DO PEDIDO — layout vertical
+   ══════════════════════════════════════ */
+
+/* ── Cabeçalho ── */
+.det-order-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 12px;
+}
+.det-order-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--cinza-texto);
+}
+.det-order-date {
+    font-size: .78rem;
+    color: var(--cinza-medio);
+    margin-top: 3px;
+}
+
+/* ── Label de seção dentro de detalhes ── */
+.det-section-label {
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--cinza-medio);
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+
+/* ══ TIMELINE VERTICAL (estilo Anota.ai) ══ */
+.det-timeline {
+    list-style: none;
+    position: relative;
+    padding: 0;
+    margin: 0 0 20px 0;
+    /* Linha vertical contínua atrás dos dots */
+}
+/* Linha vertical de conexão */
+.det-timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background: var(--cinza-claro);
+    border-radius: 1px;
+}
+
+.det-tl-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    position: relative;
+    padding-bottom: 20px;
+}
+.det-tl-step:last-child { padding-bottom: 0; }
+
+/* Dot */
+.det-tl-dot {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--cinza-claro);
+    color: var(--cinza-medio);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .65rem;
+    flex-shrink: 0;
+    z-index: 1;
+    position: relative;
+    transition: var(--transition);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px var(--cinza-claro);
+}
+
+/* Etapa concluída */
+.det-tl-step.done .det-tl-dot {
+    background: var(--marrom);
+    color: #fff;
+    box-shadow: 0 0 0 2px var(--marrom), 0 2px 8px rgba(78,52,46,.3);
+}
+/* Linha vertical fica colorida até a última etapa done */
+.det-tl-step.done::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 22px;
+    bottom: -20px;
+    width: 2px;
+    background: var(--marrom);
+    z-index: 0;
+}
+.det-tl-step:last-child::before { display: none; }
+
+/* Conteúdo ao lado do dot */
+.det-tl-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 2px;
+}
+.det-tl-label {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--cinza-medio);
+}
+.det-tl-step.done .det-tl-label { color: var(--cinza-texto); }
+
+.det-tl-time {
+    font-size: .75rem;
+    color: var(--cinza-medio);
+}
+.det-tl-step.done .det-tl-time { color: var(--marrom); font-weight: 600; }
+
+/* ── Blocos de info (entrega / pagamento) ── */
+.det-info-block { margin-bottom: 16px; }
+.det-info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-top: 4px;
+}
+.det-info-row > i {
+    font-size: 1.25rem;
+    color: var(--marrom);
+    margin-top: 2px;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+}
+.det-info-title {
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--cinza-texto);
+}
+.det-info-sub {
+    font-size: .76rem;
+    color: var(--cinza-medio);
+    margin-top: 3px;
+    line-height: 1.4;
+}
+
+/* ── Itens do pedido ── */
+.det-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 4px;
+}
+.det-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--cinza-claro);
+}
+.det-item:last-of-type { border-bottom: none; }
+
+.det-item-img {
+    width: 56px; height: 56px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.det-item-info { flex: 1; }
+.det-item-name {
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--cinza-texto);
+    line-height: 1.3;
+}
+.det-item-addons {
+    font-size: .76rem;
+    color: var(--cinza-medio);
+    margin-top: 3px;
+    font-style: italic;
+}
+.det-item-price {
+    font-size: .88rem;
+    font-weight: 700;
+    color: var(--marrom);
+    margin-top: 4px;
+}
+
+/* Caixa de observação */
+.det-obs-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-top: 10px;
+    font-size: .8rem;
+    color: var(--cinza-medio);
+    border: 1px dashed var(--cinza-claro);
+}
+.det-obs-box i { color: var(--marrom); flex-shrink: 0; margin-top: 1px; }
+
+/* ── Resumo financeiro ── */
+.det-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 4px;
+}
+.det-summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: .85rem;
+    color: var(--cinza-medio);
+    padding: 9px 0;
+    border-bottom: 1px solid var(--cinza-claro);
+}
+.det-summary-row:last-child { border-bottom: none; }
+
+.det-summary-desconto span:last-child { color: var(--verde); font-weight: 700; }
+
+.det-summary-total {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--cinza-texto);
+    padding-top: 12px;
+}
+.det-summary-total span:last-child { color: var(--marrom); }
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVIDADE DESKTOP
+   Centraliza e estiliza a página de detalhes e lista de pedidos
+   ══════════════════════════════════════════════════════════ */
+@media (min-width: 720px) {
+
+    /* ── Wrapper central para páginas de pedidos ── */
+    /* O PHP envolve o conteúdo em .page-pad que fica dentro do body */
+    /* No desktop: centraliza tudo num painel tipo "app card" */
+    body {
+        background: var(--bg);
+    }
+
+    /* Container geral de páginas subpages (Sacola, Pedidos, etc.) */
+    .page-pad {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 24px 28px;
+    }
+
+    /* Painel branco ao redor do conteúdo (card flutuante) */
+    .det-panel {
+        background: #fff;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 32px 36px;
+        margin-bottom: 20px;
+    }
+
+    /* (Removido: page-header centralizado para ficar no start/canto esquerdo) */
+
+    /* Wrapper externo do header para manter a cor de fundo full-width */
+    .page-header-wrap {
+        background: var(--marrom);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 12px rgba(0,0,0,.2);
+    }
+
+    /* ── Cabeçalho do pedido (número + botão) ── */
+    .det-order-head {
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--bg);
+        margin-bottom: 20px;
+    }
+    .det-order-title {
+        font-size: 1.3rem;
+    }
+    .det-order-date {
+        font-size: .85rem;
+    }
+    .btn-repetir {
+        padding: 10px 22px;
+        font-size: .88rem;
+    }
+
+    /* ── Timeline maior no desktop ── */
+    .det-timeline {
+        padding-left: 8px;
+    }
+    .det-tl-dot {
+        width: 26px; height: 26px;
+        font-size: .75rem;
+    }
+    .det-timeline::before {
+        left: 12px;
+    }
+    .det-tl-step.done::before {
+        left: 12px;
+    }
+    .det-tl-label {
+        font-size: .92rem;
+    }
+    .det-tl-time {
+        font-size: .82rem;
+    }
+
+    /* ── Label de seção estilizado no desktop (faixa cinza tipo Anota.ai) ── */
+    .det-section-label {
+        font-size: .78rem;
+        background: var(--bg);
+        padding: 10px 14px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 16px;
+        margin-left: -14px;
+        margin-right: -14px;
+        letter-spacing: .6px;
+    }
+
+    /* ── Blocos de info (entrega / pagamento) ── */
+    .det-info-row > i {
+        font-size: 1.4rem;
+    }
+    .det-info-title {
+        font-size: .95rem;
+    }
+    .det-info-sub {
+        font-size: .82rem;
+    }
+
+    /* ── Itens do pedido maiores no desktop ── */
+    .det-item-img {
+        width: 68px; height: 68px;
+        border-radius: var(--radius-md);
+    }
+    .det-item-name {
+        font-size: .95rem;
+    }
+    .det-item-price {
+        font-size: .95rem;
+    }
+
+    /* ── Resumo financeiro ── */
+    .det-summary-row {
+        font-size: .9rem;
+        padding: 11px 0;
+    }
+    .det-summary-total {
+        font-size: 1.1rem;
+    }
+
+    /* ── Cards da lista de pedidos no desktop ── */
+    .order-card {
+        border-radius: var(--radius-lg);
+    }
+    .order-card:hover {
+        transform: translateY(-3px);
+    }
+    .order-number {
+        font-size: 1.05rem;
+    }
+    .order-items-preview li {
+        font-size: .88rem;
+    }
+    .order-total {
+        font-size: 1.05rem;
+    }
+
+    /* Grid 2 colunas para histórico de pedidos quando tiver muitos */
+    /* Descomente se quiser ativar o layout 2 colunas:
+    .orders-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+    */
+}
+
+/* ── Desktop grande (1024px+) ── */
+@media (min-width: 1024px) {
+    .page-pad {
+        max-width: 720px;
+    }
+}

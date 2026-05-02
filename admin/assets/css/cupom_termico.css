@@ -1,0 +1,362 @@
+/**
+ * Cupom térmico — pré-visualização na tela e impressão 58mm / 80mm (recibo não fiscal).
+ */
+
+#print-cupom-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 4000;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+#print-cupom-modal.is-open {
+    display: flex;
+}
+
+.print-cupom-dialog {
+    background: #f5f0eb;
+    border-radius: 12px;
+    max-width: 420px;
+    width: 100%;
+    max-height: 92vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+.print-cupom-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--marrom, #5c3c27);
+    color: #fff;
+}
+
+.print-cupom-toolbar select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: none;
+    font-size: 0.85rem;
+    background: #fff;
+    color: #333;
+}
+
+.print-cupom-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+}
+
+.btn-print-go {
+    background: #fff;
+    color: var(--marrom, #5c3c27);
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.btn-print-go:hover {
+    background: #e8ddd4;
+}
+
+.btn-print-close {
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.print-cupom-body {
+    overflow: auto;
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.cupom-termico-sheet {
+    background: #fff;
+    color: #000;
+    font-family: "Consolas", "Courier New", Courier, monospace;
+    padding: 5mm 3mm 4mm;
+    margin-top: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+
+.cupom-termico-sheet[data-largura="80"] {
+    width: 80mm;
+    max-width: 100%;
+}
+
+.cupom-termico-sheet[data-largura="58"] {
+    width: 58mm;
+    max-width: 100%;
+}
+
+/* Pré-visualização A4/PDF — largura confortável na tela */
+.cupom-termico-sheet[data-largura="a4"] {
+    width: min(420px, 92vw);
+    max-width: 100%;
+    font-size: 13px;
+    padding: 10mm 8mm;
+}
+
+.cupom-termico-sheet[data-largura="a4"] .cupom-titulo {
+    font-size: 20px;
+    margin-top: 0;
+}
+
+.cupom-termico-sheet[data-largura="a4"] .cupom-subtitulo {
+    font-size: 11px;
+}
+
+.cupom-termico-sheet[data-largura="a4"] .cupom-linha,
+.cupom-termico-sheet[data-largura="a4"] table.cupom-itens-termico {
+    font-size: 12px;
+}
+
+.cupom-termico-sheet[data-largura="a4"] .cupom-total-row {
+    font-size: 15px;
+}
+
+table.cupom-itens-termico[data-largura="a4"] .col-desc {
+    width: 72%;
+}
+
+table.cupom-itens-termico[data-largura="a4"] .col-val {
+    width: 28%;
+}
+
+.cupom-titulo {
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    margin: 6px 0 4px;
+    padding-top: 2px;
+    text-transform: uppercase;
+}
+
+.cupom-subtitulo {
+    text-align: center;
+    font-size: 10px;
+    margin: 0 0 6px;
+    line-height: 1.2;
+}
+
+.cupom-divisor {
+    border: none;
+    border-top: 1px dashed #000;
+    margin: 6px 0;
+}
+
+.cupom-linha {
+    font-size: 10px;
+    line-height: 1.35;
+    margin: 2px 0;
+}
+
+.cupom-linha strong {
+    font-weight: 700;
+}
+
+.cupom-central {
+    text-align: center;
+    font-size: 10px;
+    margin: 8px 0 6px;
+    line-height: 1.35;
+}
+
+table.cupom-itens-termico {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+    table-layout: fixed;
+}
+
+table.cupom-itens-termico th,
+table.cupom-itens-termico td {
+    padding: 4px 0;
+    vertical-align: top;
+    border-bottom: 1px dotted #aaa;
+}
+
+table.cupom-itens-termico th {
+    font-weight: 700;
+    border-bottom: 1px solid #000;
+}
+
+table.cupom-itens-termico .col-desc {
+    word-break: break-word;
+}
+
+table.cupom-itens-termico[data-largura="80"] .col-desc {
+    width: 72%;
+}
+
+table.cupom-itens-termico[data-largura="80"] .col-val {
+    width: 28%;
+    text-align: right;
+    white-space: nowrap;
+}
+
+table.cupom-itens-termico[data-largura="58"] .col-desc {
+    width: 62%;
+}
+
+table.cupom-itens-termico[data-largura="58"] .col-val {
+    width: 38%;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.cupom-total-row {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 11px;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 2px solid #000;
+}
+
+.cupom-obs-multi {
+    font-size: 9px;
+    white-space: pre-wrap;
+    line-height: 1.25;
+}
+
+/* ── IMPRESSÃO: só cupom ──────────────────────────── */
+@media print {
+    @page {
+        margin: 0;
+        size: auto;
+    }
+
+    html,
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        height: auto !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Esconder tudo; reexibir apenas o overlay do cupom */
+    body * {
+        visibility: hidden !important;
+    }
+
+    #print-cupom-modal,
+    #print-cupom-modal * {
+        visibility: visible !important;
+    }
+
+    #print-cupom-modal {
+        display: flex !important;
+        position: fixed !important;
+        inset: 0 !important;
+        background: transparent !important;
+        padding: 0 !important;
+        backdrop-filter: none !important;
+    }
+
+    #print-cupom-modal.print-cupom-overlay,
+    #print-cupom-modal.modal-print-cupom-overlay {
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+    }
+
+    .print-cupom-dialog {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+        background: transparent !important;
+    }
+
+    .print-cupom-toolbar {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .print-cupom-body {
+        padding: 0 !important;
+        overflow: visible !important;
+        display: block !important;
+    }
+
+    .cupom-termico-sheet {
+        box-shadow: none !important;
+        padding: 2mm !important;
+        margin: 0 auto !important;
+        page-break-inside: avoid;
+    }
+
+    body.print-sheet-80 .cupom-termico-sheet {
+        width: 80mm !important;
+        max-width: 80mm !important;
+    }
+
+    body.print-sheet-58 .cupom-termico-sheet {
+        width: 58mm !important;
+        max-width: 58mm !important;
+    }
+
+    /* Microsoft Print to PDF / A4: ocupa boa parte da folha (bobina real = opções 58/80 mm) */
+    body.print-sheet-a4 .cupom-termico-sheet[data-largura="a4"] {
+        width: 88% !important;
+        max-width: 520px !important;
+        margin: 18mm auto 12mm !important;
+        padding: 12mm 14mm !important;
+        font-size: 12pt !important;
+    }
+
+    body.print-sheet-a4 .cupom-termico-sheet[data-largura="a4"] .cupom-titulo {
+        font-size: 20pt !important;
+        margin-top: 4mm !important;
+    }
+
+    body.print-sheet-a4 .cupom-termico-sheet[data-largura="a4"] .cupom-subtitulo {
+        font-size: 10pt !important;
+    }
+
+    body.print-sheet-a4 .cupom-termico-sheet[data-largura="a4"] .cupom-linha,
+    body.print-sheet-a4 .cupom-termico-sheet[data-largura="a4"] table.cupom-itens-termico {
+        font-size: 11pt !important;
+    }
+
+    body.print-sheet-a4 .cupom-termico-sheet[data-largura="a4"] .cupom-total-row {
+        font-size: 13pt !important;
+    }
+
+    #modal-detalhes-pedido,
+    #modal-cancelar-pedido,
+    #modal-sucesso {
+        display: none !important;
+        visibility: hidden !important;
+    }
+}
