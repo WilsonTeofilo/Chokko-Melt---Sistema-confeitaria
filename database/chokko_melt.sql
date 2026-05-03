@@ -112,7 +112,7 @@ INSERT INTO `usuario` (
 );
 
 /* =========================
-   cliente + Google + CPF
+   cliente + Google +
    ========================= */
 CREATE TABLE `cliente` (
   `id_cliente` INT NOT NULL AUTO_INCREMENT,
@@ -122,12 +122,10 @@ CREATE TABLE `cliente` (
   `telefone` VARCHAR(20) NOT NULL,
   `auth_provider` ENUM('LOCAL','GOOGLE') NOT NULL DEFAULT 'LOCAL',
   `google_subject` VARCHAR(191) NULL,
-  `cpf` VARCHAR(14) NULL,
   PRIMARY KEY (`id_cliente`),
   UNIQUE KEY `uk_cliente_email` (`email`),
   UNIQUE KEY `uk_cliente_telefone` (`telefone`),
-  UNIQUE KEY `uk_cliente_google_subject` (`google_subject`),
-  UNIQUE KEY `uk_cliente_cpf` (`cpf`)
+  UNIQUE KEY `uk_cliente_google_subject` (`google_subject`)
 ) ENGINE=InnoDB;
 
 /* =========================

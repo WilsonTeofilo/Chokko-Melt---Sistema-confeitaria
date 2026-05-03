@@ -31,7 +31,7 @@
             <span>Faturamento Bruto</span>
         </div>
     </div>
-    <div class="m-card" style="color: #2E7D32; border-color: #A5D6A7;">
+    <div class="m-card lucro-card">
         <i class="fa-solid fa-piggy-bank"></i>
         <div class="m-info">
             <strong>R$ 850,00</strong>

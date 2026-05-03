@@ -214,8 +214,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>`;
                     container.appendChild(div);
                 }
-            });
         });
+    }
+
+    // --- 3. LOGOUT ---
+    const btnLogout = document.getElementById('btn-logout');
+    if (btnLogout) {
+        btnLogout.addEventListener('click', () => {
+            localStorage.removeItem('chokko_usuario_id');
+            window.location.href = 'index.php';
+        });
+    }
+
+    // Fechar modal no botão X ou cancelar
+    const btnCancel = document.querySelector('.btn-cancel');
+    if (btnCancel) {
+        btnCancel.addEventListener('click', fecharModal);
     }
 });
 

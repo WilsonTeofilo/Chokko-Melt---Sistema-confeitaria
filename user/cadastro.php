@@ -9,34 +9,32 @@
     <title>CADASTRO</title>
 </head>
 <body>
-<?php
-/*
- * Cadastro sem JS dedicado: o botão só redireciona (mock). Em produção:
- *   • form method="post" action="cadastro.php" ou api/cadastro_cliente.php
- *   • PHP: validar e-mail único, password_hash, INSERT em cliente, sessão ou redirect login
- *   • Não confie em validação só no HTML — repita no servidor.
- * Guia JS↔PHP: INTEGRACAO_JS_PHP.txt (na raiz do projeto).
- */
-?>
+
 <main id="form-container">
-    <div id="form-header">
+ <div id="form-header">
         <h1 id="form-title">
             Criar Conta
         </h1>
-        <button class="btn-default" onclick="window.location.href='login.php'" >
+        <button class="btn-default" id="btn-back-login">
             <i class="fa-solid fa-right-to-bracket"></i>
         </button>
     </div>
-    <form action="" id="form">
+    
+<!-- FORMULÁRIO :-->
+    <form action="?page=CadastroUS" method="POST">
+        <input type="hidden" name="acao" value="cadastrar">
+
+        <!-- nome:-->
         <div id="input_container">
             <div class="input-box">
-                <label for="name" class="form-label">
-                    Primeiro Nome
-                </label>
+                <label for="nameJS" class="form-label">Primeiro Nome </label>
                 <div class="input-field">
-                    <input type="text" name="name" id="name" class="form-control" placeholder="Guilherme">
-                    <i class="fa-solid fa-user"></i>
+                    <input type="text" name="name" id="nameJS" class="form-control" placeholder="Guilherme" maxlength="30" required autocomplete="off"> 
+                    <i class="fa-solid fa-user" ></i>
                 </div>
+                    
+               
+              <!-- Sobrenome:-->
             </div>
             <div class="input-box">
                 <label for="last_name" class="form-label">
@@ -47,14 +45,8 @@
                     <i class="fa-solid fa-user"></i>
                 </div>
             </div>
-            <div class="input-box">
-                <label for="nascimento" class="form-label">
-                    Nascimento
-                </label>
-                <div class="input-field">
-                    <input type="date" name="nascimento" id="nascimento" class="form-control">
-                </div>
-            </div>
+            
+        
             <div class="input-box">
                 <label for="email" class="form-label">
                     Email
@@ -102,11 +94,12 @@
                 </div>
             </div>
         </div>
-        <button type="button" class="btn-default" style="width:100%" onclick="window.location.href='perfil.php'">
+        <button type="button" class="btn-default w-100" id="btn-criar-conta">
             <i class="fa-solid fa-check"></i>
             Criar Conta
         </button>
     </form>
 </main>
+<script src="assets/js/cadastro.js"></script>
 </body>
 </html>

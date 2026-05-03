@@ -44,10 +44,10 @@
 ?>
 
     <!-- Estado vazio: NOTA BACKEND — exibir esta div apenas se $pedidos estiver vazio -->
-    <div class="orders-empty" id="orders-empty" style="display:none;">
+    <div class="orders-empty hide" id="orders-empty">
         <i class="fa-solid fa-clipboard-list"></i>
         <p>Você ainda não fez nenhum pedido.</p>
-        <a href="index.php" class="btn btn-primary btn-auto" style="padding:10px 24px;margin-top:16px;">
+        <a href="index.php" class="btn btn-primary btn-auto btn-auto-pad">
             Ver cardápio
         </a>
     </div>
@@ -91,7 +91,7 @@
 
     <!-- ══ HISTÓRICO ══ -->
     <!-- NOTA BACKEND: exibir esta secao e seu label apenas se $historico nao estiver vazio -->
-    <p class="orders-section-label" style="margin-top:24px;">Histórico</p>
+    <p class="orders-section-label mt-24">Histórico</p>
 
     <!-- NOTA BACKEND: foreach ($historico as $pedido) — gerar um .order-card para cada pedido finalizado/cancelado -->
 
@@ -118,7 +118,7 @@
                 </a>
                 <!-- NOTA BACKEND: onclick passa o id real: repetirPedido($pedido['id']) -->
                 <!-- Ao clicar: JS busca itens via fetch, repopula localStorage e redireciona ao carrinho -->
-                <button class="btn-repetir" onclick="repetirPedido(1023)">
+                <button class="btn-repetir btn-repetir-pedido" data-pedido-id="1023">
                     <i class="fa-solid fa-rotate-right"></i> Repetir
                 </button>
             </div>
@@ -144,7 +144,7 @@
         </p>
 
         <div class="order-card-footer">
-            <span class="order-total" style="color:var(--cinza-medio);text-decoration:line-through;">R$ 36,00</span>
+            <span class="order-total total-riscado">R$ 36,00</span>
             <a href="detalhes_pedido.php?id=1020" class="btn-detalhes">
                 Detalhes <i class="fa-solid fa-chevron-right"></i>
             </a>
@@ -155,59 +155,4 @@
 </div>
 
 <?php include '../includes/user_footer.php'; ?>
-<script>
-/*
- * ═══════════════════════════════════════════════════════════════════════════
- * pedidos.php (cliente) — JS mínimo; lista deve vir do PHP (foreach pedidos).
- * Guia: INTEGRACAO_JS_PHP.txt
- * ═══════════════════════════════════════════════════════════════════════════
- *
- * NOTA BACKEND — funcao repetirPedido()
- *
- * Quando o backend estiver pronto, criar o arquivo:
- *   /user/api/pedido_itens.php
- *
- * Ele deve receber GET ?id={pedidoId} e retornar JSON:
- *   [{ "id":1, "nome":"Bolo...", "img":"url", "preco":13.00, "qty":1 }, ...]
- *
- * O JS abaixo faz um fetch() nesse endpoint, monta o objeto do carrinho
- * e salva no localStorage antes de redirecionar para carrinho.php
- *
- * Query SQL sugerida para o endpoint:
- *   SELECT pi.quantidade AS qty, pi.preco_unitario AS preco,
- *          prod.id, prod.nome, prod.imagem AS img
- *   FROM pedido_itens pi
- *   INNER JOIN produtos prod ON prod.id = pi.produto_id
- *   WHERE pi.pedido_id = $_GET['id']
- *   AND EXISTS (SELECT 1 FROM pedidos p WHERE p.id = pi.pedido_id AND p.usuario_id = $_SESSION['usuario_id'])
- */
-function repetirPedido(pedidoId) {
-    /* NOTA BACKEND: quando o endpoint estiver pronto, descomente o fetch abaixo e remova o alert():
-
-    fetch('api/pedido_itens.php?id=' + pedidoId)
-        .then(function(r) { return r.json(); })
-        .then(function(itens) {
-            var cart = itens.map(function(i) {
-                return {
-                    key: i.id + '||',
-                    id: i.id,
-                    name: i.nome,
-                    img: i.img,
-                    basePrice: i.preco,
-                    addons: [],
-                    unitPrice: i.preco,
-                    qty: i.qty,
-                    obs: ''
-                };
-            });
-            localStorage.setItem('chokko_cart', JSON.stringify(cart));
-            window.location.href = 'carrinho.php';
-        })
-        .catch(function() {
-            alert('Erro ao buscar itens do pedido. Tente novamente.');
-        });
-    */
-
-    alert('Repetir pedido estará disponível quando o backend estiver conectado.');
-}
-</script>
+<script src="assets/js/pedidos.js"></script>

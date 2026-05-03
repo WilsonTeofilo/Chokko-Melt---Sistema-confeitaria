@@ -415,3 +415,15 @@
     max-height: 85vh;
   }
 }
+
+/* Utils para carrinho.php */
+.hide {
+    display: none !important;
+}
+.btn-auto-pad {
+    margin-top: 16px;
+    padding: 10px 24px;
+}
+.mt-10 {
+    margin-top: 10px;
+}

@@ -26,14 +26,14 @@
         <div class="config-section">
             <h3 class="config-title">Operação e Delivery</h3>
             
-            <div class="form-group" style="display: flex; gap: 15px; margin-bottom: 20px;">
-                <div style="flex: 1;">
+            <div class="form-group flex-gap-15">
+                <div class="flex-1">
                     <label class="form-label">Horário de Abertura</label>
                     <input type="time" id="config-hora-abre" value="15:00" class="form-control">
                 </div>
-                <div style="flex: 1;">
+                <div class="flex-1">
                     <label class="form-label">Horário de Fechamento</label>
-                    <input type="time" id="config-hora-fecha" value="22:00" class="form-control">
+                    <input type="time" id="config-hora-fecha" value="05:00" class="form-control">
                 </div>
             </div>
 

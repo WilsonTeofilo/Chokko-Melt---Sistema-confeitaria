@@ -6,39 +6,15 @@ Além disso, ENUMs foram alterados e cinco novas tabelas foram criadas — desta
 
 > ⚠️ Os diagramas (DER, Modelo Lógico, Esquema Relacional) precisam ser atualizados para refletir essas mudanças.
 
----
 
-## 1. ENUMs que mudaram (impacto direto nas regras de negócio)
 
-### `status_pedido.descricao`
-| Antes | Agora |
-|---|---|
-| PENDENTE | PENDENTE ✅ |
-| **PAGO** ❌ removido | — |
-| EM_PREPARO | EM_PREPARO ✅ |
-| ENVIADO | ENVIADO ✅ |
-| ENTREGUE | ENTREGUE ✅ |
-| **CANCELADO** ❌ removido | — |
-| — | **ACEITO** ✅ novo |
-| — | **CANCELADO_CLIENTE** ✅ novo |
-| — | **CANCELADO_LOJA** ✅ novo |
 
-`PAGO` foi removido — o status financeiro foi desacoplado do pedido e centralizado na entidade `pagamento`.
-O cancelamento foi especializado em dois estados distintos para permitir rastreabilidade da origem da ação.
 
-### `pedido.tipo_entrega`
-| Antes | Agora |
-|---|---|
-| DELIVERY, RETIRADA | DELIVERY, RETIRADA, **LOCAL** ✅ |
 
-`LOCAL` representa consumo no estabelecimento, ampliando os cenários de atendimento suportados pelo sistema.
 
-### `pagamento.forma_pagamento`
-Não mudou os valores (PIX, DEBITO, CREDITO, DINHEIRO), mas agora é explicitamente `NOT NULL` — obrigatório sempre.
 
----
 
-## 2. Mudanças de NULL / NOT NULL (impacto no backend)
+## 1. Mudanças de NULL / NOT NULL (impacto no backend)
 
 | Coluna | Antes | Agora | Por quê |
 |---|---|---|---|
@@ -55,19 +31,19 @@ Não mudou os valores (PIX, DEBITO, CREDITO, DINHEIRO), mas agora é explicitame
 
 ---
 
-## 3. UNIQUE novos (restrições de integridade)
+## 2. UNIQUE novos (restrições de integridade)
 
 | Coluna | Tabela | Efeito |
 |---|---|---|
 | `google_subject` | `usuario` | Um Google account por usuário admin |
 | `google_subject` | `cliente` | Um Google account por cliente |
-| `cpf` | `cliente` | CPF único por cliente |
+| ``email` | `telefone` | email e telefone único por cliente |
 | `id_cliente` | `carrinho` | **1 carrinho por cliente** (era possível ter mais de 1 antes) |
 | `id_pedido` | `avaliacao` | **1 avaliação por pedido** |
 
 ---
 
-## 4. Colunas novas em tabelas que já existiam
+## 3. Colunas novas em tabelas que já existiam
 
 ### `usuario`
 | Coluna | Tipo |
@@ -80,7 +56,6 @@ Não mudou os valores (PIX, DEBITO, CREDITO, DINHEIRO), mas agora é explicitame
 |---|---|
 | `auth_provider` | ENUM('LOCAL','GOOGLE') |
 | `google_subject` | VARCHAR(191) UNIQUE |
-| `cpf` | VARCHAR(14) UNIQUE |
 
 ### `endereco`
 | Coluna | Tipo |
@@ -106,7 +81,7 @@ Não mudou os valores (PIX, DEBITO, CREDITO, DINHEIRO), mas agora é explicitame
 
 ---
 
-## 5. Tabelas novas — colunas e relacionamentos
+## 4. Tabelas novas — colunas e relacionamentos
 
 ### `adicional` — catálogo de complementos disponíveis
 | Coluna | Tipo |
@@ -174,7 +149,7 @@ Tabela sem relacionamentos diretos (independente) — lida por qualquer parte do
 
 ---
 
-## 6. Conceito de Snapshot (importante para TCC)
+## 5. Conceito de Snapshot (importante para TCC)
 
 Nas tabelas `item_pedido_adicional` e `item_carrinho_adicional`, os campos `nome_snapshot` e `preco_unitario_snapshot` guardam uma **cópia** do nome e preço do adicional no momento da venda.
 
@@ -184,7 +159,7 @@ Nas tabelas `item_pedido_adicional` e `item_carrinho_adicional`, os campos `nome
 
 ---
 
-## 7. Resumo do que o banco evoluiu
+## 6. Resumo do que o banco evoluiu
 
 | Antes (banco Pedro/Lohan) | Agora |
 |---|---|

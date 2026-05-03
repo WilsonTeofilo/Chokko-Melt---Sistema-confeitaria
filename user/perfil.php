@@ -44,29 +44,29 @@ $enderecosMock = [
                         <p class="member-since">Cliente desde <?= htmlspecialchars($usuarioLogado['membro_desde']) ?></p>
                         <div class="contact-row"><span>✉</span> <?= htmlspecialchars($usuarioLogado['email']) ?></div>
                         <div class="contact-row"><span>📞</span> <?= htmlspecialchars($usuarioLogado['telefone']) ?></div>
-                        <button class="btn-edit-info" style="background:#d7ccc8; border:none; padding:5px 10px; border-radius:5px; color:#4a362d; margin-top:10px;">📝 Editar informações</button>
+                        <button class="btn-edit-info">📝 Editar informações</button>
                     </div>
                 </div>
             </section>
             
             <div class="card-branco">
                 <section class="addresses-section">
-                    <div class="section-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="section-header">
                         <h3>Meus Endereços</h3>
-                        <span style="font-size:12px; color:#999;"><?= count($enderecosMock) ?> endereço(s)</span>
+                        <span class="address-count"><?= count($enderecosMock) ?> endereço(s)</span>
                     </div>
                     
                     <button class="btn-add-address">+ Adicionar novo endereço</button>
 
                     <?php foreach ($enderecosMock as $end): ?>
                     <div class="address-card" data-endereco-id="<?= $end['id'] ?>">
-                        <div style="display:flex; justify-content:space-between;">
+                        <div class="address-header">
                             <strong><?= htmlspecialchars($end['icon']) ?> <?= htmlspecialchars($end['apelido']) ?></strong>
                             <?php if ($end['is_default']): ?>
                             <span class="badge-default">✓ Endereço padrão</span>
                             <?php endif; ?>
                         </div>
-                        <div style="margin-top:10px; font-size:14px; color:#555;">
+                        <div class="address-body">
                             <p><?= htmlspecialchars($end['logradouro']) ?></p>
                             <p><?= htmlspecialchars($end['bairro']) ?></p>
                             <p>CEP: <?= htmlspecialchars($end['cep']) ?></p>
@@ -81,8 +81,7 @@ $enderecosMock = [
             </div>
             
             <!-- NOTA BACKEND: ao clicar em Sair, destruir a sessão PHP: session_destroy() e redirecionar para index.php -->
-            <button class="btn-outline-danger" style="width: 100%; padding: 15px; margin-top: 10px;"
-                onclick="localStorage.removeItem('chokko_usuario_id'); window.location.href='index.php'">
+            <button class="btn-outline-danger btn-logout" id="btn-logout">
                 Sair da Conta
             </button>
         </div>
@@ -95,7 +94,7 @@ $enderecosMock = [
         <h3 id="modal-title">Editar Informações</h3>
         <div id="modal-body"></div>
         <div class="modal-footer">
-            <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+            <button class="btn-cancel">Cancelar</button>
             <button class="btn-save" id="btn-salvar-modal">Salvar Alterações</button>
         </div>
     </div>

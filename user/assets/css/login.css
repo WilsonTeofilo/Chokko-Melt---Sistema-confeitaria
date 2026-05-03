@@ -153,3 +153,60 @@ body {
         font-size: 32px;
     }
 }
+
+/* Divisor OR */
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 25px 0 15px 0;
+}
+.divider hr {
+    flex: 1;
+    border: none;
+    border-top: 1px solid #444;
+}
+.divider span {
+    padding: 0 10px;
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+/* Botão Google */
+.btn-google {
+    background: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #333;
+    margin-bottom: 20px;
+    transition: background 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.btn-google img {
+    width: 18px;
+}
+.btn-google:hover {
+    background: #f1f1f1;
+}
+
+/* Link Convidado */
+.guest-link-container {
+    text-align: center;
+    margin-top: 16px;
+}
+.guest-link {
+    font-size: .85rem;
+    color: #888;
+    text-decoration: underline;
+}
+.guest-link:hover {
+    color: #4E342E;
+}

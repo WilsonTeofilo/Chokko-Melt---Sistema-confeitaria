@@ -231,3 +231,33 @@
     }
 }
 
+/* Utils para produtos.php */
+.opt-nova-categoria {
+    font-weight: bold;
+    color: var(--marrom);
+}
+.img-preview-wrap {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+.img-preview {
+    display: none;
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+.checkbox-marrom {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--marrom);
+}
+.modal-overlay-custom {
+    z-index: 2005;
+}
+.modal-content-sm {
+    width: 400px;
+}
+

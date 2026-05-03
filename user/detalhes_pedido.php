@@ -76,7 +76,7 @@ $is_finalizado = in_array($status_atual, ['entregue', 'cancelado']);
         </div>
         <!-- NOTA BACKEND: exibir o botao Repetir somente se $pedido['status'] == 'entregue' -->
         <?php if ($is_finalizado): ?>
-        <button class="btn-repetir" onclick="repetirPedido(<?= intval($pedido_id) ?>)">
+        <button class="btn-repetir btn-repetir-pedido" data-pedido-id="<?= intval($pedido_id) ?>">
             <i class="fa-solid fa-rotate-right"></i> Repetir pedido
         </button>
         <?php endif; ?>
@@ -87,7 +87,7 @@ $is_finalizado = in_array($status_atual, ['entregue', 'cancelado']);
     <!-- ══ STATUS / TIMELINE VERTICAL ══ -->
     <div class="det-section-label">Status</div>
     <!-- NOTA BACKEND: classe do badge = $pedido['status'] com tracos (ex: 'em-producao') -->
-    <span class="order-status em-producao" style="margin-bottom:20px;display:inline-block;">Em Produção</span>
+    <span class="order-status em-producao det-status-badge">Em Produção</span>
 
     <!--
         NOTA BACKEND: para cada etapa da timeline, adicionar a classe 'done' no li
@@ -155,7 +155,7 @@ $is_finalizado = in_array($status_atual, ['entregue', 'cancelado']);
     <div class="det-info-block">
         <div class="det-section-label">Forma de pagamento</div>
         <div class="det-info-row">
-            <i class="fa-regular fa-credit-card" style="color:#1976D2;"></i>
+            <i class="fa-regular fa-credit-card icon-credit-card"></i>
             <div>
                 <p class="det-info-title">Cartão de Crédito</p>
                 <p class="det-info-sub">Pagamento na entrega</p>
@@ -241,20 +241,20 @@ $is_finalizado = in_array($status_atual, ['entregue', 'cancelado']);
     </div>
 
     <!-- ══ AÇÕES ══ -->
-    <div style="margin-top:24px;display:flex;flex-direction:column;gap:10px;">
+    <div class="det-actions">
         <?php if (!$is_finalizado): ?>
         <!-- NOTA BACKEND: exibir somente enquanto o pedido estiver ativo (nao finalizado/cancelado) -->
-        <button class="btn btn-outline" id="btn-contato">
+        <button class="btn btn-outline" id="btn-contato" data-pedido-id="<?= intval($pedido_id) ?>">
             <i class="fa-solid fa-headset"></i> Falar com o Estabelecimento
         </button>
         <?php if ($status_atual === 'aguardando'): ?>
         <!-- NOTA BACKEND: O cliente SÓ PODE CANCELAR se o pedido ainda não foi aceito pela loja -->
-        <button class="btn btn-outline" style="border-color: #E53935; color: #E53935;" onclick="abrirModalCancelarCliente()">
+        <button class="btn btn-outline btn-outline-danger btn-cancelar-pedido" data-pedido-id="<?= intval($pedido_id) ?>">
             <i class="fa-solid fa-ban"></i> Cancelar Pedido
         </button>
         <?php endif; ?>
         <?php else: ?>
-        <button class="btn btn-primary" onclick="repetirPedido(<?= intval($pedido_id) ?>)">
+        <button class="btn btn-primary btn-repetir-pedido" data-pedido-id="<?= intval($pedido_id) ?>">
             <i class="fa-solid fa-rotate-right"></i> Repetir este pedido
         </button>
         <?php endif; ?>
@@ -267,15 +267,15 @@ $is_finalizado = in_array($status_atual, ['entregue', 'cancelado']);
 </div><!-- /page-pad -->
 
 <!-- MODAL CANCELAR PEDIDO (CLIENTE) -->
-<div id="modal-cancelar-cliente" class="modal-overlay" style="z-index: 2010; display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; padding: 20px;">
-    <div class="modal-content" style="background: white; width: 400px; max-width: 100%; border-radius: 8px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h2 class="modal-title" style="color: #E53935; margin: 0; font-size: 1.2rem;">Cancelar Pedido</h2>
-            <button onclick="fecharModalCancelarCliente()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+<div id="modal-cancelar-cliente" class="modal-overlay">
+    <div class="modal-content-box">
+        <div class="modal-header-box">
+            <h2 class="modal-title">Cancelar Pedido</h2>
+            <button class="btn-close-modal">&times;</button>
         </div>
-        <div class="detalhes-body" style="margin-bottom: 20px;">
-            <p style="margin-bottom: 10px; color: #555;">Por qual motivo você deseja cancelar seu pedido?</p>
-            <select id="motivo-cancelamento-cliente" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; font-size: 1rem; margin-bottom: 15px;">
+        <div class="modal-body-box">
+            <p>Por qual motivo você deseja cancelar seu pedido?</p>
+            <select id="motivo-cancelamento-cliente" class="modal-select">
                 <option value="" disabled selected>Selecione um motivo...</option>
                 <option value="Demorou muito para ser aceito">Demorou muito para ser aceito</option>
                 <option value="Fiz o pedido errado">Fiz o pedido errado</option>
@@ -284,126 +284,22 @@ $is_finalizado = in_array($status_atual, ['entregue', 'cancelado']);
                 <option value="Outro motivo">Outro motivo</option>
             </select>
         </div>
-        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #eee; padding-top: 15px;">
-            <button type="button" class="btn" style="background: #E53935; color: white; padding: 10px 15px; font-weight: bold; border-radius: 6px; cursor: pointer; border: none;" onclick="confirmarCancelamentoCliente()">Confirmar Cancelamento</button>
-            <button type="button" class="btn" style="padding: 10px 15px; background: #eee; border:none; border-radius: 6px; cursor: pointer; font-weight: bold; color: #555;" onclick="fecharModalCancelarCliente()">Voltar</button>
+        <div class="modal-footer-box">
+            <button type="button" class="btn btn-danger" id="btn-confirmar-cancelamento" data-pedido-id="<?= intval($pedido_id) ?>">Confirmar Cancelamento</button>
+            <button type="button" class="btn btn-cancel btn-close-modal">Voltar</button>
         </div>
     </div>
 </div>
 
 <!-- MODAL SUCESSO (CLIENTE) -->
-<div id="modal-sucesso-cliente" class="modal-overlay" style="z-index: 9999; display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; padding: 20px;">
-    <div class="modal-content" style="background: white; width: 350px; max-width: 100%; border-radius: 12px; padding: 30px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-        <i class="fa-solid fa-circle-check" style="font-size: 3.5rem; color: #43A047; margin-bottom: 15px;"></i>
-        <h2 style="color: var(--marrom); margin-bottom: 10px; font-size: 1.4rem;">Pedido Cancelado</h2>
-        <p id="modal-sucesso-cliente-msg" style="color: #666; margin-bottom: 20px; line-height: 1.4;"></p>
-        <button onclick="window.location.reload()" style="background: var(--marrom); color: white; border: none; padding: 10px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%;">Voltar aos Meus Pedidos</button>
+<div id="modal-sucesso-cliente" class="modal-overlay z-high">
+    <div class="modal-content-box success-box">
+        <i class="fa-solid fa-circle-check success-icon"></i>
+        <h2 class="success-title">Pedido Cancelado</h2>
+        <p id="modal-sucesso-cliente-msg" class="success-msg"></p>
+        <button id="btn-reload-page" class="btn-success-back">Voltar aos Meus Pedidos</button>
     </div>
 </div>
 
 <?php include '../includes/user_footer.php'; ?>
-<script>
-/*
- * ═══════════════════════════════════════════════════════════════════════════
- * JS + PHP — detalhes_pedido.php (INTEGRACAO_JS_PHP.txt na raiz)
- * ═══════════════════════════════════════════════════════════════════════════
- * Esta página deve ser gerada pelo PHP com $pedido_id vindo de $_GET['id'].
- * O JS abaixo só abre modais e simula cancelar/repetir pedido.
- *
- * Ligue ao backend:
- *   • Cancelar: POST user/api/cancelar_pedido.php com pedido_id + motivo só se
- *     status ainda for PENDENTE (regra de negócio no PHP).
- *   • repetirPedido: GET api/pedido_itens.php monta o carrinho — veja comentário
- *     longo no código; tabelas reais: item_pedido, produto.
- *   • WhatsApp: leia número de config_loja no PHP e passe para o JS:
- *     const WHATSAPP = "<?= preg_replace('/\D/','', $config['whatsapp']) ?>";
- * ═══════════════════════════════════════════════════════════════════════════
- */
-function abrirModalCancelarCliente() {
-    document.getElementById('modal-cancelar-cliente').style.display = 'flex';
-}
-
-function fecharModalCancelarCliente() {
-    document.getElementById('modal-cancelar-cliente').style.display = 'none';
-}
-
-function confirmarCancelamentoCliente() {
-    const motivo = document.getElementById('motivo-cancelamento-cliente').value;
-    if (!motivo) {
-        alert('Por favor, selecione o motivo do cancelamento.');
-        return;
-    }
-    
-    // NOTA BACKEND: POST para api/cancelar_pedido.php
-    // Body: { pedido_id: <?= intval($pedido_id) ?>, motivo: motivo }
-    
-    fecharModalCancelarCliente();
-    
-    // Troca o alert pelo modal bonito, recarrega ao fechar (via html onclick)
-    document.getElementById('modal-sucesso-cliente-msg').innerText = 'Seu pedido foi cancelado. O motivo informado foi registrado.';
-    document.getElementById('modal-sucesso-cliente').style.display = 'flex';
-}
-
-/*
- * NOTA BACKEND — funcao repetirPedido()
- *
- * Criar o endpoint: /user/api/pedido_itens.php
- * Recebe: GET ?id={pedidoId}
- * Retorna JSON: [{ "id":1, "nome":"Bolo...", "img":"url", "preco":13.00, "qty":1 }]
- *
- * Query SQL para o endpoint:
- *   SELECT pi.quantidade AS qty, pi.preco_unitario AS preco,
- *          prod.id, prod.nome, prod.imagem AS img
- *   FROM pedido_itens pi
- *   INNER JOIN produtos prod ON prod.id = pi.produto_id
- *   WHERE pi.pedido_id = intval($_GET['id'])
- *   AND EXISTS (
- *     SELECT 1 FROM pedidos p
- *     WHERE p.id = pi.pedido_id AND p.usuario_id = $_SESSION['usuario_id']
- *   )
- */
-function repetirPedido(pedidoId) {
-    /* NOTA BACKEND: quando o endpoint estiver pronto, descomente abaixo e remova o alert():
-
-    fetch('api/pedido_itens.php?id=' + pedidoId)
-        .then(function(r) { return r.json(); })
-        .then(function(itens) {
-            var cart = itens.map(function(i) {
-                return {
-                    key: i.id + '||',
-                    id: i.id,
-                    name: i.nome,
-                    img: i.img,
-                    basePrice: i.preco,
-                    addons: [],
-                    unitPrice: i.preco,
-                    qty: i.qty,
-                    obs: ''
-                };
-            });
-            localStorage.setItem('chokko_cart', JSON.stringify(cart));
-            window.location.href = 'carrinho.php';
-        })
-        .catch(function() {
-            alert('Erro ao buscar itens. Tente novamente.');
-        });
-    */
-
-    alert('Repetir pedido estara disponivel quando o backend estiver conectado.');
-}
-
-/*
- * NOTA BACKEND — botao Falar com Estabelecimento
- * Numero do WhatsApp deve vir de uma tabela de configuracoes da loja no banco.
- * Substituir 5511999999999 pelo numero real.
- */
-var btnContato = document.getElementById('btn-contato');
-if (btnContato) {
-    btnContato.addEventListener('click', function() {
-        /* NOTA BACKEND: descomente a linha abaixo e insira o numero real:
-        window.open('https://wa.me/5511999999999?text=Ola! Tenho duvida sobre o Pedido #<?= intval($pedido_id) ?>', '_blank');
-        */
-        alert('WhatsApp: numero a ser configurado pelo backend.');
-    });
-}
-</script>
+<script src="assets/js/detalhes_pedido.js"></script>

@@ -195,3 +195,124 @@
     }
     .sheet-handle { display: none; }
 }
+
+/* Utils para finalizarPedido.php */
+.aviso-conta {
+    background: #FFF3E0;
+    border: 1px solid #FFE0B2;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.icon-user {
+    color: #F57C00;
+    font-size: 1.2rem;
+    margin-top: 2px;
+}
+.conta-text {
+    font-size: .85rem;
+    color: #E65100;
+    font-weight: 600;
+}
+.conta-subtext {
+    font-size: .75rem;
+    color: #F57C00;
+    margin-top: 2px;
+}
+.conta-link {
+    font-weight: bold;
+    text-decoration: underline;
+}
+.fin-section-title {
+    font-size: .9rem;
+    color: var(--marrom);
+    margin-bottom: 10px;
+}
+.end-icon {
+    color: var(--marrom);
+    font-size: 1.2rem;
+    margin-top: 2px;
+}
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.flex-gap-12 {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+.pay-icon {
+    font-size: 1.2rem;
+    width: 20px;
+    text-align: center;
+}
+.pay-icon-pix {
+    color: #32BCAD;
+}
+.pay-icon-card {
+    color: #1976D2;
+}
+.pay-icon-money {
+    color: var(--verde);
+}
+.pay-text {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--cinza-texto);
+}
+.radio-marrom {
+    accent-color: var(--marrom);
+}
+.pay-option-last {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+}
+.label-form {
+    display: block;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--cinza-texto);
+    margin-bottom: 8px;
+}
+.mb-15 {
+    margin-bottom: 15px;
+}
+.resumo-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: .85rem;
+    color: var(--cinza-texto);
+}
+.resumo-row-last {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: .85rem;
+    color: var(--cinza-texto);
+}
+.resumo-total {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--cinza-claro);
+    padding-top: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--marrom);
+}
+.btn-fazer-pedido {
+    width: 100%;
+    font-size: 1rem;
+    padding: 14px;
+}
+.termos-text {
+    text-align: center;
+    font-size: .75rem;
+    color: var(--cinza-medio);
+    margin-top: 12px;
+}

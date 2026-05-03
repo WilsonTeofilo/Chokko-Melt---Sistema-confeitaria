@@ -34,7 +34,7 @@ Os únicos arquivos compartilhados são `/config/db.php` e `/config/auth.php` �
 - Branch `main` → sempre funciona. Nunca commitem direto aqui
 - Branch `feature/wilson` → exclusivo do Wilson
 - Branch `feature/guilherme` → exclusivo do Guilherme
-- Toda **sexta-feira**: sentam juntos, fazem merge na `main` e resolvem conflitos
+- Toda **sexta-feira**: sentam juntos, fazem merge na `develop` e resolvem conflitos
 
 ---
 

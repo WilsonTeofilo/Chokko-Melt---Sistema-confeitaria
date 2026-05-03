@@ -18,8 +18,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
     <header class="top-header">
         <div class="logo-area">
-            <span class="admin-title" style="font-family: 'Lily Script One', cursive; font-size: 24px;">
-                Chokko<span style="color: var(--rosa-chokko);">Melt</span>
+            <span class="admin-title">
+                Chokko<span class="text-rosa-chokko">Melt</span>
             </span>
         </div>
         <nav class="top-nav">
@@ -30,7 +30,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <div class="admin-layout">
         <aside class="sidebar">
             <nav>
-                <a href="pedidos.php" class="side-link <?= ($current_page == 'pedidos.php' || $current_page == 'index.php') ? 'active' : '' ?>">
+                <a href="index.php" class="side-link <?= ($current_page == 'index.php') ? 'active' : '' ?>">
                     <i class="fa-solid fa-receipt"></i> <span>Pedidos</span>
                 </a>
                 <a href="financeiro.php" class="side-link <?= $current_page == 'financeiro.php' ? 'active' : '' ?>">

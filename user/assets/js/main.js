@@ -41,7 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.isLojaAberta = true; // global
     function checarHorario() {
         const horaAbre = localStorage.getItem('chokko_hora_abre') || '15:00';
-        const horaFecha = localStorage.getItem('chokko_hora_fecha') || '22:00';
+        // const horaFecha = localStorage.getItem('chokko_hora_fecha') || '22:00';
+        const horaFecha = '05:00'; // Forçado para 05:00 am para testes
         
         // Atualiza textos na UI se existirem
         const hoursText = document.getElementById('store-hours-text');

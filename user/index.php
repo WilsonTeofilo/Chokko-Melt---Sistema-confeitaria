@@ -171,7 +171,7 @@
             <span class="modal-product-price" id="modalPriceDisplay"></span>
 
             <!-- Acompanhamentos (gerados via JS) -->
-            <div id="modalAddonsSection" style="display:none;">
+            <div id="modalAddonsSection" class="hide">
                 <div class="modal-section-title">Acompanhamentos</div>
                 <p class="modal-section-sub">Escolha os extras (opcional)</p>
                 <div id="modalAddonsList"></div>
@@ -199,7 +199,7 @@
 
 <!-- Toast de confirmação -->
 <div class="toast-cart" id="toastCart">
-    <i class="fa-solid fa-check-circle" style="margin-right:6px;"></i>
+    <i class="fa-solid fa-check-circle icon-success"></i>
     <span id="toastMsg">Item adicionado!</span>
 </div>
 
@@ -207,3 +207,22 @@
 <!-- Ordem: main.js (footer) depois cardapio.js — não inverta sem motivo. -->
 <!-- INTEGRACAO_JS_PHP.txt: PHP deve gerar os .product-card com data-* reais. -->
 <script src="assets/js/cardapio.js"></script>
+
+
+
+
+
+
+
+<!-- WILSON BACK-END -->
+
+<?php 
+include ("/config/config.php");
+switch(@$_REQUEST['page']) {
+    case 'carrinhoUS':
+        break;
+
+        case 'CadastroUS':
+            include ("/src/auth.php");
+}
+?>

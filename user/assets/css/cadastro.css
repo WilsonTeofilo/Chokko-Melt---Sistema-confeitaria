@@ -167,3 +167,8 @@ body {
         font-size: 32px;
     }
 }
+
+/* Utils para cadastro.php */
+.w-100 {
+    width: 100% !important;
+}

@@ -113,7 +113,7 @@
                         <option value="Bolos de Pote">Bolos de Pote</option>
                         <option value="Tortas de Pote">Tortas de Pote</option>
                         <option value="Bebidas">Bebidas</option>
-                        <option value="nova_categoria" style="font-weight: bold; color: var(--marrom);">+ Criar nova categoria...</option>
+                        <option value="nova_categoria" class="opt-nova-categoria">+ Criar nova categoria...</option>
                     </select>
                 </div>
                 <div class="form-group flex-1">
@@ -127,8 +127,8 @@
 
             <div class="form-group">
                 <label class="form-label">Imagem do Produto</label>
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <img id="img-preview" src="" alt="Preview" style="display: none; width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">
+                <div class="img-preview-wrap">
+                    <img id="img-preview" src="" alt="Preview" class="img-preview">
                     <input type="file" id="imagem_produto" class="form-control" accept="image/*" onchange="previewImagem(event)">
                 </div>
             </div>
@@ -141,11 +141,11 @@
             <h3 class="modal-subtitle mt-20">Adicionais / Complementos</h3>
             <div class="adicionais-list" id="adicionais-list">
                 <label class="adicional-item">
-                    <input type="checkbox" style="width:18px;height:18px;accent-color:var(--marrom);">
+                    <input type="checkbox" class="checkbox-marrom">
                     <span>Calda de Chocolate extra (+ R$ 3,00)</span>
                 </label>
                 <label class="adicional-item">
-                    <input type="checkbox" style="width:18px;height:18px;accent-color:var(--marrom);">
+                    <input type="checkbox" class="checkbox-marrom">
                     <span>Morango Pedaços (+ R$ 4,50)</span>
                 </label>
                 <button type="button" class="btn-text-add" onclick="abrirModalAdicional()">+ Criar novo adicional</button>
@@ -162,8 +162,8 @@
 </div>
 
 <!-- MODAL NOVO ADICIONAL -->
-<div id="modal-novo-adicional" class="modal-overlay" style="z-index: 2005;">
-    <div class="modal-content" style="width: 400px;">
+<div id="modal-novo-adicional" class="modal-overlay modal-overlay-custom">
+    <div class="modal-content modal-content-sm">
         <div class="modal-header">
             <h2 class="modal-title">Novo Adicional</h2>
             <button onclick="fecharModalAdicional()" class="btn-close-modal">&times;</button>

@@ -219,3 +219,5 @@ body { background-color: var(--bege-bg); color: var(--texto); }
     }
 }
 
+.text-rosa-chokko { color: var(--rosa-chokko); }
+

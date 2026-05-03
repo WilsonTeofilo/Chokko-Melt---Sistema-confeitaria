@@ -171,3 +171,11 @@
   box-shadow: 0 3px 8px rgba(78,52,46,.3);
 }
 .add-btn:hover { background: var(--rosa-escuro); transform: scale(1.1) rotate(90deg); }
+
+/* Utils para index.php */
+.hide {
+    display: none !important;
+}
+.icon-success {
+    margin-right: 6px;
+}
