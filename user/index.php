@@ -217,12 +217,14 @@
 <!-- WILSON BACK-END -->
 
 <?php 
-include ("/config/config.php");
+include ("../config/config.php");
 switch(@$_REQUEST['page']) {
+   
     case 'carrinhoUS':
         break;
 
-        case 'CadastroUS':
-            include ("/src/auth.php");
+    case 'CadastroUS':
+        include ("src/auth.php");
+        break;
 }
 ?>

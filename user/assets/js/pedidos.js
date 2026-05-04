@@ -1,47 +1,32 @@
-/*
- * ═══════════════════════════════════════════════════════════════════════════
- * JS — pedidos.js
- * ═══════════════════════════════════════════════════════════════════════════
- */
+// ============================================================
+// pedidos.js — Lista de pedidos do cliente (Aba Pedidos)
+// ============================================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    const btnsRepetir = document.querySelectorAll('.btn-repetir-pedido');
-    if (btnsRepetir.length > 0) {
-        btnsRepetir.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const pedidoId = btn.dataset.pedidoId;
+document.addEventListener('DOMContentLoaded', function() {
+    var botoesRepetir = document.querySelectorAll('.btn-repetir-pedido');
+    
+    if (botoesRepetir.length > 0) {
+        for (var i = 0; i < botoesRepetir.length; i++) {
+            var btn = botoesRepetir[i];
+            
+            btn.addEventListener('click', function(evento) {
+                // Descobre o ID do pedido clicado
+                var pedidoId = evento.currentTarget.getAttribute('data-pedido-id');
                 repetirPedido(pedidoId);
             });
-        });
+        }
     }
 });
 
 function repetirPedido(pedidoId) {
-    /* NOTA BACKEND: quando o endpoint estiver pronto, descomente o fetch abaixo e remova o alert():
-
-    fetch('api/pedido_itens.php?id=' + pedidoId)
-        .then(function(r) { return r.json(); })
-        .then(function(itens) {
-            var cart = itens.map(function(i) {
-                return {
-                    key: i.id + '||',
-                    id: i.id,
-                    name: i.nome,
-                    img: i.img,
-                    basePrice: i.preco,
-                    addons: [],
-                    unitPrice: i.preco,
-                    qty: i.qty,
-                    obs: ''
-                };
-            });
-            localStorage.setItem('chokko_cart', JSON.stringify(cart));
-            window.location.href = 'carrinho.php';
-        })
-        .catch(function() {
-            alert('Erro ao buscar itens do pedido. Tente novamente.');
-        });
+    /* 
+    NOTA BACKEND: quando o PHP estiver pronto, você deve fazer uma
+    requisição para buscar os itens deste pedido antigo e jogar na
+    sessão do carrinho.
+    
+    Exemplo:
+    window.location.href = 'api/repetir_pedido.php?id=' + pedidoId;
     */
 
-    alert('Repetir pedido estará disponível quando o backend estiver conectado.');
+    alert('Repetir o pedido #' + pedidoId + ' estará disponível quando o backend estiver conectado.');
 }

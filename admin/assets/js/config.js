@@ -1,53 +1,51 @@
-/**
- * ═══════════════════════════════════════════════════════════════════════════
- * config.js — Admin / Configurações da loja
- * INTEGRAÇÃO JavaScript ↔ PHP (iniciante)
- * ═══════════════════════════════════════════════════════════════════════════
- * Guia: INTEGRACAO_JS_PHP.txt (raiz do projeto)
- *
- * Carregado em: admin/config.php
- *
- * Hoje: salvarConfig() grava horários no localStorage para o user/main.js
- *       simular loja aberta/fechada. Isso é só demonstração.
- *
- * O que VOCÊ (PHP) deve fazer:
- *   • No load da página: SELECT * FROM config_loja WHERE id=1 e preencha os
- *     <input> com value="<?= htmlspecialchars(...) ?>"
- *   • salvarConfig(): fetch POST admin/api/salvar_config.php com FormData ou JSON.
- *     PHP: session + UPDATE config_loja SET hora_abre=?, hora_fecha=?, ...
- *   • O site do cliente (main.js) deve passar a ler a mesma config via
- *     fetch('user/api/config_loja.php') em vez de só localStorage, senão cada
- *     navegador fica com horário diferente.
- * ═══════════════════════════════════════════════════════════════════════════
- */
+// ============================================================
+// config.js — Admin / Configurações da loja
+// ============================================================
+// NOTA BACKEND:
+// Hoje esse arquivo salva no localStorage para testar.
+// Quando o banco de dados estiver pronto, o admin deve enviar o formulário
+// (POST) e salvar isso na tabela de configurações.
+// ============================================================
 
-// Ao carregar a página, se tiver no localStorage, preenche
-document.addEventListener('DOMContentLoaded', () => {
-    const abre = localStorage.getItem('chokko_hora_abre');
-    const fecha = localStorage.getItem('chokko_hora_fecha');
-    const elAbre = document.getElementById('config-hora-abre');
-    const elFecha = document.getElementById('config-hora-fecha');
+document.addEventListener('DOMContentLoaded', function() {
+    // Ao abrir a página, preenche com os dados falsos do localStorage
+    var abre = localStorage.getItem('chokko_hora_abre');
+    var fecha = localStorage.getItem('chokko_hora_fecha');
+    var waDig = localStorage.getItem('chokko_whatsapp_digits');
 
-    if (abre && elAbre) elAbre.value = abre;
-    if (fecha && elFecha) elFecha.value = fecha;
+    var elAbre = document.getElementById('config-hora-abre');
+    var elFecha = document.getElementById('config-hora-fecha');
+    var waEl = document.getElementById('config-whatsapp');
 
-    const waDig = localStorage.getItem('chokko_whatsapp_digits');
-    const waEl = document.getElementById('config-whatsapp');
+    if (abre && elAbre) {
+        elAbre.value = abre;
+    }
+    if (fecha && elFecha) {
+        elFecha.value = fecha;
+    }
+
+    // Se tiver função de máscara, aplica no WhatsApp salvo
     if (waDig && waEl && typeof window.ChokkoFormatTelBR === 'function') {
         waEl.value = window.ChokkoFormatTelBR(waDig);
     }
 });
 
-function salvarConfig(event) {
-    if (event) event.preventDefault();
+function salvarConfig(evento) {
+    if (evento) {
+        evento.preventDefault();
+    }
 
-    const nomeLoja     = document.getElementById('config-nome-loja').value;
-    const whatsappEl   = document.getElementById('config-whatsapp');
-    const whatsapp     = whatsappEl ? whatsappEl.value : '';
-    const horaAbre     = document.getElementById('config-hora-abre').value;
-    const horaFecha    = document.getElementById('config-hora-fecha').value;
-    const taxaEntrega  = document.getElementById('config-taxa-entrega').value;
+    var elNomeLoja = document.getElementById('config-nome-loja');
+    var elWhatsapp = document.getElementById('config-whatsapp');
+    var elHoraAbre = document.getElementById('config-hora-abre');
+    var elHoraFecha = document.getElementById('config-hora-fecha');
 
+    var nomeLoja = elNomeLoja ? elNomeLoja.value : '';
+    var whatsapp = elWhatsapp ? elWhatsapp.value : '';
+    var horaAbre = elHoraAbre ? elHoraAbre.value : '';
+    var horaFecha = elHoraFecha ? elHoraFecha.value : '';
+
+    // Verifica se os campos importantes foram preenchidos
     if (!nomeLoja || !whatsapp) {
         alert('Preencha o Nome da Loja e o WhatsApp antes de salvar.');
         return;
@@ -58,17 +56,19 @@ function salvarConfig(event) {
         return;
     }
 
+    // Tira os símbolos do whatsapp para salvar só números
+    var waSomenteNumeros = whatsapp.replace(/\D/g, '');
+
+    // Salva no localStorage (mockup)
     localStorage.setItem('chokko_hora_abre', horaAbre);
     localStorage.setItem('chokko_hora_fecha', horaFecha);
+    localStorage.setItem('chokko_whatsapp_digits', waSomenteNumeros);
 
-    const waDigits = typeof window.ChokkoSomenteDigitos === 'function'
-        ? window.ChokkoSomenteDigitos(whatsapp)
-        : whatsapp.replace(/\D/g, '');
-    localStorage.setItem('chokko_whatsapp_digits', waDigits);
-    if (whatsappEl && typeof window.ChokkoFormatTelBR === 'function') {
-        whatsappEl.value = window.ChokkoFormatTelBR(waDigits);
+    // Reaplica a máscara no campo
+    if (elWhatsapp && typeof window.ChokkoFormatTelBR === 'function') {
+        elWhatsapp.value = window.ChokkoFormatTelBR(waSomenteNumeros);
     }
 
-    // NOTA BACKEND: POST — enviar whatsapp apenas como waDigits (somente números).
-    alert(`Configurações salvas!\n• Horário definido: ${horaAbre} às ${horaFecha}`);
+    // NOTA BACKEND: em vez de dar só esse alert, você faria o submit do form aqui.
+    alert('Configurações salvas!\n• Horário definido: ' + horaAbre + ' às ' + horaFecha);
 }

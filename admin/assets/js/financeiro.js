@@ -1,42 +1,38 @@
-/**
- * ═══════════════════════════════════════════════════════════════════════════
- * financeiro.js — Admin / Financeiro (faturamento / lucro)
- * INTEGRAÇÃO JavaScript ↔ PHP (iniciante)
- * ═══════════════════════════════════════════════════════════════════════════
- * Guia: INTEGRACAO_JS_PHP.txt
- *
- * Carregado em: admin/financeiro.php
- *
- * Hoje: só dispara alert() simulando filtro.
- *
- * O que VOCÊ (PHP) deve fazer:
- *   • Criar admin/api/financeiro.php que recebe periodo ou data_inicio/fim.
- *   • SQL exemplo: somar pagamento.valor_pago ou pedido.valor_total JOIN
- *     status_pagamento onde descricao='PAGO', agrupar por forma_pagamento.
- *   • Para lucro: usar pedido.lucro ou somar (preco - custo) dos itens no período.
- *   • Devolver JSON { linhas: [...], totais: {...} } e o JS preenche a tabela
- *     (innerHTML ou createElement). Ou renderize tudo em PHP e use JS só para UX.
- * ═══════════════════════════════════════════════════════════════════════════
- */
+// ============================================================
+// financeiro.js — Admin / Relatórios e Financeiro
+// ============================================================
 
-function filtrarPeriodo(periodo, btn) {
-    // Atualiza a tab ativa
-    document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
+function filtrarPeriodo(periodoSelecionado, botaoClicado) {
+    // Remove o destaque de todos os botões de filtro
+    var botoes = document.querySelectorAll('.btn-filter');
+    for (var i = 0; i < botoes.length; i++) {
+        botoes[i].classList.remove('active');
+    }
 
-    // NOTA BACKEND: fetch(api/financeiro.php?periodo=...) e repovoar a tabela — sem alert.
+    // Coloca destaque apenas no botão que foi clicado
+    if (botaoClicado) {
+        botaoClicado.classList.add('active');
+    }
+
+    // NOTA BACKEND: Aqui você redirecionaria para a página com o filtro na URL.
+    // Exemplo: window.location.href = 'financeiro.php?periodo=' + periodoSelecionado;
 }
 
 function filtrarPorData() {
-    const dataInicio = document.getElementById('data-inicio').value;
-    const dataFim    = document.getElementById('data-fim').value;
+    var dataInicio = document.getElementById('data-inicio').value;
+    var dataFim = document.getElementById('data-fim').value;
 
     if (!dataInicio || !dataFim) {
+        alert("Preencha a data de início e fim.");
         return;
     }
+    
     if (dataInicio > dataFim) {
+        alert("A data de início não pode ser maior que a data de fim.");
         return;
     }
 
-    // NOTA BACKEND: GET api/financeiro.php?data_inicio=...&data_fim=...
+    // NOTA BACKEND: Aqui você redirecionaria com as datas.
+    // Exemplo: window.location.href = 'financeiro.php?data_inicio=' + dataInicio + '&data_fim=' + dataFim;
+    alert("Filtro por data ainda não está conectado ao banco de dados.");
 }

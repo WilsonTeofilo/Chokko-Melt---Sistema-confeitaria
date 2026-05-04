@@ -9,14 +9,18 @@
 </head>
 <body>
     <main class="container">
-        <form>
+    <!-- FORMULÁRIO :-->
+
+        <form action="src/auth.php" method="POST">
+        <input type="hidden" name="acao" value="Logar">
             <h1>Fazer Login</h1>
             <div class="input-box">
-                <input placeholder="E-mail" type="email" name="email">
-                <i class="bx bxs-user"></i>
-            </div>
+                <input placeholder="E-mail" type="email" name="email" required autocomplete="on">
+                <i class="bx bxs-user"></i></div>
+
+                <!-- Senha :-->
             <div class="input-box">
-                <input placeholder="Senha" type="password" name="senha">
+                <input placeholder="Senha" type="password" name="senhaL" required>
                 <i class="bx bxs-lock-alt"></i>
             </div>
             <div class="remember-forgot">
@@ -36,10 +40,7 @@
                   Se 'finalizar' → header('Location: carrinho.php?retorno=finalizar');
                   Senão          → header('Location: index.php');
             -->
-            <button type="button" class="login" id="btn-login">
-                Entrar
-            </button>
-
+     <input type="submit" value="Entrar" class="login" id="btn-login">
             <div class="divider">
                 <hr>
                 <span>OU</span>

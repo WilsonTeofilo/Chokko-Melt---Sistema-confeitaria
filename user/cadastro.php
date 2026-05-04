@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -21,85 +22,82 @@
     </div>
     
 <!-- FORMULÁRIO :-->
-    <form action="?page=CadastroUS" method="POST">
-        <input type="hidden" name="acao" value="cadastrar">
+ <form action="src/auth.php" method="POST">
+        <input type="hidden" name="acao" value="Cadastrar">
 
         <!-- nome:-->
         <div id="input_container">
             <div class="input-box">
-                <label for="nameJS" class="form-label">Primeiro Nome </label>
+                <label for="nameJS" class="form-label"> Nome Completo </label>
                 <div class="input-field">
-                    <input type="text" name="name" id="nameJS" class="form-control" placeholder="Guilherme" maxlength="30" required autocomplete="off"> 
+                    <input type="text" name="names" id="nameJS" class="form-control" placeholder="Guilherme" maxlength="49" required autocomplete="off"> 
                     <i class="fa-solid fa-user" ></i>
                 </div>
                     
                
-              <!-- Sobrenome:-->
-            </div>
-            <div class="input-box">
-                <label for="last_name" class="form-label">
-                    Segundo Nome
-                </label>
-                <div class="input-field">
-                    <input type="text" name="last_name" id="last_name" class="form-control" placeholder="Santos Veloso">
-                    <i class="fa-solid fa-user"></i>
-                </div>
-            </div>
+   
             
-        
+        <!-- Email:-->
             <div class="input-box">
-                <label for="email" class="form-label">
-                    Email
-                </label>
+                <label for="emailJS" class="form-label">Email</label> 
                 <div class="input-field">
-                    <input type="email" name="email" id="email" class="form-control" placeholder="exemplo@gmail.com">
+                    <input type="email" name="emails" id="emailJS" class="form-control" placeholder="GuiVeloso@gmail.com" required autocomplete="off" maxlength="100">
                     <i class="fa-solid fa-envelope"></i>
                 </div>
             </div>
+
+        <!-- Telefone:-->
             <div class="input-box">
-                <label for="senha" class="form-label">
-                    Senha
-                </label>
+                <label for="telefoneJS" class="form-label">Telefone</label>
                 <div class="input-field">
-                    <input type="password" name="senha" id="senha" class="form-control" placeholder="******">
+                    <input type="tel" name="telefone" id="telefoneJS" class="form-control" placeholder="(11) 98765-4321" maxlength="15" autocomplete="off" required
+                        oninput="typeof ChokkoMascaraTelefoneInput==='function' && ChokkoMascaraTelefoneInput(this)">
+                    <i class="fa-solid fa-phone"></i>
+                </div>
+            </div>
+
+      <!-- Senha:-->
+            <div class="input-box">
+                <label for="senhaJS" class="form-label">Senha</label>
+                <div class="input-field">
+                    <input type="password" name="senha" id="senhaJS" class="form-control" placeholder="******" required maxlength="50" autocomplete="new-password">
                     <i class="fa-solid fa-lock"></i>
                 </div>
+
+                <!-- Medidor de força da senha -->
+                <div id="senha-strength-wrap">
+                    <div id="senha-strength-bar">
+                        <span class="strength-seg" id="seg1"></span>
+                        <span class="strength-seg" id="seg2"></span>
+                        <span class="strength-seg" id="seg3"></span>
+                        <span class="strength-seg" id="seg4"></span>
+                    </div>
+                    <ul id="senha-checklist">
+                        <li id="chk-len"><i class="fa-solid fa-circle-xmark"></i> Mínimo 8 caracteres</li>
+                        <li id="chk-upper"><i class="fa-solid fa-circle-xmark"></i> 1 letra maiúscula</li>
+                        <li id="chk-special"><i class="fa-solid fa-circle-xmark"></i> 1 caractere especial (!@#$...)</li>
+                    </ul>
+                </div>
             </div>
+
+              <!-- Confirmar Senha:-->
             <div class="input-box">
-                <label for="confirmar_senha" class="form-label">
-                    Confirmar Senha
-                </label>
+                <label for="confirmar_senhaJS" class="form-label">Confirmar Senha</label>
                 <div class="input-field">
-                    <input type="password" name="confirmar_senha" id="confirmar_senha" class="form-control" placeholder="******">
+                    <input type="password" name="confirmar_senha" id="confirmar_senhaJS" class="form-control" placeholder="******" required maxlength="50" autocomplete="new-password" onpaste="return false;" ondrop="return false;">
                     <i class="fa-solid fa-lock"></i>
                 </div>
+                <span id="erro-senhas" class="erro-senhas-txt"></span>
             </div>
-            <div class="radio-container">
-                <label class="form-label">
-                    Gênero
-                </label>
-                <div id="gender-inputs">
-                    <div class="radio-box">
-                        <input type="radio" name="gender" id="female" class="form-control" value="female">
-                        <label for="female" class="form-label">Feminino</label>
-                    </div>
-                    <div class="radio-box">
-                        <input type="radio" name="gender" id="male" class="form-control" value="male">
-                        <label for="male" class="form-label">Masculino</label>
-                    </div>
-                    <div class="radio-box">
-                        <input type="radio" name="gender" id="other" class="form-control" value="other">
-                        <label for="other" class="form-label">Outro</label>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <button type="button" class="btn-default w-100" id="btn-criar-conta">
-            <i class="fa-solid fa-check"></i>
-            Criar Conta
-        </button>
+
+             <!-- enviar:-->
+        <input type="submit" name="Registro" class="btn-default w-100" id="btn-criar-conta" value="Criar Conta" style="margin-top: 8px;">
+    
     </form>
 </main>
+<script src="assets/js/chokko_digits.js"></script>
 <script src="assets/js/cadastro.js"></script>
 </body>
 </html>
+
+

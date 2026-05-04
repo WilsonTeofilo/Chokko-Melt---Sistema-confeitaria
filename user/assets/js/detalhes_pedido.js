@@ -1,107 +1,99 @@
-/*
- * ═══════════════════════════════════════════════════════════════════════════
- * JS — detalhes_pedido.js
- * ═══════════════════════════════════════════════════════════════════════════
- */
+// ============================================================
+// detalhes_pedido.js — Tela de ver os detalhes de um pedido já feito
+// ============================================================
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     
-    // Modal Cancelar Pedido
-    const modalCancelar = document.getElementById('modal-cancelar-cliente');
-    const modalSucesso = document.getElementById('modal-sucesso-cliente');
-    const btnAbrirModal = document.querySelector('.btn-cancelar-pedido');
-    const btnFecharModal = document.querySelectorAll('.btn-close-modal');
-    const btnConfirmarCancelamento = document.getElementById('btn-confirmar-cancelamento');
-    const motivoSelect = document.getElementById('motivo-cancelamento-cliente');
-    const msgSucesso = document.getElementById('modal-sucesso-cliente-msg');
+    // Elementos do Modal de Cancelamento
+    var modalCancelar = document.getElementById('modal-cancelar-cliente');
+    var modalSucesso = document.getElementById('modal-sucesso-cliente');
+    var btnAbrirModal = document.querySelector('.btn-cancelar-pedido');
+    var botoesFecharModal = document.querySelectorAll('.btn-close-modal');
+    var btnConfirmarCancelamento = document.getElementById('btn-confirmar-cancelamento');
+    var motivoSelect = document.getElementById('motivo-cancelamento-cliente');
+    var msgSucesso = document.getElementById('modal-sucesso-cliente-msg');
 
+    // Abre modal de cancelar
     if (btnAbrirModal) {
-        btnAbrirModal.addEventListener('click', () => {
-            if (modalCancelar) modalCancelar.classList.add('show');
+        btnAbrirModal.addEventListener('click', function() {
+            if (modalCancelar) {
+                modalCancelar.classList.add('show');
+            }
         });
     }
 
-    if (btnFecharModal.length > 0) {
-        btnFecharModal.forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (modalCancelar) modalCancelar.classList.remove('show');
+    // Fecha os modais no "X" ou "Cancelar"
+    if (botoesFecharModal.length > 0) {
+        for (var i = 0; i < botoesFecharModal.length; i++) {
+            botoesFecharModal[i].addEventListener('click', function() {
+                if (modalCancelar) {
+                    modalCancelar.classList.remove('show');
+                }
             });
-        });
+        }
     }
 
+    // Botão vermelho de confirmar cancelamento
     if (btnConfirmarCancelamento) {
-        btnConfirmarCancelamento.addEventListener('click', () => {
-            const motivo = motivoSelect.value;
-            const pedidoId = btnConfirmarCancelamento.dataset.pedidoId;
+        btnConfirmarCancelamento.addEventListener('click', function() {
+            var motivo = motivoSelect.value;
+            var pedidoId = btnConfirmarCancelamento.getAttribute('data-pedido-id');
 
             if (!motivo) {
                 alert('Por favor, selecione o motivo do cancelamento.');
                 return;
             }
             
-            // NOTA BACKEND: POST para api/cancelar_pedido.php
-            // Body: { pedido_id: pedidoId, motivo: motivo }
+            // NOTA BACKEND: Aqui você vai enviar o ID e o motivo para cancelar no MySQL.
+            // Exemplo:
+            // window.location.href = 'api/cancelar_pedido.php?id=' + pedidoId + '&motivo=' + motivo;
             
-            if (modalCancelar) modalCancelar.classList.remove('show');
+            // Esconde modal de pergunta e mostra modal de sucesso
+            if (modalCancelar) {
+                modalCancelar.classList.remove('show');
+            }
             
-            if (msgSucesso) msgSucesso.innerText = 'Seu pedido foi cancelado. O motivo informado foi registrado.';
-            if (modalSucesso) modalSucesso.classList.add('show');
+            if (msgSucesso) {
+                msgSucesso.innerText = 'Seu pedido foi cancelado. O motivo informado foi registrado.';
+            }
+            if (modalSucesso) {
+                modalSucesso.classList.add('show');
+            }
         });
     }
 
-    const btnReload = document.getElementById('btn-reload-page');
+    // Recarrega a página ao clicar em "Entendi" no modal de sucesso
+    var btnReload = document.getElementById('btn-reload-page');
     if (btnReload) {
-        btnReload.addEventListener('click', () => {
+        btnReload.addEventListener('click', function() {
             window.location.reload();
         });
     }
 
-    // Repetir Pedido
-    const btnsRepetir = document.querySelectorAll('.btn-repetir-pedido');
-    if (btnsRepetir.length > 0) {
-        btnsRepetir.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const pedidoId = btn.dataset.pedidoId;
+    // Botão de Repetir Pedido
+    var botoesRepetir = document.querySelectorAll('.btn-repetir-pedido');
+    if (botoesRepetir.length > 0) {
+        for (var j = 0; j < botoesRepetir.length; j++) {
+            botoesRepetir[j].addEventListener('click', function(evento) {
+                var pedidoId = evento.currentTarget.getAttribute('data-pedido-id');
                 
-                /* NOTA BACKEND: quando o endpoint estiver pronto, descomente abaixo e remova o alert():
-                fetch('api/pedido_itens.php?id=' + pedidoId)
-                    .then(function(r) { return r.json(); })
-                    .then(function(itens) {
-                        var cart = itens.map(function(i) {
-                            return {
-                                key: i.id + '||',
-                                id: i.id,
-                                name: i.nome,
-                                img: i.img,
-                                basePrice: i.preco,
-                                addons: [],
-                                unitPrice: i.preco,
-                                qty: i.qty,
-                                obs: ''
-                            };
-                        });
-                        localStorage.setItem('chokko_cart', JSON.stringify(cart));
-                        window.location.href = 'carrinho.php';
-                    })
-                    .catch(function() {
-                        alert('Erro ao buscar itens. Tente novamente.');
-                    });
-                */
-
-                alert('Repetir pedido estara disponivel quando o backend estiver conectado. ID: ' + pedidoId);
+                // NOTA BACKEND: redirecione o usuário para um PHP que pega os itens 
+                // e joga na sessão do carrinho.
+                alert('Repetir pedido estará disponível quando o backend estiver conectado. ID: ' + pedidoId);
             });
-        });
+        }
     }
 
-    // Botão Falar com Estabelecimento
-    const btnContato = document.getElementById('btn-contato');
+    // Botão Falar com Estabelecimento (WhatsApp)
+    var btnContato = document.getElementById('btn-contato');
     if (btnContato) {
-        btnContato.addEventListener('click', () => {
-            const pedidoId = btnContato.dataset.pedidoId;
-            /* NOTA BACKEND: descomente a linha abaixo e insira o numero real:
-            window.open(`https://wa.me/5511999999999?text=Ola! Tenho duvida sobre o Pedido #${pedidoId}`, '_blank');
-            */
-            alert('WhatsApp: numero a ser configurado pelo backend. Referência do Pedido: ' + pedidoId);
+        btnContato.addEventListener('click', function() {
+            var pedidoId = btnContato.getAttribute('data-pedido-id');
+            
+            // NOTA BACKEND: troque pelo número de WhatsApp real cadastrado na configuração
+            // window.open('https://wa.me/5511999999999?text=Olá! Tenho duvida sobre o Pedido #' + pedidoId, '_blank');
+            
+            alert('WhatsApp: número a ser configurado pelo backend. Referência: Pedido #' + pedidoId);
         });
     }
 });

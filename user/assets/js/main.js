@@ -1,292 +1,418 @@
 /**
- * ═══════════════════════════════════════════════════════════════════════════
- * INTEGRAÇÃO JavaScript ↔ PHP (para quem está começando)
- * ═══════════════════════════════════════════════════════════════════════════
- * Leia também na RAIZ do projeto: INTEGRACAO_JS_PHP.txt
+ * ============================================================
+ * main.js — Roda em TODAS as páginas (carregado pelo user_footer.php)
+ * ============================================================
+ * O que este arquivo faz:
+ *   1. Atualiza o badge (número) da sacola na navegação inferior
+ *   2. Verifica se a loja está aberta ou fechada pelo horário
+ *   3. Na tela de finalizar pedido: mostra campo de troco e valida CPF
  *
- * O que ESTE arquivo faz:
- *   Roda em TODAS as páginas que incluem user_footer.php (que carrega main.js).
- *   • Atualiza o número da sacola lendo localStorage 'chokko_cart' (carrinho fake
- *     no navegador até você gravar pedido no MySQL via PHP).
- *   • Horário aberto/fechado: hoje lê 'chokko_hora_abre' / 'chokko_hora_fecha'
- *     do localStorage (admin/config.js grava isso no mock). No sistema real, o
- *     PHP deve expor GET user/api/config_loja.php (lê tabela config_loja) e o
- *     JS deve dar fetch() e preencher o mesmo comportamento.
- *   • Em finalizarPedido.php: bloco de troco (dinheiro) + máscara/validação CPF.
- *     O PHP ao receber o POST deve validar CPF e troco de novo (nunca confie só no JS).
- *
- * Resumo: JS = experiência no navegador. PHP = verdade no servidor (sessão, banco).
- * ═══════════════════════════════════════════════════════════════════════════
+ * NOTA BACKEND:
+ *   - O badge hoje lê o localStorage. Quando o PHP assumir o carrinho
+ *     via sessão, o badge vai ser gerado direto pelo PHP no HTML.
+ *   - O horário hoje lê o localStorage. Quando o PHP tiver uma tabela
+ *     de configuração da loja, o main.js vai buscar via fetch().
+ *   - O campo de troco (ensureTrocoUI) existe porque a tela de
+ *     finalizar pedido ainda não tem esse HTML. Quando o PHP gerar
+ *     o HTML dessa tela, coloque o campo de troco direto no PHP
+ *     e remova a função ensureTrocoUI() daqui.
+ * ============================================================
  */
 
-/* ========================================
-   MAIN.JS — Lógica global (todas as páginas)
-   Badge do carrinho na bottom-nav
-   ======================================== */
+document.addEventListener('DOMContentLoaded', function() {
 
-document.addEventListener('DOMContentLoaded', () => {
-    // ── Badge do carrinho ──────────────────
-    // Lê o localStorage e atualiza o badge da sacola em qualquer página
+    // ============================================================
+    // 1. Badge da sacola — mostra quantos itens estão no carrinho
+    // ============================================================
+    // NOTA BACKEND: remova este bloco quando o PHP gerar o número direto no HTML
     try {
-        const cart  = JSON.parse(localStorage.getItem('chokko_cart') || '[]');
-        const total = cart.reduce((s, i) => s + (parseInt(i.qty) || 0), 0);
-        const badge = document.getElementById('cart-badge');
+        var dadosCarrinho = localStorage.getItem('chokko_cart');
+        var carrinho = dadosCarrinho ? JSON.parse(dadosCarrinho) : [];
+        var totalItens = 0;
+
+        for (var i = 0; i < carrinho.length; i++) {
+            var item = carrinho[i];
+            var qtd = parseInt(item.qty);
+            if (!isNaN(qtd)) {
+                totalItens = totalItens + qtd;
+            }
+        }
+
+        var badge = document.getElementById('cart-badge');
         if (badge) {
-            badge.textContent = total > 0 ? total : '';
-            badge.classList.toggle('has-items', total > 0);
-        }
-    } catch (e) { /* silencioso */ }
-
-    // ── Validação de Horário de Funcionamento ──
-    window.isLojaAberta = true; // global
-    function checarHorario() {
-        const horaAbre = localStorage.getItem('chokko_hora_abre') || '15:00';
-        // const horaFecha = localStorage.getItem('chokko_hora_fecha') || '22:00';
-        const horaFecha = '05:00'; // Forçado para 05:00 am para testes
-        
-        // Atualiza textos na UI se existirem
-        const hoursText = document.getElementById('store-hours-text');
-        if (hoursText) {
-            hoursText.innerText = `${horaAbre} às ${horaFecha}`;
-        }
-
-        const agora = new Date();
-        const horaAtual = agora.getHours();
-        const minAtual = agora.getMinutes();
-        const atualDecimal = horaAtual + (minAtual / 60);
-
-        const [hAbre, mAbre] = horaAbre.split(':').map(Number);
-        const abreDecimal = hAbre + (mAbre / 60);
-
-        const [hFecha, mFecha] = horaFecha.split(':').map(Number);
-        let fechaDecimal = hFecha + (mFecha / 60);
-        
-        // Trata fechamento de madrugada
-        if (fechaDecimal < abreDecimal) {
-            fechaDecimal += 24;
-        }
-        
-        let atualCalculado = atualDecimal;
-        if (atualCalculado < abreDecimal && fechaDecimal > 24) {
-            atualCalculado += 24;
-        }
-
-        window.isLojaAberta = (atualCalculado >= abreDecimal && atualCalculado <= fechaDecimal);
-        
-        const badge = document.getElementById('store-status-badge');
-        if (badge) {
-            if (window.isLojaAberta) {
-                badge.innerText = 'Loja Aberta';
-                badge.style.background = '#43A047';
-                badge.style.color = 'white';
+            if (totalItens > 0) {
+                badge.textContent = totalItens;
+                badge.classList.add('has-items');
             } else {
-                badge.innerText = 'Fechado';
-                badge.style.background = '#E53935';
-                badge.style.color = 'white';
+                badge.textContent = '';
+                badge.classList.remove('has-items');
+            }
+        }
+    } catch (e) {
+        // Se der erro ao ler o carrinho, apenas ignora
+    }
+
+
+    // ============================================================
+    // 2. Horário de funcionamento — loja aberta ou fechada?
+    // ============================================================
+    // Esta variável global é lida pelo cardapio.js ao abrir o modal
+    window.isLojaAberta = true;
+
+    function checarHorario() {
+        // Lê o horário de abertura do localStorage (admin grava lá)
+        var horaAbre  = localStorage.getItem('chokko_hora_abre')  || '15:00';
+        var horaFecha = localStorage.getItem('chokko_hora_fecha') || '22:00';
+
+        // Atualiza o texto de horário na tela se existir
+        var textoHorario = document.getElementById('store-hours-text');
+        if (textoHorario) {
+            textoHorario.innerText = horaAbre + ' às ' + horaFecha;
+        }
+
+        // Pega a hora atual do computador do usuário
+        var agora = new Date();
+        var horaAtual = agora.getHours();
+        var minAtual  = agora.getMinutes();
+
+        // Converte tudo para "número decimal de horas" para facilitar a comparação
+        // Exemplo: 15:30 vira 15.5 (quinze e meio)
+        var horaAtualDecimal = horaAtual + (minAtual / 60);
+
+        // Separa hora e minuto do horário de abertura
+        var partesAbre  = horaAbre.split(':');
+        var hAbre = parseInt(partesAbre[0]);
+        var mAbre = parseInt(partesAbre[1]);
+        var abreDecimal = hAbre + (mAbre / 60);
+
+        // Separa hora e minuto do horário de fechamento
+        var partesFecha = horaFecha.split(':');
+        var hFecha = parseInt(partesFecha[0]);
+        var mFecha = parseInt(partesFecha[1]);
+        var fechaDecimal = hFecha + (mFecha / 60);
+
+        // Caso especial: a loja fecha depois da meia-noite (ex: abre 20h fecha 2h)
+        // Adicionamos 24 para poder comparar corretamente
+        if (fechaDecimal < abreDecimal) {
+            fechaDecimal = fechaDecimal + 24;
+        }
+
+        // Mesma correção para a hora atual quando passa da meia-noite
+        var horaAtualParaCalculo = horaAtualDecimal;
+        if (horaAtualParaCalculo < abreDecimal && fechaDecimal > 24) {
+            horaAtualParaCalculo = horaAtualParaCalculo + 24;
+        }
+
+        // Define se está aberto ou fechado
+        if (horaAtualParaCalculo >= abreDecimal && horaAtualParaCalculo <= fechaDecimal) {
+            window.isLojaAberta = true;
+        } else {
+            window.isLojaAberta = false;
+        }
+
+        // Atualiza o badge de status (Loja Aberta / Fechado) na tela
+        var badgeStatus = document.getElementById('store-status-badge');
+        if (badgeStatus) {
+            if (window.isLojaAberta) {
+                badgeStatus.innerText = 'Loja Aberta';
+                badgeStatus.style.background = '#43A047';
+                badgeStatus.style.color = 'white';
+            } else {
+                badgeStatus.innerText = 'Fechado';
+                badgeStatus.style.background = '#E53935';
+                badgeStatus.style.color = 'white';
             }
         }
     }
+
     checarHorario();
-    setInterval(checarHorario, 60000); // Checa a cada minuto
+    // Roda de novo a cada 1 minuto para atualizar o status automaticamente
+    setInterval(checarHorario, 60000);
 
-    // ── Finalizar pedido: CPF + Troco (front-only) ─────────────
-    function onlyDigits(s) { return String(s || '').replace(/\D/g, ''); }
 
-    function validarCPF(cpf) {
-        const v = onlyDigits(cpf);
-        if (v.length === 0) return true; // opcional
-        if (v.length !== 11) return false;
-        if (/^(\d)\1{10}$/.test(v)) return false;
-
-        const calcDV = (base, fator) => {
-            let soma = 0;
-            for (let i = 0; i < base.length; i++) soma += parseInt(base[i], 10) * (fator - i);
-            const resto = (soma * 10) % 11;
-            return (resto === 10) ? 0 : resto;
-        };
-
-        const base9 = v.slice(0, 9);
-        const dv1 = calcDV(base9, 10);
-        const base10 = v.slice(0, 10);
-        const dv2 = calcDV(base10, 11);
-        return v === (base9 + String(dv1) + String(dv2));
-    }
-
-    function formatCPF(v) {
-        const d = onlyDigits(v).slice(0, 11);
-        if (d.length <= 3) return d;
-        if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`;
-        if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
-        return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
-    }
-
-    function parseBRL(text) {
-        if (!text) return 0;
-        const s = String(text).replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.');
-        const n = parseFloat(s);
-        return Number.isFinite(n) ? n : 0;
-    }
-
-    function ensureTrocoUI() {
-        const dinheiroRadio = document.querySelector('input[type="radio"][name="pagamento"][value="dinheiro"]');
-        if (!dinheiroRadio) return;
-
-        const containerId = 'dinheiro-troco-wrap';
-        let wrap = document.getElementById(containerId);
-        if (!wrap) {
-            wrap = document.createElement('div');
-            wrap.id = containerId;
-            wrap.style.marginTop = '12px';
-            wrap.style.display = 'none';
-            wrap.innerHTML = `
-                <div style="padding: 12px; border: 1px solid var(--cinza-claro); border-radius: 10px; background: #FAF7F5;">
-                    <label style="display:block; font-size:.85rem; font-weight:600; color:var(--cinza-texto); margin-bottom:8px;">
-                        Pagará com quanto? (opcional)
-                    </label>
-                    <input id="valor-pago-dinheiro" inputmode="decimal" class="form-control" placeholder="Ex: 50,00" style="margin-bottom: 10px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap: 10px;">
-                        <span style="font-size:.8rem; color:var(--cinza-medio);">Troco estimado</span>
-                        <strong id="troco-valor" style="color:var(--marrom);">—</strong>
-                    </div>
-                    <p id="troco-ajuda" style="margin-top:8px; font-size:.75rem; color:var(--cinza-medio); line-height:1.3;">
-                        Se deixar em branco, vamos assumir que não precisa de troco.
-                    </p>
-                </div>
-            `;
-
-            // Anexa no card de pagamento (mesmo container dos radios)
-            const cardPagamento = dinheiroRadio.closest('.card');
-            if (cardPagamento) cardPagamento.appendChild(wrap);
-
-            const input = wrap.querySelector('#valor-pago-dinheiro');
-            const trocoEl = wrap.querySelector('#troco-valor');
-            const ajudaEl = wrap.querySelector('#troco-ajuda');
-
-            const recalc = () => {
-                const totalEl = document.getElementById('fin-total');
-                const total = parseBRL(totalEl ? totalEl.textContent : '');
-                const pago = parseBRL(input.value);
-
-                if (!input.value.trim()) {
-                    trocoEl.textContent = '—';
-                    ajudaEl.textContent = 'Se deixar em branco, vamos assumir que não precisa de troco.';
-                    return;
-                }
-
-                if (!Number.isFinite(pago) || pago <= 0) {
-                    trocoEl.textContent = '—';
-                    ajudaEl.textContent = 'Digite um valor válido (ex: 50,00).';
-                    return;
-                }
-
-                const troco = pago - total;
-                if (troco < 0) {
-                    trocoEl.textContent = '—';
-                    ajudaEl.textContent = 'O valor informado é menor que o total do pedido.';
-                    return;
-                }
-
-                trocoEl.textContent = 'R$ ' + troco.toFixed(2).replace('.', ',');
-                ajudaEl.textContent = 'Troco calculado automaticamente com base no total atual.';
-            };
-
-            input.addEventListener('input', recalc);
-            // Recalcula também se o total for atualizado por algum script
-            setTimeout(recalc, 0);
-            setTimeout(recalc, 300);
-        }
-
-        const onChange = () => {
-            const checked = document.querySelector('input[type="radio"][name="pagamento"][value="dinheiro"]')?.checked;
-            wrap.style.display = checked ? 'block' : 'none';
-        };
-
-        document.querySelectorAll('input[type="radio"][name="pagamento"]').forEach(r => {
-            r.addEventListener('change', onChange);
-        });
-        onChange();
-
-        // Bloqueia o clique do "Fazer Pedido" se dinheiro insuficiente
-        document.addEventListener('click', (e) => {
-            const btn = e.target.closest('button');
-            if (!btn) return;
-            if (!btn.classList.contains('btn-success')) return;
-            if (!btn.textContent || !btn.textContent.toLowerCase().includes('fazer pedido')) return;
-
-            const isDinheiro = document.querySelector('input[type="radio"][name="pagamento"][value="dinheiro"]')?.checked;
-            const trocoInput = document.getElementById('valor-pago-dinheiro');
-            
-            if (isDinheiro && trocoInput && trocoInput.value.trim() !== '') {
-                const totalEl = document.getElementById('fin-total');
-                const total = parseBRL(totalEl ? totalEl.textContent : '');
-                const pago = parseBRL(trocoInput.value);
-
-                if (!Number.isFinite(pago) || pago <= 0 || pago < total) {
-                    trocoInput.style.borderColor = '#E53935';
-                    trocoInput.style.boxShadow = '0 0 0 3px rgba(229,57,53,0.12)';
-                    e.preventDefault();
-                    e.stopPropagation(); // Impede o clique de chegar no inline onclick
-                    e.stopImmediatePropagation();
-                    alert('O valor em dinheiro informado é menor que o total do pedido. Verifique o valor para o troco.');
-                } else {
-                    trocoInput.style.borderColor = '';
-                    trocoInput.style.boxShadow = '';
-                }
-            }
-        }, true);
-    }
-
-    function ensureCPFValidation() {
-        // A página atual não tem id/name no input, então detectamos por placeholder
-        const cpfInput = document.querySelector('input.form-control[placeholder="000.000.000-00"]');
-        if (!cpfInput) return;
-
-        cpfInput.addEventListener('input', () => {
-            const prevPos = cpfInput.selectionStart || 0;
-            const before = cpfInput.value;
-            cpfInput.value = formatCPF(before);
-            // tentativa simples de manter o cursor estável
-            const delta = cpfInput.value.length - before.length;
-            cpfInput.setSelectionRange(Math.max(prevPos + delta, 0), Math.max(prevPos + delta, 0));
-        });
-
-        const setInvalid = (isInvalid) => {
-            cpfInput.style.borderColor = isInvalid ? '#E53935' : '';
-            cpfInput.style.boxShadow = isInvalid ? '0 0 0 3px rgba(229,57,53,0.12)' : '';
-        };
-
-        cpfInput.addEventListener('blur', () => {
-            const ok = validarCPF(cpfInput.value);
-            setInvalid(!ok);
-            if (!ok) alert('CPF inválido. Verifique e tente novamente.');
-        });
-
-        // Bloqueia o clique do "Fazer Pedido" se CPF inválido
-        document.addEventListener('click', (e) => {
-            const btn = e.target.closest('button');
-            if (!btn) return;
-            if (!btn.classList.contains('btn-success')) return;
-            if (!btn.textContent || !btn.textContent.toLowerCase().includes('fazer pedido')) return;
-
-            const ok = validarCPF(cpfInput.value);
-            if (!ok) {
-                setInvalid(true);
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                alert('CPF inválido. Corrija antes de finalizar o pedido.');
-            }
-        }, true);
-    }
+    // ============================================================
+    // 3. Finalizar Pedido: Campo de Troco + Validação de CPF
+    // ============================================================
+    // Estas funções só fazem algo se existirem os elementos na tela.
+    // Se não estiver na tela de finalizar pedido, não acontece nada.
 
     ensureTrocoUI();
     ensureCPFValidation();
 
-    // ── Navegação do botão Fazer Pedido (só roda se as validações acima deixarem passar) ──
-    const btnFazerPedido = document.getElementById('btn-fazer-pedido');
+    // Botão "Fazer Pedido" redireciona para a tela de detalhes
+    var btnFazerPedido = document.getElementById('btn-fazer-pedido');
     if (btnFazerPedido) {
-        btnFazerPedido.addEventListener('click', () => {
+        btnFazerPedido.addEventListener('click', function() {
             window.location.href = 'detalhes_pedido.php';
         });
     }
 });
+
+
+// ============================================================
+// FUNÇÃO: Campo de Troco (para pagamento em dinheiro)
+// ============================================================
+// NOTA BACKEND: quando o PHP gerar o HTML da tela de finalizar pedido,
+// coloque o campo de troco direto no PHP e APAGUE esta função inteira.
+// Ela existe só porque o HTML do troco ainda não está na tela.
+function ensureTrocoUI() {
+    var radiosDinheiro = document.querySelector('input[type="radio"][name="pagamento"][value="dinheiro"]');
+    if (!radiosDinheiro) {
+        return; // Não está na tela de pagamento, não faz nada
+    }
+
+    // Cria o campo de troco apenas se ele ainda não existir na tela
+    var campoTroco = document.getElementById('dinheiro-troco-wrap');
+    if (!campoTroco) {
+        campoTroco = document.createElement('div');
+        campoTroco.id = 'dinheiro-troco-wrap';
+        campoTroco.style.marginTop = '12px';
+        campoTroco.style.display = 'none';
+        campoTroco.innerHTML =
+            '<div style="padding:12px; border:1px solid var(--cinza-claro); border-radius:10px; background:#FAF7F5;">' +
+                '<label style="display:block; font-size:.85rem; font-weight:600; color:var(--cinza-texto); margin-bottom:8px;">' +
+                    'Pagará com quanto? (opcional)' +
+                '</label>' +
+                '<input id="valor-pago-dinheiro" inputmode="decimal" class="form-control" placeholder="Ex: 50,00" style="margin-bottom:10px;">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">' +
+                    '<span style="font-size:.8rem; color:var(--cinza-medio);">Troco estimado</span>' +
+                    '<strong id="troco-valor" style="color:var(--marrom);">—</strong>' +
+                '</div>' +
+                '<p id="troco-ajuda" style="margin-top:8px; font-size:.75rem; color:var(--cinza-medio); line-height:1.3;">' +
+                    'Se deixar em branco, assumimos que não precisa de troco.' +
+                '</p>' +
+            '</div>';
+
+        // Coloca o campo no card de pagamento
+        var cardPagamento = radiosDinheiro.closest('.card');
+        if (cardPagamento) {
+            cardPagamento.appendChild(campoTroco);
+        }
+
+        var inputValorPago = campoTroco.querySelector('#valor-pago-dinheiro');
+        var textoTroco = campoTroco.querySelector('#troco-valor');
+        var textoAjuda = campoTroco.querySelector('#troco-ajuda');
+
+        // Calcula o troco quando o usuário digita o valor que vai pagar
+        function recalcularTroco() {
+            var elTotal = document.getElementById('fin-total');
+            var totalPedido = 0;
+
+            if (elTotal) {
+                // Converte o texto "R$ 25,00" para o número 25.00
+                var textoTotal = elTotal.textContent;
+                textoTotal = textoTotal.replace('R$', '').trim().replace('.', '').replace(',', '.');
+                totalPedido = parseFloat(textoTotal);
+                if (isNaN(totalPedido)) {
+                    totalPedido = 0;
+                }
+            }
+
+            // Converte o valor digitado pelo usuário para número
+            var textoPago = inputValorPago.value.replace(',', '.');
+            var valorPago = parseFloat(textoPago);
+
+            if (!inputValorPago.value.trim()) {
+                textoTroco.textContent = '—';
+                textoAjuda.textContent = 'Se deixar em branco, assumimos que não precisa de troco.';
+                return;
+            }
+
+            if (isNaN(valorPago) || valorPago <= 0) {
+                textoTroco.textContent = '—';
+                textoAjuda.textContent = 'Digite um valor válido (ex: 50,00).';
+                return;
+            }
+
+            var troco = valorPago - totalPedido;
+
+            if (troco < 0) {
+                textoTroco.textContent = '—';
+                textoAjuda.textContent = 'O valor informado é menor que o total do pedido.';
+                return;
+            }
+
+            textoTroco.textContent = 'R$ ' + troco.toFixed(2).replace('.', ',');
+            textoAjuda.textContent = 'Troco calculado com base no total atual.';
+        }
+
+        inputValorPago.addEventListener('input', recalcularTroco);
+        setTimeout(recalcularTroco, 0);
+    }
+
+    // Mostra ou esconde o campo de troco conforme o método de pagamento
+    function mostrarOcultarTroco() {
+        var dinheiroMarcado = document.querySelector('input[type="radio"][name="pagamento"][value="dinheiro"]');
+        if (dinheiroMarcado && dinheiroMarcado.checked) {
+            campoTroco.style.display = 'block';
+        } else {
+            campoTroco.style.display = 'none';
+        }
+    }
+
+    var todosRadiosPagamento = document.querySelectorAll('input[type="radio"][name="pagamento"]');
+    todosRadiosPagamento.forEach(function(radio) {
+        radio.addEventListener('change', mostrarOcultarTroco);
+    });
+    mostrarOcultarTroco();
+
+    // Bloqueia o clique no "Fazer Pedido" se o valor em dinheiro for insuficiente
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('button');
+        if (!btn) return;
+        if (!btn.classList.contains('btn-success')) return;
+        if (!btn.textContent || btn.textContent.toLowerCase().indexOf('fazer pedido') === -1) return;
+
+        var dinheiroMarcado = document.querySelector('input[type="radio"][name="pagamento"][value="dinheiro"]');
+        var inputValorPago  = document.getElementById('valor-pago-dinheiro');
+
+        if (dinheiroMarcado && dinheiroMarcado.checked && inputValorPago && inputValorPago.value.trim() !== '') {
+            var elTotal = document.getElementById('fin-total');
+            var totalPedido = 0;
+
+            if (elTotal) {
+                var textoTotal = elTotal.textContent.replace('R$', '').trim().replace('.', '').replace(',', '.');
+                totalPedido = parseFloat(textoTotal) || 0;
+            }
+
+            var textoPago = inputValorPago.value.replace(',', '.');
+            var valorPago = parseFloat(textoPago);
+
+            if (isNaN(valorPago) || valorPago <= 0 || valorPago < totalPedido) {
+                inputValorPago.style.borderColor = '#E53935';
+                inputValorPago.style.boxShadow   = '0 0 0 3px rgba(229,57,53,0.12)';
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                alert('O valor em dinheiro informado é menor que o total do pedido.');
+            } else {
+                inputValorPago.style.borderColor = '';
+                inputValorPago.style.boxShadow   = '';
+            }
+        }
+    }, true);
+}
+
+
+// ============================================================
+// FUNÇÃO: Validação e máscara de CPF
+// ============================================================
+// NOTA BACKEND: o PHP também deve validar o CPF no servidor.
+// O JS valida só pra dar feedback rápido pro usuário.
+function ensureCPFValidation() {
+    var inputCPF = document.querySelector('input.form-control[placeholder="000.000.000-00"]');
+    if (!inputCPF) {
+        return; // Não tem campo de CPF na tela atual
+    }
+
+    // Aplica a máscara enquanto o usuário digita
+    inputCPF.addEventListener('input', function() {
+        var cursorAntes = inputCPF.selectionStart || 0;
+        var valorAntes = inputCPF.value;
+        inputCPF.value = formatarCPF(valorAntes);
+        var diferenca = inputCPF.value.length - valorAntes.length;
+        var novaPosicao = Math.max(cursorAntes + diferenca, 0);
+        inputCPF.setSelectionRange(novaPosicao, novaPosicao);
+    });
+
+    // Valida quando o usuário sai do campo
+    inputCPF.addEventListener('blur', function() {
+        var cpfValido = validarCPF(inputCPF.value);
+        if (!cpfValido) {
+            inputCPF.style.borderColor = '#E53935';
+            inputCPF.style.boxShadow   = '0 0 0 3px rgba(229,57,53,0.12)';
+            alert('CPF inválido. Verifique e tente novamente.');
+        } else {
+            inputCPF.style.borderColor = '';
+            inputCPF.style.boxShadow   = '';
+        }
+    });
+
+    // Bloqueia o "Fazer Pedido" se o CPF for inválido
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('button');
+        if (!btn) return;
+        if (!btn.classList.contains('btn-success')) return;
+        if (!btn.textContent || btn.textContent.toLowerCase().indexOf('fazer pedido') === -1) return;
+
+        if (!validarCPF(inputCPF.value)) {
+            inputCPF.style.borderColor = '#E53935';
+            inputCPF.style.boxShadow   = '0 0 0 3px rgba(229,57,53,0.12)';
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            alert('CPF inválido. Corrija antes de finalizar o pedido.');
+        }
+    }, true);
+}
+
+// Formata o CPF enquanto o usuário digita: "12345678901" → "123.456.789-01"
+function formatarCPF(valor) {
+    // Remove tudo que não é número e limita a 11 dígitos
+    var digitos = String(valor).replace(/\D/g, '').slice(0, 11);
+    var tamanho = digitos.length;
+
+    if (tamanho <= 3) {
+        return digitos;
+    } else if (tamanho <= 6) {
+        return digitos.slice(0, 3) + '.' + digitos.slice(3);
+    } else if (tamanho <= 9) {
+        return digitos.slice(0, 3) + '.' + digitos.slice(3, 6) + '.' + digitos.slice(6);
+    } else {
+        return digitos.slice(0, 3) + '.' + digitos.slice(3, 6) + '.' + digitos.slice(6, 9) + '-' + digitos.slice(9);
+    }
+}
+
+// Valida se o CPF digitado é matematicamente correto (os dois dígitos verificadores)
+// O algoritmo da Receita Federal usa soma ponderada para calcular os dígitos finais.
+function validarCPF(cpf) {
+    // Remove pontos e traços
+    var digitos = String(cpf).replace(/\D/g, '');
+
+    // CPF vazio é considerado OK (campo opcional)
+    if (digitos.length === 0) {
+        return true;
+    }
+
+    // CPF precisa ter exatamente 11 dígitos
+    if (digitos.length !== 11) {
+        return false;
+    }
+
+    // CPFs com todos os dígitos iguais são inválidos (ex: 111.111.111-11)
+    var todosIguais = true;
+    for (var i = 1; i < 11; i++) {
+        if (digitos[i] !== digitos[0]) {
+            todosIguais = false;
+            break;
+        }
+    }
+    if (todosIguais) {
+        return false;
+    }
+
+    // ── Calcula o 1º dígito verificador ──
+    // Multiplica os 9 primeiros dígitos por 10, 9, 8... até 2
+    var soma1 = 0;
+    for (var j = 0; j < 9; j++) {
+        soma1 = soma1 + (parseInt(digitos[j]) * (10 - j));
+    }
+    var resto1 = (soma1 * 10) % 11;
+    var dv1 = (resto1 === 10) ? 0 : resto1;
+
+    // ── Calcula o 2º dígito verificador ──
+    // Multiplica os 10 primeiros dígitos por 11, 10, 9... até 2
+    var soma2 = 0;
+    for (var k = 0; k < 10; k++) {
+        soma2 = soma2 + (parseInt(digitos[k]) * (11 - k));
+    }
+    var resto2 = (soma2 * 10) % 11;
+    var dv2 = (resto2 === 10) ? 0 : resto2;
+
+    // Verifica se os dígitos calculados batem com os do CPF digitado
+    if (parseInt(digitos[9]) !== dv1 || parseInt(digitos[10]) !== dv2) {
+        return false;
+    }
+
+    return true;
+}

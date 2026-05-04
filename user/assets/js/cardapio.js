@@ -1,256 +1,345 @@
-/**
- * ═══════════════════════════════════════════════════════════════════════════
- * INTEGRAÇÃO JavaScript ↔ PHP (iniciante)
- * ═══════════════════════════════════════════════════════════════════════════
- * Guia: INTEGRACAO_JS_PHP.txt (raiz do projeto)
- *
- * Carregado em: user/index.php (após user_footer → main.js)
- *
- * O que ESTE arquivo faz:
- *   Abre modal do produto, lê data-id, data-name, data-price, data-addons nos
- *   <article class="product-card">. Hoje os produtos são HTML estático/mock.
- *
- * O que VOCÊ (PHP) deve fazer depois:
- *   • Gerar cada card com um foreach PHP vindo do SELECT em produto + adicionais:
- *     data-addons='<?= json_encode($adicionaisDoProduto, JSON_HEX_TAG | JSON_HEX_APOS) ?>'
- *   • Ou entregar JSON de produtos e o JS montar o grid (mais trabalhoso).
- *   • Ao adicionar ao carrinho, o JS só grava em localStorage. Para persistir no
- *     servidor use sessão + tabela item_carrinho ou mantenha só localStorage até
- *     o cliente logar e clicar em finalizar (aí um PHP grava pedido + itens).
- * ═══════════════════════════════════════════════════════════════════════════
- */
+// ============================================================
+// cardapio.js — Lógica do cardápio e do modal de produto
+// ============================================================
+// NOTA BACKEND: quando o PHP estiver pronto, os <article class="product-card">
+// serão gerados via foreach no banco de dados com data-* reais.
+// O localStorage do carrinho é temporário e vai ser substituído
+// por $_SESSION no PHP.
+// ============================================================
 
-/* ========================================
-   CARDÁPIO — Modal de detalhes + Carrinho local
-   ======================================== */
+// Variáveis globais que guardam o estado do modal aberto
+var produtoAtual = null; // qual produto está sendo visto
+var quantidadeAtual = 1; // quantidade selecionada
 
-// ── Estado do modal ──────────────────────
-let currentProduct = null;   // produto sendo visualizado
-let currentQty     = 1;      // quantidade selecionada
+// Pega os elementos do modal da tela
+var modal           = document.getElementById('productModal');
+var modalImg        = document.getElementById('modalImg');
+var modalTitulo     = document.getElementById('modal-title');
+var modalDescricao  = document.getElementById('modalDesc');
+var modalPrecoEl    = document.getElementById('modalPriceDisplay');
+var modalQtdEl      = document.getElementById('modalQty');
+var modalBtnPrecoEl = document.getElementById('modalBtnPrice');
+var modalBotaoAdd   = document.getElementById('modalAddBtn');
+var modalObs        = document.getElementById('modalObs');
+var secaoAddons     = document.getElementById('modalAddonsSection');
+var listaAddons     = document.getElementById('modalAddonsList');
+var botaoMenos      = document.getElementById('modalQtyMinus');
+var botaoMais       = document.getElementById('modalQtyPlus');
+var toast           = document.getElementById('toastCart');
+var toastMensagem   = document.getElementById('toastMsg');
 
-// ── Referências DOM ──────────────────────
-const modal        = document.getElementById('productModal');
-const modalImg     = document.getElementById('modalImg');
-const modalTitle   = document.getElementById('modal-title');
-const modalDesc    = document.getElementById('modalDesc');
-const modalPriceEl = document.getElementById('modalPriceDisplay');
-const modalQtyEl   = document.getElementById('modalQty');
-const modalBtnPriceEl = document.getElementById('modalBtnPrice');
-const modalAddBtn  = document.getElementById('modalAddBtn');
-const modalObs     = document.getElementById('modalObs');
-const addonSection = document.getElementById('modalAddonsSection');
-const addonsList   = document.getElementById('modalAddonsList');
-const qtyMinus     = document.getElementById('modalQtyMinus');
-const qtyPlus      = document.getElementById('modalQtyPlus');
-const toast        = document.getElementById('toastCart');
-const toastMsg     = document.getElementById('toastMsg');
 
-// ── Utilitários ──────────────────────────
-function formatBRL(value) {
-    return 'R$ ' + value.toFixed(2).replace('.', ',');
+// ── Funções de apoio ─────────────────────────────────────────
+
+// Transforma um número em formato de dinheiro: 13 → "R$ 13,00"
+function formatarDinheiro(valor) {
+    return 'R$ ' + valor.toFixed(2).replace('.', ',');
 }
 
-function getCart() {
-    try { return JSON.parse(localStorage.getItem('chokko_cart') || '[]'); }
-    catch { return []; }
-}
-
-function saveCart(cart) {
-    localStorage.setItem('chokko_cart', JSON.stringify(cart));
-    updateCartBadge();
-}
-
-function updateCartBadge() {
-    const cart  = getCart();
-    const total = cart.reduce((s, i) => s + i.qty, 0);
-    const badge = document.getElementById('cart-badge');
-    if (badge) {
-        badge.textContent = total > 0 ? total : '';
-        badge.classList.toggle('has-items', total > 0);
+// Lê o carrinho salvo no navegador (localStorage)
+// NOTA BACKEND: quando o PHP assumir o carrinho, apague esta função
+function pegarCarrinho() {
+    var dados = localStorage.getItem('chokko_cart');
+    if (!dados) {
+        return [];
+    }
+    try {
+        return JSON.parse(dados);
+    } catch (e) {
+        return [];
     }
 }
 
-function showToast(msg) {
-    toastMsg.textContent = msg;
+// Salva o carrinho atualizado no navegador
+// NOTA BACKEND: quando o PHP assumir o carrinho, apague esta função
+function salvarCarrinho(carrinho) {
+    localStorage.setItem('chokko_cart', JSON.stringify(carrinho));
+    atualizarBadge();
+}
+
+// Atualiza o número no ícone da sacola na navegação inferior
+function atualizarBadge() {
+    var carrinho = pegarCarrinho();
+    var totalItens = 0;
+
+    // Conta quantos itens tem no carrinho somando as quantidades
+    for (var i = 0; i < carrinho.length; i++) {
+        var item = carrinho[i];
+        totalItens = totalItens + item.qty;
+    }
+
+    var badge = document.getElementById('cart-badge');
+    if (badge) {
+        if (totalItens > 0) {
+            badge.textContent = totalItens;
+            badge.classList.add('has-items');
+        } else {
+            badge.textContent = '';
+            badge.classList.remove('has-items');
+        }
+    }
+}
+
+// Mostra a mensagem de confirmação (Toast) quando algo é adicionado
+function mostrarToast(mensagem) {
+    toastMensagem.textContent = mensagem;
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2200);
+    // Esconde automaticamente depois de 2,2 segundos
+    setTimeout(function() {
+        toast.classList.remove('show');
+    }, 2200);
 }
 
-// ── Atualiza preço do botão no modal ─────
-function updateModalBtnPrice() {
-    if (!currentProduct) return;
-    let base  = parseFloat(currentProduct.price);
-    let extra = 0;
-    document.querySelectorAll('.addon-check:checked').forEach(cb => {
-        extra += parseFloat(cb.dataset.price || 0);
-    });
-    const total = (base + extra) * currentQty;
-    modalBtnPriceEl.textContent = formatBRL(total);
+// Recalcula o preço total mostrado no botão "Adicionar" do modal
+// Leva em conta a quantidade e os adicionais marcados
+function atualizarPrecoNoBotao() {
+    if (!produtoAtual) {
+        return;
+    }
+
+    var precoBase = produtoAtual.price;
+    var precoExtra = 0;
+
+    // Percorre todos os checkboxes de adicionais marcados
+    var checkboxesMarcados = document.querySelectorAll('.addon-check:checked');
+    for (var i = 0; i < checkboxesMarcados.length; i++) {
+        var cb = checkboxesMarcados[i];
+        precoExtra = precoExtra + parseFloat(cb.dataset.price || 0);
+    }
+
+    var total = (precoBase + precoExtra) * quantidadeAtual;
+    modalBtnPrecoEl.textContent = formatarDinheiro(total);
 }
 
-// ── Abrir modal ──────────────────────────
-function openProductModal(article) {
+
+// ── Abrir o modal do produto ──────────────────────────────────
+function abrirModalProduto(card) {
+    // Verifica se a loja está aberta (variável definida pelo main.js)
     if (window.isLojaAberta === false) {
         alert('A loja está fechada no momento. Confira nosso horário de funcionamento!');
         return;
     }
 
-    currentProduct = {
-        id    : article.dataset.id,
-        name  : article.dataset.name,
-        desc  : article.dataset.desc,
-        price : parseFloat(article.dataset.price),
-        img   : article.dataset.img,
-        addons: JSON.parse(article.dataset.addons || '[]'),
+    // Lê os dados do produto a partir dos atributos data-* do card HTML
+    produtoAtual = {
+        id    : card.dataset.id,
+        name  : card.dataset.name,
+        desc  : card.dataset.desc,
+        price : parseFloat(card.dataset.price),
+        img   : card.dataset.img,
+        addons: [] // adicionais do produto
     };
-    currentQty = 1;
 
-    // Preenche o modal
-    modalImg.src        = currentProduct.img;
-    modalImg.alt        = currentProduct.name;
-    modalTitle.textContent   = currentProduct.name;
-    modalDesc.textContent    = currentProduct.desc;
-    modalPriceEl.textContent = formatBRL(currentProduct.price);
-    modalQtyEl.textContent   = '1';
-    modalObs.value           = '';
-
-    // Acompanhamentos
-    addonsList.innerHTML = '';
-    if (currentProduct.addons.length > 0) {
-        addonSection.style.display = 'block';
-        currentProduct.addons.forEach(addon => {
-            const priceLabel = addon.price > 0
-                ? `+${formatBRL(addon.price)}`
-                : 'Grátis';
-            addonsList.innerHTML += `
-                <label class="addon-item">
-                    <div class="addon-left">
-                        <span class="addon-name">${addon.name}</span>
-                        <span class="addon-price">${priceLabel}</span>
-                    </div>
-                    <input type="checkbox" class="addon-check"
-                           data-price="${addon.price}"
-                           data-id="${addon.id}"
-                           data-name="${addon.name}">
-                </label>`;
-        });
-        // Recalcula ao marcar/desmarcar (evita acumular listeners a cada abertura)
-        addonsList.onchange = updateModalBtnPrice;
-    } else {
-        addonSection.style.display = 'none';
-        addonsList.onchange = null;
+    // Tenta ler os adicionais (formato JSON)
+    try {
+        produtoAtual.addons = JSON.parse(card.dataset.addons || '[]');
+    } catch (e) {
+        produtoAtual.addons = [];
     }
 
-    updateModalBtnPrice();
-    qtyMinus.disabled = true; // qty começa em 1
+    quantidadeAtual = 1;
 
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
+    // Preenche o modal com as informações do produto
+    modalImg.src                = produtoAtual.img;
+    modalImg.alt                = produtoAtual.name;
+    modalTitulo.textContent     = produtoAtual.name;
+    modalDescricao.textContent  = produtoAtual.desc;
+    modalPrecoEl.textContent    = formatarDinheiro(produtoAtual.price);
+    modalQtdEl.textContent      = '1';
+    modalObs.value              = '';
 
-function closeModal() {
-    modal.classList.remove('open');
-    document.body.style.overflow = '';
-    currentProduct = null;
-}
+    // Limpa e monta a lista de adicionais (se existirem)
+    listaAddons.innerHTML = '';
+    if (produtoAtual.addons.length > 0) {
+        secaoAddons.style.display = 'block';
 
-// ── Controle de quantidade no modal ──────
-qtyMinus.addEventListener('click', () => {
-    if (currentQty > 1) {
-        currentQty--;
-        modalQtyEl.textContent = currentQty;
-        qtyMinus.disabled = (currentQty === 1);
-        updateModalBtnPrice();
-    }
-});
+        for (var i = 0; i < produtoAtual.addons.length; i++) {
+            var addon = produtoAtual.addons[i];
+            var labelPreco = '';
 
-qtyPlus.addEventListener('click', () => {
-    if (currentQty < 10) {
-        currentQty++;
-        modalQtyEl.textContent = currentQty;
-        qtyMinus.disabled = false;
-        updateModalBtnPrice();
-    }
-});
+            if (addon.price > 0) {
+                labelPreco = '+' + formatarDinheiro(addon.price);
+            } else {
+                labelPreco = 'Grátis';
+            }
 
-// ── Adicionar ao carrinho ─────────────────
-modalAddBtn.addEventListener('click', () => {
-    if (!currentProduct) return;
-
-    const selectedAddons = [];
-    let extraPrice = 0;
-    document.querySelectorAll('.addon-check:checked').forEach(cb => {
-        selectedAddons.push({ id: cb.dataset.id, name: cb.dataset.name, price: parseFloat(cb.dataset.price || 0) });
-        extraPrice += parseFloat(cb.dataset.price || 0);
-    });
-
-    const obs = modalObs.value.trim();
-    const unitPrice = currentProduct.price + extraPrice;
-
-    const cart = getCart();
-
-    // Chave única por produto + addons selecionados + obs
-    const addonKey = selectedAddons.map(a => a.id).sort().join(',');
-    const key = `${currentProduct.id}|${addonKey}|${obs}`;
-
-    const catalogSnap = currentProduct.addons.map(a => ({
-        id   : String(a.id),
-        name : a.name,
-        price: Number(a.price) || 0,
-    }));
-
-    const existing = cart.find(i => i.key === key);
-    if (existing) {
-        existing.qty = Math.min(existing.qty + currentQty, 10);
-        if (!existing.addonCatalog || existing.addonCatalog.length === 0) {
-            existing.addonCatalog = catalogSnap;
+            listaAddons.innerHTML += '<label class="addon-item">' +
+                '<div class="addon-left">' +
+                    '<span class="addon-name">' + addon.name + '</span>' +
+                    '<span class="addon-price">' + labelPreco + '</span>' +
+                '</div>' +
+                '<input type="checkbox" class="addon-check"' +
+                    ' data-price="' + addon.price + '"' +
+                    ' data-id="' + addon.id + '"' +
+                    ' data-name="' + addon.name + '">' +
+            '</label>';
         }
+
+        // Atualiza o preço quando marcar/desmarcar um adicional
+        listaAddons.onchange = atualizarPrecoNoBotao;
+
     } else {
-        cart.push({
-            key,
-            id        : currentProduct.id,
-            name      : currentProduct.name,
-            img       : currentProduct.img,
-            basePrice : currentProduct.price,
-            addons    : selectedAddons,
-            /** Catálogo completo de extras deste produto (para editar na sacola depois). */
-            addonCatalog: catalogSnap,
-            unitPrice,
-            qty       : currentQty,
-            obs,
+        secaoAddons.style.display = 'none';
+        listaAddons.onchange = null;
+    }
+
+    atualizarPrecoNoBotao();
+
+    // Botão de diminuir começa desabilitado (quantidade mínima é 1)
+    botaoMenos.disabled = true;
+
+    // Abre o modal
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden'; // Trava o scroll da página
+}
+
+function fecharModal() {
+    modal.classList.remove('open');
+    document.body.style.overflow = ''; // Libera o scroll
+    produtoAtual = null;
+}
+
+
+// ── Botões de quantidade no modal ─────────────────────────────
+botaoMenos.addEventListener('click', function() {
+    if (quantidadeAtual > 1) {
+        quantidadeAtual = quantidadeAtual - 1;
+        modalQtdEl.textContent = quantidadeAtual;
+
+        // Desabilita o botão de menos se chegou em 1
+        if (quantidadeAtual === 1) {
+            botaoMenos.disabled = true;
+        }
+
+        atualizarPrecoNoBotao();
+    }
+});
+
+botaoMais.addEventListener('click', function() {
+    if (quantidadeAtual < 10) {
+        quantidadeAtual = quantidadeAtual + 1;
+        modalQtdEl.textContent = quantidadeAtual;
+        botaoMenos.disabled = false;
+        atualizarPrecoNoBotao();
+    }
+});
+
+
+// ── Botão Adicionar ao carrinho ───────────────────────────────
+// NOTA BACKEND: quando o PHP assumir o carrinho via sessão, este
+// botão vai fazer um POST para carrinho.php ao invés de salvar em localStorage.
+modalBotaoAdd.addEventListener('click', function() {
+    if (!produtoAtual) {
+        return;
+    }
+
+    // Coleta os adicionais marcados pelo usuário
+    var adicionaisSelecionados = [];
+    var precoExtra = 0;
+    var checkboxesMarcados = document.querySelectorAll('.addon-check:checked');
+
+    for (var i = 0; i < checkboxesMarcados.length; i++) {
+        var cb = checkboxesMarcados[i];
+        var precoAddon = parseFloat(cb.dataset.price || 0);
+
+        adicionaisSelecionados.push({
+            id    : cb.dataset.id,
+            name  : cb.dataset.name,
+            price : precoAddon
+        });
+
+        precoExtra = precoExtra + precoAddon;
+    }
+
+    var observacao = modalObs.value.trim();
+    var precoUnitario = produtoAtual.price + precoExtra;
+
+    // Cria uma chave única para identificar este item no carrinho
+    // (mesmo produto com adicionais diferentes vira item separado)
+    var idsAdicionais = '';
+    for (var j = 0; j < adicionaisSelecionados.length; j++) {
+        idsAdicionais = idsAdicionais + adicionaisSelecionados[j].id + ',';
+    }
+    var chaveItem = produtoAtual.id + '|' + idsAdicionais + '|' + observacao;
+
+    var carrinho = pegarCarrinho();
+
+    // Verifica se já existe um item igual no carrinho
+    var itemExistente = null;
+    for (var k = 0; k < carrinho.length; k++) {
+        if (carrinho[k].key === chaveItem) {
+            itemExistente = carrinho[k];
+            break;
+        }
+    }
+
+    if (itemExistente) {
+        // Se já existe, apenas aumenta a quantidade (máximo 10)
+        itemExistente.qty = Math.min(itemExistente.qty + quantidadeAtual, 10);
+    } else {
+        // Se não existe, adiciona como novo item
+        carrinho.push({
+            key       : chaveItem,
+            id        : produtoAtual.id,
+            name      : produtoAtual.name,
+            img       : produtoAtual.img,
+            basePrice : produtoAtual.price,
+            addons    : adicionaisSelecionados,
+            unitPrice : precoUnitario,
+            qty       : quantidadeAtual,
+            obs       : observacao
         });
     }
 
-    saveCart(cart);
-    showToast(`${currentProduct.name} adicionado à sacola!`);
-    closeModal();
+    salvarCarrinho(carrinho);
+    mostrarToast(produtoAtual.name + ' adicionado à sacola!');
+    fecharModal();
 });
 
-// ── Fechar modal ao clicar fora ───────────
-modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
+
+// ── Fechar modal clicando fora ────────────────────────────────
+modal.addEventListener('click', function(e) {
+    // Só fecha se clicou no fundo escuro, não dentro do modal
+    if (e.target === modal) {
+        fecharModal();
+    }
 });
 
-// ── Evento nos cards e botões de adicionar ─
-document.querySelectorAll('.product-card').forEach(card => {
-    // Clique no card inteiro → abre modal
-    card.addEventListener('click', (e) => {
-        // Se clicou no botão +, não duplica (o botão também dispara o card)
-        openProductModal(card);
+
+// ── Clique nos cards do cardápio ──────────────────────────────
+var cards = document.querySelectorAll('.product-card');
+cards.forEach(function(card) {
+    card.addEventListener('click', function() {
+        abrirModalProduto(card);
     });
 });
 
-// ── Filtro de categorias ──────────────────
-document.querySelectorAll('.cat-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+
+// ── Filtro de categorias ──────────────────────────────────────
+var botoesCat = document.querySelectorAll('.cat-btn');
+botoesCat.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+
+        // Remove o destaque de todos os botões de categoria
+        botoesCat.forEach(function(b) {
+            b.classList.remove('active');
+        });
         btn.classList.add('active');
-        const cat = btn.dataset.cat;
-        document.querySelectorAll('.product-card').forEach(card => {
-            card.style.display = (cat === 'todos' || card.dataset.cat === cat) ? '' : 'none';
+
+        var categoriaSelecionada = btn.dataset.cat;
+
+        // Mostra ou esconde os cards de acordo com a categoria
+        var todosCards = document.querySelectorAll('.product-card');
+        todosCards.forEach(function(card) {
+            if (categoriaSelecionada === 'todos' || card.dataset.cat === categoriaSelecionada) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
         });
     });
 });
 
-// ── Inicializa badge do carrinho ──────────
-updateCartBadge();
+
+// ── Inicializa o badge ao carregar a página ───────────────────
+atualizarBadge();

@@ -1,51 +1,25 @@
-/*
- * ═══════════════════════════════════════════════════════════════════════════
- * JS — login.js
- * ═══════════════════════════════════════════════════════════════════════════
- */
+// ============================================================
+// login.js — Lógica da tela de login
+// ============================================================
+// NOTA PARA O PHP:
+// Quando o backend estiver pronto, esse arquivo vai ficar quase
+// vazio. O formulário vai submeter normalmente via POST para o
+// PHP, e o PHP vai redirecionar o usuário conforme o perfil dele.
+// ============================================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    const btnLogin = document.getElementById('btn-login');
-    if (btnLogin) {
-        btnLogin.addEventListener('click', fazerLogin);
-    }
+document.addEventListener('DOMContentLoaded', function () {
 
-    const btnGoogle = document.getElementById('btn-google');
+    // Botão de login com Google (ainda não implementado no backend)
+    var btnGoogle = document.getElementById('btn-google');
     if (btnGoogle) {
-        btnGoogle.addEventListener('click', loginGoogle);
+        btnGoogle.addEventListener('click', function () {
+            loginGoogle();
+        });
     }
 });
 
+// Placeholder para o login com Google
 function loginGoogle() {
-    alert('Autenticação com Google (OAuth) estará disponível quando o backend for conectado!');
+    alert('Login com Google estará disponível em breve!');
 }
 
-function fazerLogin() {
-    // SIMULAÇÃO FRONTEND — salva um ID mockup para o carrinho.js detectar
-    // Remover quando o backend estiver conectado
-    const email = document.querySelector('input[type="email"]').value;
-    const senha = document.querySelector('input[type="password"]').value;
-
-    if (!email || !senha) {
-        alert('Preencha e-mail e senha.');
-        return;
-    }
-
-    // Simula login bem-sucedido no frontend
-    localStorage.setItem('chokko_usuario_id', '1'); // valor mockup
-
-    // SIMULAÇÃO: Se o e-mail for de admin (contém 'admin' no e-mail), vai para o painel
-    if (email.toLowerCase().includes('admin')) {
-        window.location.href = '../admin/index.php';
-        return;
-    }
-
-    // Verifica se veio do fluxo de finalizar pedido do cliente
-    const params = new URLSearchParams(window.location.search);
-    const retorno = params.get('retorno');
-    if (retorno === 'finalizar') {
-        window.location.href = 'carrinho.php?retorno=finalizar';
-    } else {
-        window.location.href = 'index.php';
-    }
-}

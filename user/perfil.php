@@ -1,4 +1,34 @@
-<?php include '../includes/user_header.php'; ?>
+<?php 
+session_start();
+include '../includes/user_header.php'; 
+include '../config/config.php';
+
+// Segurança: se não estiver logado, chuta pro login
+if (!isset($_SESSION['idlogado'])) {
+    header("Location: login.php");
+    exit;
+}
+
+$id_cliente = $_SESSION['idlogado'];
+
+// --- 1. BUSCANDO OS DADOS DO CLIENTE PARA EXIBIR NA TELA ---
+$sqlCliente = "SELECT email, telefone FROM cliente WHERE id_cliente = '$id_cliente'";
+$resCliente = $conn->query($sqlCliente);
+if ($resCliente && $resCliente->num_rows > 0) {
+    $cliente = $resCliente->fetch_assoc();
+    $emailCliente = $cliente['email'];
+    $telefoneCliente = $cliente['telefone'];
+} else {
+    $emailCliente = "Email não cadastrado";
+    $telefoneCliente = "Telefone não cadastrado";
+}
+
+// --- 2. TERRENO PREPARADO PARA OS ENDEREÇOS ---
+// TODO: Escreva aqui a lógica (SELECT) para buscar os endereços desse cliente no banco!
+// Por enquanto, vou criar o array vazio só pra página não quebrar de erro.
+$enderecosMock = []; 
+
+?>
 <link rel="stylesheet" href="assets/css/perfil.css">
 
 <div class="page-header-wrap">
@@ -11,39 +41,17 @@
 </header>
 </div>
 
-<?php
-// Mock DB Data (Clean Architecture: Controller passing Data to View)
-$usuarioLogado = [
-    'nome' => 'Maria Silva',
-    'membro_desde' => '2024',
-    'email' => 'maria.silva@email.com',
-    'telefone' => '(11) 98765-4321',
-    'avatar_url' => 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150'
-];
 
-$enderecosMock = [
-    [
-        'id' => 1,
-        'apelido' => 'Casa',
-        'logradouro' => 'Rua das Flores, 123',
-        'bairro' => 'Jardim Primavera, São Paulo - SP',
-        'cep' => '01234-567',
-        'is_default' => true,
-        'icon' => '📍'
-    ]
-];
-?>
 <div class="screen">
     <main class="container">
         <div class="content">
             <section class="user-card">
                 <div class="profile-info">
-                    <img src="<?= htmlspecialchars($usuarioLogado['avatar_url']) ?>" alt="Avatar" class="avatar">
+                    <img src="https://img.freepik.com/vetores-premium/desenho-de-bolo-de-aniversario-ilustracao-de-vetor-de-alimentos-premium_1080480-131970.jpg?semt=ais_hybrid&w=740&q=80" alt="Avatar" class="avatar">
                     <div class="user-details">
-                        <h2><?= htmlspecialchars($usuarioLogado['nome']) ?></h2>
-                        <p class="member-since">Cliente desde <?= htmlspecialchars($usuarioLogado['membro_desde']) ?></p>
-                        <div class="contact-row"><span>✉</span> <?= htmlspecialchars($usuarioLogado['email']) ?></div>
-                        <div class="contact-row"><span>📞</span> <?= htmlspecialchars($usuarioLogado['telefone']) ?></div>
+                       
+                        <div class="contact-row"><span>✉</span> <?= htmlspecialchars($emailCliente) ?></div>
+                        <div class="contact-row"><span>📞</span> <?= htmlspecialchars($telefoneCliente) ?></div>
                         <button class="btn-edit-info">📝 Editar informações</button>
                     </div>
                 </div>
@@ -80,8 +88,7 @@ $enderecosMock = [
                 </section>
             </div>
             
-            <!-- NOTA BACKEND: ao clicar em Sair, destruir a sessão PHP: session_destroy() e redirecionar para index.php -->
-            <button class="btn-outline-danger btn-logout" id="btn-logout">
+            <button class="btn-outline-danger btn-logout" onclick="window.location.href='src/logout.php'">
                 Sair da Conta
             </button>
         </div>
