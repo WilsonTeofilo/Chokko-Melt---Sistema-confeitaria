@@ -1,25 +1,12 @@
-// ============================================================
-// usuarios.js — Admin / Usuários (funcionários)
-// ============================================================
-
 function _ensureAdminConfirmModal() {
     if (document.getElementById('admin-confirm-modal')) return;
-
     var overlay = document.createElement('div');
     overlay.id = 'admin-confirm-modal';
-    overlay.style.cssText = 'z-index:99999;display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);align-items:center;justify-content:center;padding:20px;';
-    overlay.innerHTML = 
-        '<div style="width:420px;max-width:100%;background:#fff;border-radius:14px;box-shadow:0 12px 28px rgba(0,0,0,.25);padding:22px;">' +
-            '<div style="display:flex;gap:12px;align-items:flex-start;">' +
-                '<div style="width:42px;height:42px;border-radius:10px;background:#FAF7F5;display:flex;align-items:center;justify-content:center;flex:0 0 auto;">' +
-                    '<i class="fa-solid fa-triangle-exclamation" style="color:#5c3c27;font-size:1.2rem;"></i>' +
-                '</div>' +
-                '<div style="flex:1;">' +
-                    '<h3 id="admin-confirm-title" style="margin:0;color:#3b2313;font-size:1.05rem;">Confirmar ação</h3>' +
-                    '<p id="admin-confirm-msg" style="margin:8px 0 0;color:#555;line-height:1.35;font-size:.92rem;white-space:pre-line;"></p>' +
-                '</div>' +
-            '</div>' +
-            '<div style="display:flex;gap:10px;margin-top:18px;">' +
+    overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:9999;align-items:center;justify-content:center;';
+    overlay.innerHTML =
+        '<div style="background:#fff;border-radius:16px;padding:30px;width:420px;max-width:90%;box-shadow:0 15px 35px rgba(0,0,0,.25);animation:modalPop .3s ease;">' +
+            '<p id="admin-confirm-msg" style="font-size:1rem;color:#3b2313;line-height:1.5;margin:0 0 20px;white-space:pre-line;"></p>' +
+            '<div style="display:flex;gap:10px;">' +
                 '<button type="button" id="admin-confirm-cancel" class="btn-action-accept" style="flex:1;background:#eee;color:#333;border:none;padding:12px 14px;border-radius:10px;font-weight:700;cursor:pointer;">Cancelar</button>' +
                 '<button type="button" id="admin-confirm-ok" class="btn-action-accept" style="flex:1;background:#5c3c27;color:#fff;border:none;padding:12px 14px;border-radius:10px;font-weight:700;cursor:pointer;">Confirmar</button>' +
             '</div>' +
@@ -54,35 +41,15 @@ function adminConfirm(message, onYes) {
     };
 }
 
-var _ultimoIdUsuario = 0;
-window.onload = function() {
-    _ultimoIdUsuario = document.querySelectorAll('.admin-table tbody tr').length;
-};
-
 function mascaraTelefone(input) {
-    var v = input.value.replace(/\D/g, ''); 
-    v = v.substring(0, 11);                 
-
+    var v = input.value.replace(/\D/g, '');
+    v = v.substring(0, 11);
     if (v.length <= 10) {
         v = v.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
     } else {
         v = v.replace(/^(\d{2})(\d{5})(\d{0,4})$/, '($1) $2-$3');
     }
     input.value = v;
-}
-
-function getTelefoneRaw(input) {
-    return input.value.replace(/\D/g, '');
-}
-
-function toggleRoot(checkbox) {
-    var selectTipo = document.getElementById('usr-tipo');
-    if (checkbox.checked) {
-        selectTipo.value    = 'ADMIN';
-        selectTipo.disabled = true; 
-    } else {
-        selectTipo.disabled = false;
-    }
 }
 
 var _rowIdAtual = null;
@@ -101,12 +68,26 @@ function atualizarCheckboxesPermissao(tipo) {
     }
 }
 
-function abrirModalPermissoes(nome, tipo, rowId) {
-    _rowIdAtual = rowId; 
+function restaurarCheckboxes(permissoesSalvas) {
+    var lista = permissoesSalvas ? permissoesSalvas.split(',') : [];
+    var checkboxes = document.querySelectorAll('#lista-permissoes-checkboxes input[type="checkbox"]');
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].disabled = false;
+        checkboxes[i].checked  = lista.indexOf(checkboxes[i].value) !== -1;
+    }
+}
 
+function abrirModalPermissoes(nome, tipo, rowId, permissoesSalvas) {
+    _rowIdAtual = rowId;
     document.getElementById('modal-nome-user').innerText = nome;
     document.getElementById('modal-tipo-user').value     = tipo;
-    atualizarCheckboxesPermissao(tipo);
+
+    // Se tem permissoes salvas no banco, usa elas. Se nao, usa o padrao do tipo.
+    if (permissoesSalvas && permissoesSalvas.length > 0) {
+        restaurarCheckboxes(permissoesSalvas);
+    } else {
+        atualizarCheckboxesPermissao(tipo);
+    }
 
     document.getElementById('modal-permissoes').style.display = 'flex';
 }
@@ -117,30 +98,49 @@ function fecharModalPermissoes() {
 }
 
 function salvarPermissoes() {
+    if (_rowIdAtual === null) return;
+
     var novoTipo = document.getElementById('modal-tipo-user').value;
 
-    if (_rowIdAtual !== null) {
-        var badge = document.getElementById('badge-tipo-' + _rowIdAtual);
-        if (badge) {
-            badge.className  = 'badge ' + (novoTipo === 'ADMIN' ? 'badge-admin' : 'badge-func');
-            badge.textContent = novoTipo;
+    // Coleta os checkboxes marcados
+    var checkboxes = document.querySelectorAll('#lista-permissoes-checkboxes input[type="checkbox"]');
+    var perms = [];
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].checked) {
+            perms.push(checkboxes[i].value);
         }
     }
 
-    alert('Permissões salvas!');
-    fecharModalPermissoes();
+    // Cria um form invisivel e faz POST pro PHP (seu padrao de codigo)
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'src/auth_admin.php';
+
+    var campos = {
+        'acao': 'AtualizarPermissoes',
+        'id_usuario': _rowIdAtual,
+        'tipo_usuario': novoTipo,
+        'permissoes': perms.join(',')
+    };
+
+    for (var key in campos) {
+        var input = document.createElement('input');
+        input.type  = 'hidden';
+        input.name  = key;
+        input.value = campos[key];
+        form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
 }
 
 function abrirModalNovoUsuario() {
-    document.getElementById('usr-nome').value      = '';
-    document.getElementById('usr-email').value     = '';
-    document.getElementById('usr-telefone').value  = '';
-    document.getElementById('usr-senha').value     = '';
-    document.getElementById('usr-tipo').value      = 'FUNCIONARIO';
-    document.getElementById('usr-tipo').disabled   = false;
-    document.getElementById('usr-root').checked    = false;
-
-    document.getElementById('modal-novo-usuario-title').innerText = 'Novo Usuário';
+    var form = document.querySelector('#modal-novo-usuario form');
+    if (form) form.reset();
+    var selectTipo = document.getElementById('usr-tipo');
+    if (selectTipo) selectTipo.disabled = false;
+    document.getElementById('modal-novo-usuario-title').innerText = 'Novo Usuario';
     document.getElementById('modal-novo-usuario').style.display = 'flex';
 }
 
@@ -148,75 +148,100 @@ function fecharModalNovoUsuario() {
     document.getElementById('modal-novo-usuario').style.display = 'none';
 }
 
-function salvarNovoUsuario(event) {
-    if (event) event.preventDefault();
+function excluirUsuario(btn, idUsuario) {
+    var tr     = btn.closest('tr');
+    var nomeTd = tr.querySelector('td:nth-child(2)');
+    var nome   = nomeTd ? nomeTd.innerText : 'este usuario';
 
-    var nome     = document.getElementById('usr-nome').value.trim();
-    var email    = document.getElementById('usr-email').value.trim();
-    var telDigits = getTelefoneRaw(document.getElementById('usr-telefone'));
-    var senha    = document.getElementById('usr-senha').value;
-    var tipo     = document.getElementById('usr-tipo').value;
-    var root     = document.getElementById('usr-root').checked;
+    adminConfirm('Deseja realmente excluir "' + nome + '"?\nEsta acao e irreversivel.', function() {
+        window.location.href = 'src/auth_admin.php?acao=ExcluirUsuario&id=' + idUsuario;
+    });
+}
 
-    if (!nome)     { alert('Preencha o Nome Completo.'); return; }
-    if (!email || email.indexOf('@') === -1 || email.indexOf('.') === -1) { alert('Preencha um Email válido.'); return; }
-    if (!telDigits || telDigits.length < 10) { alert('Preencha um telefone válido (DDD + número).'); return; }
-    if (!senha || senha.length < 8) { alert('A senha deve ter no mínimo 8 caracteres.'); return; }
+// ============================================================
+// VALIDACAO DE FORCA E CONFIRMACAO DE SENHA (ADMIN)
+// ============================================================
+document.addEventListener("DOMContentLoaded", function() {
+    var inputSenha     = document.getElementById("usr_senha");
+    var inputConfirmar = document.getElementById("usr_senha_confirmar");
+    var formAdmin      = document.querySelector("#modal-novo-usuario form");
+    var erroSenhas     = document.getElementById("erro-senhas");
+    var strengthWrap   = document.getElementById("senha-strength-wrap");
+    var strengthBar    = document.getElementById("senha-strength-bar");
+    var chkLen         = document.getElementById("chk-len");
+    var chkUpper       = document.getElementById("chk-upper");
+    var chkSpecial     = document.getElementById("chk-special");
 
-    var duplicidadeEncontrada = false;
-    var linhas = document.querySelectorAll('.admin-table tbody tr');
-    for (var i = 0; i < linhas.length; i++) {
-        var emailTabela = linhas[i].querySelector('td:nth-child(3)');
-        if (emailTabela && emailTabela.innerText === email) {
-            duplicidadeEncontrada = true;
+    function marcarRequisito(el, passed) {
+        if (!el) return;
+        var icon = el.querySelector("i");
+        if (passed) {
+            el.classList.add("ok");
+            if (icon) icon.className = "fa-solid fa-circle-check";
+        } else {
+            el.classList.remove("ok");
+            if (icon) icon.className = "fa-solid fa-circle-xmark";
         }
     }
 
-    if (duplicidadeEncontrada) {
-        alert('Este e-mail já está cadastrado no sistema.');
-        return;
+    function avaliarSenha(senha) {
+        var len     = senha.length >= 8;
+        var upper   = /[A-Z]/.test(senha);
+        var special = /[!@#$%^&*()\-_=+\[\]{};':"\\|,.<>\/?`~]/.test(senha);
+
+        marcarRequisito(chkLen, len);
+        marcarRequisito(chkUpper, upper);
+        marcarRequisito(chkSpecial, special);
+
+        var pts = 0;
+        if (len) pts++;
+        if (upper) pts++;
+        if (special) pts++;
+        if (senha.length >= 12) pts++;
+
+        if (strengthBar) strengthBar.className = "strength-" + pts;
+        return (len && upper && special);
     }
 
-    _ultimoIdUsuario = _ultimoIdUsuario + 1;
-    var novoId = _ultimoIdUsuario;
-
-    var tipoFinal  = root ? 'ADMIN' : tipo;  
-
-    var tbody = document.querySelector('.admin-table tbody');
-    if (tbody) {
-        var tr = document.createElement('tr');
-        tr.dataset.rowId = novoId;
-        tr.dataset.telefoneDigits = telDigits;
-        tr.innerHTML = 
-            '<td>#' + novoId + '</td>' +
-            '<td>' + nome + '</td>' +
-            '<td>' + email + '</td>' +
-            '<td><span class="badge ' + (tipoFinal === 'ADMIN' ? 'badge-admin' : 'badge-func') + '" id="badge-tipo-' + novoId + '">' + tipoFinal + '</span></td>' +
-            '<td>' +
-                '<button class="btn-action-accept btn-permission" onclick="abrirModalPermissoes(\'' + nome + '\', \'' + tipoFinal + '\', ' + novoId + ')">' +
-                    '<i class="fa-solid fa-pen"></i> Permissões' +
-                '</button> ' +
-                '<button class="btn-action-accept btn-del" onclick="excluirUsuario(this)">' +
-                    '<i class="fa-solid fa-trash"></i> Excluir' +
-                '</button>' +
-            '</td>';
-        tbody.appendChild(tr);
+    function validarSenhasIguais() {
+        if (!inputSenha || !inputConfirmar || !erroSenhas) return true;
+        if (inputSenha.value === inputConfirmar.value) {
+            erroSenhas.textContent = "";
+            return true;
+        } else {
+            erroSenhas.textContent = "As senhas nao coincidem.";
+            return false;
+        }
     }
 
-    fecharModalNovoUsuario();
-}
+    if (inputSenha && strengthWrap) {
+        inputSenha.addEventListener("input", function() {
+            var val = inputSenha.value;
+            if (val.length === 0) strengthWrap.classList.add("hidden");
+            else strengthWrap.classList.remove("hidden");
+            avaliarSenha(val);
+            if (inputConfirmar && inputConfirmar.value.length > 0) validarSenhasIguais();
+        });
+    }
 
-function excluirUsuario(btn) {
-    var tr   = btn.closest('tr');
-    var nomeTd = tr.querySelector('td:nth-child(2)');
-    var nome = nomeTd ? nomeTd.innerText : 'este usuário';
+    if (inputConfirmar) {
+        inputConfirmar.addEventListener("input", validarSenhasIguais);
+    }
 
-    adminConfirm('Deseja realmente excluir "' + nome + '"?\nEsta ação é irreversível.', function() {
-        tr.style.transition = 'opacity 0.3s';
-        tr.style.opacity    = '0';
-        setTimeout(function() {
-            tr.remove();
-            _ultimoIdUsuario = document.querySelectorAll('.admin-table tbody tr').length;
-        }, 300);
-    });
-}
+    if (formAdmin) {
+        formAdmin.addEventListener("submit", function(e) {
+            var isForte = avaliarSenha(inputSenha ? inputSenha.value : "");
+            if (!isForte) {
+                e.preventDefault();
+                if (strengthWrap) strengthWrap.classList.remove("hidden");
+                if (inputSenha) inputSenha.focus();
+                return;
+            }
+            if (!validarSenhasIguais()) {
+                e.preventDefault();
+                if (inputConfirmar) inputConfirmar.focus();
+                return;
+            }
+        });
+    }
+});

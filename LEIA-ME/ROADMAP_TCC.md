@@ -5,9 +5,9 @@
 
 ## Regra territorial — nunca violem isso
 
-Wilson é dono absoluto de `/user/`.
-Guilherme é dono absoluto de `/admin/`.
-Os únicos arquivos compartilhados são `/config/db.php` e `/config/auth.php` — criados por Wilson e nunca alterados sem avisar o outro.
+Wilson e dono absoluto de `/user/`.
+Guilherme e dono absoluto de `/admin/`.
+Os unicos arquivos compartilhados sao `/config/config.php` (conexao MySQLi) e `/includes/` (header/footer com guarda de sessao) — criados por Wilson e nunca alterados sem avisar o outro.
 
 ---
 
@@ -20,7 +20,7 @@ Os únicos arquivos compartilhados são `/config/db.php` e `/config/auth.php` �
 | **Auth** | Faz o auth dos **dois lados** e entrega `/config/auth.php` | Só usa o que Wilson entregou |
 | **Tabelas que cria dados** | `cliente` `endereco` `carrinho` `item_carrinho` `item_carrinho_adicional` `pedido` `item_pedido` `item_pedido_adicional` `pagamento` `avaliacao` | `usuario` `categoria` `produto` `adicional` `produto_adicional` `config_loja` |
 | **Tabelas que só lê/atualiza** | `produto` `adicional` `status_pedido` `config_loja` | `pedido` `item_pedido` `pagamento` `cliente` `endereco` |
-| **Sessão** | `$_SESSION['cliente']` | `$_SESSION['usuario']` (Wilson cria, Guilherme só usa) |
+| **Sessao** | `$_SESSION['idlogado']` (cliente) | `$_SESSION['admin_id']` (Wilson criou, Guilherme so usa via admin_header.php) |
 
 ---
 
@@ -76,43 +76,23 @@ Ambos pesquisam e entendem:
 
 ---
 
-### WILSON — Auth completo (cliente + admin)
+### WILSON — Auth completo ✅ CONCLUIDO
 
-Wilson faz **todo** o sistema de autenticação. É a mesma lógica dos dois lados (PDO + session + password_verify). Duplicar isso seria perda de tempo do Guilherme.
+Wilson fez **todo** o sistema de autenticacao. Um unico formulario de login serve clientes e admins.
 
-**Tabelas:** `cliente`, `usuario`
+**`/user/src/auth.php`** — switch com dois cases:
+- `acao=Cadastrar`: INSERT em `cliente` com `password_hash()`. Valida email/telefone contra `cliente` E `usuario`.
+- `acao=Logar`: busca em `cliente` primeiro. Se achar -> sessao de cliente. Se nao -> busca em `usuario` -> sessao de admin. Redireciona para a origem (redirect param).
 
-**`/user/cadastro.php`**
-- O front já existe. Conectar o form ao PHP
-- Ao submeter: `INSERT` na tabela `cliente` com `password_hash()` na senha
-- Redirecionar para `login.php` após cadastro
+**`/user/login.php`** — formulario unico. Captura `?redirect=` para devolver o usuario ao checkout apos login.
 
-**`/user/login.php`**
-- O front já existe. Conectar o form ao PHP
-- `SELECT` pelo email → `password_verify()` para conferir senha
-- Se correto: gravar em `$_SESSION['cliente']` os campos `id_cliente`, `nome_cliente`, `email`
-- Redirecionar para `index.php`
+**`/admin/src/auth_admin.php`** — acoes do painel:
+- `CadastrarUsuario`, `LogarAdmin`, `ExcluirUsuario`, `AtualizarPermissoes`
 
-**`/admin/` login do admin**
-- Mesma lógica, mas busca na tabela `usuario`
-- Gravar em `$_SESSION['usuario']` os campos `id_usuario`, `nome`, `tipo_usuario`, `root`
+**`/includes/admin_header.php`** — guarda de sessao admin em todas as paginas do painel.
+**`/includes/user_footer.php`** e `user_header.php` — includos em todas as paginas do cliente.
 
-**`/config/auth.php`** ← o mais importante desta semana
-- Criar duas funções:
-  - `exigirCliente()` → verifica `$_SESSION['cliente']`, redireciona para `login.php` se não existir
-  - `exigirAdmin()` → verifica `$_SESSION['usuario']`, redireciona para login do admin se não existir
-- Guilherme coloca `require '../config/auth.php'; exigirAdmin();` no topo de cada página dele
-
-**Logout dos dois lados** — `session_destroy()` e redireciona
-
-> **Entregar para o Guilherme até o Dia 8:** `/config/auth.php` funcionando + login do admin operacional.
-
-**O que pesquisar/aprender:**
-- `PHP PDO prepared statements INSERT SELECT`
-- `PHP password_hash password_verify`
-- `PHP session_start $_SESSION session_destroy`
-- `PHP header Location redirect`
-- `PHP funções reutilizáveis com require include`
+**Logout:** `user/src/logout.php` — session_destroy() + redirect.
 
 ---
 
@@ -330,27 +310,32 @@ Se isso funcionar, o TCC está 90% pronto. Merge final na `main`.
 ## Checklist Final — Antes de Entregar
 
 **Auth**
-- [ ] Login do cliente com senha criptografada
-- [ ] Login do admin com senha criptografada
-- [ ] Páginas do `/user/` bloqueadas sem sessão de cliente
-- [ ] Páginas do `/admin/` bloqueadas sem sessão de admin
-- [ ] Logout funciona nos dois lados
+- [x] Login do cliente com senha criptografada
+- [x] Login do admin com senha criptografada
+- [x] Paginas do `/user/` bloqueadas sem sessao de cliente (perfil, pedidos, detalhes, checkout)
+- [x] Paginas do `/admin/` bloqueadas sem sessao de admin (via admin_header.php)
+- [x] Logout funciona nos dois lados
+- [x] Login unificado: mesmo formulario autentica cliente e admin
+- [x] Redirecionamento inteligente pos-login (volta para checkout se veio do carrinho)
+
+**Admin (parcialmente concluido)**
+- [x] Usuarios criados, editados (permissoes), excluidos — tudo persiste no banco
+- [x] Permissoes granulares por modulo salvas na coluna `permissoes`
+- [ ] Produtos criados, editados e desativados
+- [ ] Adicionais nos checkboxes salvos corretamente
+- [ ] Admin ve pedidos e muda status
+- [ ] Config da loja salva horario e taxa
 
 **Loja — Wilson**
-- [ ] Cardápio carrega produtos reais do banco
-- [ ] Produto com `disponibilidade = FALSE` não aparece
-- [ ] Carrinho salva no banco (não só localStorage)
-- [ ] Finalizar pedido grava em todas as tabelas em transação
-- [ ] Cliente vê pedidos com status atual
+- [x] Cadastro de cliente validado contra banco (email/telefone unicos)
+- [ ] Cardapio carrega produtos reais do banco
+- [ ] Produto com `disponibilidade = FALSE` nao aparece
+- [ ] Carrinho salva no banco (nao so localStorage)
+- [ ] Finalizar pedido grava em todas as tabelas em transacao
+- [ ] Cliente ve pedidos com status atual
 - [ ] Cliente consegue cancelar pedido PENDENTE
 - [ ] Perfil mostra e permite editar dados reais
 
-**Admin — Guilherme**
-- [ ] Produtos criados, editados e desativados
-- [ ] Adicionais nos checkboxes salvos corretamente
-- [ ] Admin vê pedidos e muda status
-- [ ] Config da loja salva horário e taxa
-
-**Integração**
-- [ ] Wilson faz pedido → Guilherme vê no painel
-- [ ] Guilherme muda status → Wilson vê atualizado
+**Integracao**
+- [ ] Wilson faz pedido → Guilherme ve no painel
+- [ ] Guilherme muda status → Wilson ve atualizado

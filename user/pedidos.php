@@ -1,11 +1,18 @@
-<?php include '../includes/user_header.php'; ?>
+<?php 
+session_start();
+if (!isset($_SESSION['idlogado'])) {
+    header("Location: login.php");
+    exit;
+}
+include '../includes/user_header.php'; 
+?>
 <link rel="stylesheet" href="assets/css/pedidos.css">
 
 <div class="page-header-wrap">
 <header class="page-header">
     <a href="index.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
     <div>
-        <p class="logo-mini">Chokko<span> Melt</span></p>
+        <a href="index.php" class="logo-mini" style="text-decoration: none; display: block;">Chokko<span> Melt</span></a>
         <p class="page-subtitle">Meus Pedidos</p>
     </div>
 </header>

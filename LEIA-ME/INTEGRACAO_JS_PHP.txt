@@ -2,93 +2,155 @@
   CHOKKO MELT — Como o JavaScript conversa com o PHP (guia para iniciante)
 ================================================================================
 
-Se você só sabe PHP, pense assim:
+Se voce so sabe PHP, pense assim:
 
-  • PHP roda NO SERVIDOR, antes da página chegar no navegador.
-  • JavaScript roda NO NAVEGADOR, depois que a página já foi enviada.
+  * PHP roda NO SERVIDOR, antes da pagina chegar no navegador.
+  * JavaScript roda NO NAVEGADOR, depois que a pagina ja foi enviada.
 
-Para "juntar" os dois, quase sempre você usa UM destes caminhos:
+Para "juntar" os dois, quase sempre voce usa UM destes caminhos:
 
-  1) PHP GERA HTML que o JS lê
+  1) PHP GERA HTML que o JS le
      Exemplo: <?php foreach ($produtos as $p): ?>
               <article data-id="<?= $p['id'] ?>" data-price="<?= $p['preco'] ?>">
-              O cardapio.js lê dataset.id e dataset.price no clique.
+              O cardapio.js le dataset.id e dataset.price no clique.
 
-  2) PHP IMPRIME JSON dentro de uma variável JS (cuidado com XSS — use json_encode)
+  2) PHP IMPRIME JSON dentro de uma variavel JS (cuidado com XSS — use json_encode)
      Exemplo: const produtos = <?= json_encode($produtos, JSON_HEX_TAG) ?>;
 
   3) JavaScript chama um arquivo PHP via fetch (AJAX)
-     fetch('api/salvar_pedido.php', { method:'POST', body: formData })
-     O PHP recebe $_POST ou php://input, fala com MySQL e devolve JSON:
-     header('Content-Type: application/json');
-     echo json_encode(['ok' => true]);
+     fetch('src/auth.php', { method:'POST', body: formData })
+     O PHP recebe $_POST, fala com MySQL e pode devolver JSON ou redirecionar.
 
-  4) Formulário clássico (sem JS ou com pouco JS)
-     <form action="gravar.php" method="post"> — o navegador envia e a página recarrega.
+  4) Formulario classico (sem JS ou com pouco JS)
+     <form action="src/auth.php" method="post"> — o navegador envia e a pagina recarrega.
+     ** ESTE E O PADRAO ADOTADO NO PROJETO para auth e acoes criticas. **
 
---------------------------------------------------------------------------------
-  Onde está cada coisa neste projeto
---------------------------------------------------------------------------------
-
-Área do CLIENTE (pasta user/)
-  • main.js          — carregado em user_footer.php em TODAS as páginas user.
-                       Horário da loja hoje vem do localStorage (mock).
-                       PHP futuro: endpoint GET user/api/config_loja.php que lê tabela config_loja.
-
-  • cardapio.js      — só index.php. Lê data-* nos .product-card (hoje mock).
-                       PHP: gerar cards a partir do SELECT em produto + adicionais.
-
-  • carrinho.js      — carrinho.php. Carrinho no localStorage.
-                       PHP: ao finalizar, enviar JSON do carrinho para api/gravar_pedido.php.
-
-  • perfil.js        — perfil.php. Modal de edição só mexe no DOM (mock).
-                       PHP: POST para atualizar cliente/endereco no banco.
-
-  • finalizarPedido.php — tem <script> inline + main.js.
-                       Troco/CPF: main.js; PHP deve receber os campos no POST ao gravar pedido.
-
-  • login.php        — JS simula login com localStorage.
-                       PHP: form action login.php ou api/login.php + session_start().
-
-Área do ADMIN (pasta admin/)
-  • pedidos.js       — pedidos.php. Status e dados mock.
-                       PHP: tabela HTML vinda do MySQL; POST api/atualizar_status_pedido.php.
-
-  • produtos.js      — produtos.php. CRUD visual mock.
-                       PHP: INSERT/UPDATE produto, produto_adicional.
-
-  • usuarios.js      — usuarios.php idem.
-
-  • financeiro.js    — financeiro.php. Filtros mock.
-                       PHP: SELECT com datas e agrupa por forma_pagamento.
-
-  • config.js        — config.php. Salva horário no localStorage.
-                       PHP: UPDATE config_loja e o cliente lê via API.
+  5) Form dinamico criado pelo JS (usado para acoes de CRUD no admin)
+     O JS cria um <form> invisivel, preenche os campos e chama .submit()
+     O PHP recebe como $_POST normal.
+     Exemplo: excluirUsuario() em usuarios.js cria form com id + acao e envia.
 
 --------------------------------------------------------------------------------
-  Sessão (login) — o elo mais importante
+  Onde esta cada coisa neste projeto (estado atual)
 --------------------------------------------------------------------------------
 
-  No PHP, depois do login bem-sucedido:
-    session_start();
-    $_SESSION['cliente_id'] = ...;   // ou usuario_id para admin
+Area do CLIENTE (pasta user/)
 
-  Para o JS saber se está logado SEM recarregar a página:
-    criar user/api/check_session.php:
-      session_start();
-      header('Content-Type: application/json');
-      echo json_encode(['logado' => isset($_SESSION['cliente_id'])]);
+  * user/src/auth.php
+    - Recebe $_POST da tela de login (acao=Logar) e cadastro (acao=Cadastrar)
+    - Login: busca email em 'cliente' primeiro, depois em 'usuario'
+      - Se cliente  -> grava $_SESSION['idlogado'], $_SESSION['userlogado'], etc.
+                       Redireciona para user/index.php (ou pagina de origem)
+      - Se admin    -> grava $_SESSION['admin_id'], $_SESSION['admin_nome'],
+                       $_SESSION['admin_permissoes'] (do banco)
+                       Redireciona para admin/index.php
+    - Cadastro: INSERT em 'cliente', valida email/telefone contra as duas tabelas
+    - Exibe modal de feedback (sucesso ou erro) em vez de alert()
 
-  O carrinho.js já tem comentário onde trocar o mock por fetch('api/check_session.php').
+  * user/src/logout.php
+    - session_start() + session_destroy() + redireciona para user/login.php
+
+  * user/login.php
+    - Form classico: action="src/auth.php" + campo oculto 'redirect'
+    - Se o usuario tentou acessar finalizarPedido.php sem sessao, o PHP captura
+      e armazena a origem em ?redirect=finalizarPedido.php
+    - Apos login bem-sucedido o auth.php redireciona de volta para essa origem
+
+  * user/finalizarPedido.php
+    - Pagina protegida: verifica $_SESSION['idlogado'] no topo
+    - Se nao houver sessao: redireciona para login.php?redirect=finalizarPedido.php
+    - JS finalizar_pedido.js / main.js — validacoes de CPF e troco rodam no browser
+    - PHP: ainda recebe o POST do checkout (implementacao pendente: gravar pedido)
+
+  * user/carrinho.php
+    - Sem protecao de sessao (qualquer um pode ver o carrinho)
+    - Ao clicar em "Finalizar": JS verifica se $_SESSION existe via campo
+      ou simplesmente redireciona — o PHP de finalizarPedido.php faz a guarda real
+    - carrinho.js gerencia o carrinho localmente (implementacao de banco pendente)
+
+  * user/pedidos.php, perfil.php, detalhes_pedido.php
+    - Todos protegidos: session_start() + verificacao de $_SESSION['idlogado']
+    - Sem sessao -> redireciona para login.php
+
+  * user/assets/js/main.js
+    - Carregado em todas as paginas via user_footer.php
+    - Horario da loja: hoje lido do localStorage (mock)
+    - PHP futuro: ler config_loja do banco e imprimir via json_encode no footer
+
+  * user/assets/js/cardapio.js
+    - Apenas index.php. Le data-* nos .product-card (hoje mock/estatico)
+    - PHP futuro: gerar cards com SELECT produto + categoria + adicionais
+
+  * user/assets/js/carrinho.js
+    - Gerencia sacola localmente
+    - PHP futuro: ao adicionar item, POST para gravar em item_carrinho
+
+  * user/assets/js/perfil.js
+    - Modal de edicao de dados — ainda so no DOM
+    - PHP futuro: POST para UPDATE em cliente + endereco
+
+Area do ADMIN (pasta admin/)
+
+  * admin/src/auth_admin.php
+    - Switch em $_REQUEST['acao']:
+      - CadastrarUsuario : INSERT em 'usuario' com password_hash() + permissoes padrao
+      - LogarAdmin       : busca email em 'usuario', password_verify(), grava sessao
+      - ExcluirUsuario   : DELETE FROM usuario WHERE id_usuario = $id (com guarda anti-auto-exclusao)
+      - AtualizarPermissoes: UPDATE usuario SET tipo_usuario, root, permissoes WHERE id
+    - Exibe modal de feedback (funcao exibirModalEVoltar) em vez de alert()
+
+  * includes/admin_header.php
+    - Incluido em TODAS as paginas do admin
+    - session_start() + verifica $_SESSION['admin_id']
+    - Sem sessao -> redireciona para user/login.php (login e unico para os dois)
+
+  * admin/usuarios.php
+    - Lista usuarios do banco com SELECT * FROM usuario
+    - Botao "Permissoes": abre modal, JS le permissoes salvas e restaura checkboxes
+    - Botao "Excluir": JS cria form e envia GET para auth_admin.php?acao=ExcluirUsuario&id=X
+    - Botao "Novo Usuario": form POST para auth_admin.php?acao=CadastrarUsuario
+
+  * admin/assets/js/usuarios.js
+    - salvarPermissoes(): coleta checkboxes marcados, cria form com os valores e POST
+    - excluirUsuario(btn, id): modal de confirmacao, depois redireciona via GET
+    - Validacao de forca de senha: medidor visual + checklist de requisitos no modal de novo usuario
+
+  * admin/assets/js/pedidos.js, produtos.js, financeiro.js, config.js
+    - Ainda com dados mock / front-end apenas
+    - PHP pendente: conectar cada um ao banco
 
 --------------------------------------------------------------------------------
-  Segurança mínima (não confie só no JS)
+  Sessao (login) — as variaveis de sessao do projeto
 --------------------------------------------------------------------------------
 
-  • Validação de CPF, troco, estoque: refaça no PHP ao gravar o pedido.
-  • Nunca grave pedido só porque o JS mandou; verifique sessão e dados no servidor.
-  • Use prepared statements (PDO) nas queries.
+  CLIENTE logado:
+    $_SESSION['idlogado']    = id_cliente (int)
+    $_SESSION['userlogado']  = nome_cliente (string)
+    $_SESSION['idemail']     = email (string)
+    $_SESSION['idtelefone']  = telefone (string)
+
+  ADMIN logado:
+    $_SESSION['admin_id']         = id_usuario (int)
+    $_SESSION['admin_nome']       = nome (string)
+    $_SESSION['admin_tipo']       = tipo_usuario ('ADMIN' ou 'FUNCIONARIO')
+    $_SESSION['admin_permissoes'] = string de modulos ('pedidos,extrato,produtos,...')
+
+  Para verificar no PHP se o usuario esta logado como cliente:
+    if (!isset($_SESSION['idlogado'])) { header('Location: ../user/login.php'); exit; }
+
+  Para verificar no PHP se e um admin:
+    if (!isset($_SESSION['admin_id'])) { header('Location: ../user/login.php'); exit; }
+
+--------------------------------------------------------------------------------
+  Seguranca minima (nao confie so no JS)
+--------------------------------------------------------------------------------
+
+  * Validacao de CPF, troco, estoque: refaca no PHP ao gravar o pedido.
+  * Nunca grave pedido so porque o JS mandou; verifique sessao e dados no servidor.
+  * O banco usa password_hash() / password_verify() em todas as senhas.
+  * Redirecionamentos pos-login validam que a URL de origem e interna (nao aceita http:// externo).
+  * DELETE e UPDATE de usuario verificam o id_usuario da sessao antes de executar.
 
 ================================================================================
-  Fim do guia — detalhes por arquivo estão nos comentários no topo dos .js
+  Fim do guia — detalhes por arquivo estao nos comentarios no topo dos .js e .php
 ================================================================================

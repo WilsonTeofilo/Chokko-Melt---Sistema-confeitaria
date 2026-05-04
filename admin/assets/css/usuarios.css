@@ -1,9 +1,9 @@
 /* =========================================
    USUARIOS.CSS (Painel Admin)
-   Estilos específicos da página de Usuários e Modal
+   Estilos especificos da pagina de Usuarios e Modal
    ========================================= */
 
-/* ── ACTION BAR ── */
+/* -- ACTION BAR -- */
 .action-bar { 
     margin-bottom: 20px; 
     display: flex; 
@@ -17,7 +17,7 @@
     gap: 8px; 
 }
 
-/* ── BADGES E BOTÕES DA TABELA ── */
+/* -- BADGES E BOTOES DA TABELA -- */
 .badge-admin { 
     background: var(--marrom); 
     padding: 4px 12px; 
@@ -38,16 +38,16 @@
 .btn-del { background: #D32F2F; }
 .btn-del:hover { background: #B71C1C; }
 
-/* ═════════════════════════════════════════════
-   MODAL DE PERMISSÕES
-   ═════════════════════════════════════════════ */
+/* ===========================================
+   MODAL DE PERMISSOES
+   =========================================== */
 .modal-overlay { 
     display: none; 
     position: fixed; 
     top: 0; left: 0; 
     width: 100%; height: 100%; 
     background: rgba(0,0,0,0.6); 
-    backdrop-filter: blur(3px); /* Efeito Glassmorphism de fundo */
+    backdrop-filter: blur(3px);
     z-index: 2000; 
     align-items: center; 
     justify-content: center; 
@@ -91,7 +91,7 @@
 }
 .btn-close-modal:hover { color: #333; }
 
-/* Infos do Usuário */
+/* Infos do Usuario */
 .modal-user-info { 
     background: #fdfaf6;
     padding: 15px;
@@ -110,7 +110,7 @@
     cursor: pointer;
 }
 
-/* Lista de Permissões */
+/* Lista de Permissoes */
 .modal-subtitle { 
     font-size: 1.05rem; 
     color: #444; 
@@ -145,7 +145,7 @@
     color: #555;
 }
 
-/* Rodapé do Modal */
+/* Rodape do Modal */
 .modal-footer { 
     margin-top: 30px; 
     display: flex; 
@@ -171,11 +171,12 @@
     font-weight: 600;
 }
 
-/* ── MODAL NOVO USUÁRIO (anti-inline) ── */
+/* -- MODAL NOVO USUARIO (anti-inline) -- */
 .modal-usuario { width: 550px; }
 
 .form-group { margin-bottom: 15px; }
 .form-label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; color: #555; }
+.required { color: #D32F2F; }
 .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; outline: none; }
 .form-control:focus { border-color: var(--marrom); }
 
@@ -214,6 +215,26 @@
     font-size: 12px;
     color: #666;
 }
+
+/* -- Medidor de forca de senha -- */
+#senha-strength-wrap { margin-top: 8px; }
+#senha-strength-bar { display: flex; gap: 5px; margin-bottom: 8px; }
+.strength-seg {
+    flex: 1; height: 4px; border-radius: 99px;
+    background-color: rgba(0, 0, 0, 0.12);
+    transition: background-color 0.3s ease;
+}
+#senha-strength-bar.strength-1 #seg1 { background-color: #e53935; }
+#senha-strength-bar.strength-2 #seg1, #senha-strength-bar.strength-2 #seg2 { background-color: #fb8c00; }
+#senha-strength-bar.strength-3 #seg1, #senha-strength-bar.strength-3 #seg2, #senha-strength-bar.strength-3 #seg3 { background-color: #fdd835; }
+#senha-strength-bar.strength-4 #seg1, #senha-strength-bar.strength-4 #seg2, #senha-strength-bar.strength-4 #seg3, #senha-strength-bar.strength-4 #seg4 { background-color: #43a047; }
+#senha-checklist { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+#senha-checklist li { font-size: 12px; color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; gap: 6px; transition: color 0.25s; }
+#senha-checklist li i { font-size: 13px; color: #e53935; transition: color 0.25s; }
+#senha-checklist li.ok { color: #2e7d32; }
+#senha-checklist li.ok i { color: #43a047; }
+#senha-strength-wrap.hidden { display: none; }
+.erro-senhas-txt { display: block; font-size: 12px; color: #e53935; margin-top: 5px; min-height: 16px; transition: opacity 0.2s ease; }
 
 /* =========================================
    RESPONSIVIDADE - USUARIOS

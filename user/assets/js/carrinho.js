@@ -45,36 +45,9 @@ if (opcoesEntrega.length > 0) {
 
 
 // ── 2. Formulário de checkout ─────────────────────────────────
-// NOTA BACKEND: quando o PHP de sessão estiver pronto,
-// este bloco pode ser simplificado. O PHP vai checar se o usuário
-// está logado antes de finalizar. O JS não precisa mais fazer isso.
+// JS não precisa mais interceptar. O form vai bater no finalizarPedido.php e o PHP cuida do resto!
 var formCarrinho = document.getElementById('form-carrinho');
-
-if (formCarrinho) {
-    formCarrinho.addEventListener('submit', function(evento) {
-
-        // Descobre qual botão foi clicado (finalizar ou continuar comprando)
-        var acaoBotao = '';
-        if (evento.submitter) {
-            acaoBotao = evento.submitter.value;
-        }
-
-        if (acaoBotao === 'finalizar') {
-            // TODO BACKEND: remova este bloco quando o PHP verificar a sessão.
-            // Hoje, checar se está logado é simulado pelo localStorage.
-            var usuarioLogado = localStorage.getItem('chokko_usuario_id');
-            if (!usuarioLogado) {
-                evento.preventDefault(); // Impede o envio
-                localStorage.setItem('chokko_retorno', 'finalizar');
-                window.location.href = 'login.php?retorno=finalizar';
-            }
-            // Se logado: o form envia normalmente e o PHP recebe
-        }
-        // Se o botão for "continuar": o form envia e o PHP redireciona
-    });
-}
-
-
+// Tudo feito nativamente via form submit!
 // ── 3. Badge do rodapé ────────────────────────────────────────
 // Conta os itens do carrinho lendo o HTML que o PHP gerou na tela
 function atualizarBadgeCarrinho() {

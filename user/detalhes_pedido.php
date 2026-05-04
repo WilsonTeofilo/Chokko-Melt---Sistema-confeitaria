@@ -1,4 +1,11 @@
-<?php include '../includes/user_header.php'; ?>
+<?php 
+session_start();
+if (!isset($_SESSION['idlogado'])) {
+    header("Location: login.php");
+    exit;
+}
+include '../includes/user_header.php'; 
+?>
 <link rel="stylesheet" href="assets/css/pedidos.css">
 
 <?php
@@ -56,7 +63,7 @@ $is_finalizado = in_array($status_atual, ['entregue', 'cancelado']);
 <header class="page-header">
     <a href="pedidos.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
     <div>
-        <p class="logo-mini">Chokko<span> Melt</span></p>
+        <a href="index.php" class="logo-mini" style="text-decoration: none; display: block;">Chokko<span> Melt</span></a>
         <!-- NOTA BACKEND: exibir 'Pedido #' . $pedido_id -->
         <p class="page-subtitle">Pedido #<?= htmlspecialchars($pedido_id) ?></p>
     </div>

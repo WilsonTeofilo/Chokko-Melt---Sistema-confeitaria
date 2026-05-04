@@ -214,32 +214,32 @@
   </table>
 
   <h3>5.4 <code>usuario</code></h3>
-  <p><strong>Função:</strong> quem trabalha no painel (ADMIN ou FUNCIONARIO). Opcionalmente pode ter login Google no futuro.</p>
+  <p><strong>Funcao:</strong> quem trabalha no painel (ADMIN ou FUNCIONARIO). Login por senha local; suporte a Google no futuro.</p>
   <table class="dict">
-    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descricao</th></tr></thead>
     <tbody>
-      <tr><td><code>id_usuario</code></td><td>INT, PK</td><td>Identificação do funcionário/admin.</td></tr>
-      <tr><td><code>nome</code>, <code>email</code>, <code>telefone</code></td><td>TEXTO</td><td>Dados de contato únicos onde marcado UNIQUE.</td></tr>
-      <tr><td><code>senha</code></td><td>VARCHAR(255)</td><td>Hash da senha; pode ser NULL se usar só Google (<code>auth_provider</code>).</td></tr>
+      <tr><td><code>id_usuario</code></td><td>INT, PK</td><td>Identificacao do funcionario/admin.</td></tr>
+      <tr><td><code>nome</code>, <code>email</code>, <code>telefone</code></td><td>TEXTO</td><td>Dados de contato — email e telefone sao UNIQUE.</td></tr>
+      <tr><td><code>senha</code></td><td>VARCHAR(255)</td><td>Hash da senha (password_hash). NULL se usar Google (<code>auth_provider</code>).</td></tr>
       <tr><td><code>tipo_usuario</code></td><td>ENUM</td><td>ADMIN ou FUNCIONARIO.</td></tr>
-      <tr><td><code>root</code></td><td>BOOLEAN</td><td>Superusuário (dono).</td></tr>
+      <tr><td><code>root</code></td><td>BOOLEAN</td><td>Superusuario (dono). ADMIN root tem acesso total.</td></tr>
+      <tr><td><code>permissoes</code></td><td>VARCHAR(255), NULL</td><td>Modulos liberados separados por virgula. Ex: <code>pedidos,extrato,produtos,usuarios,config</code>. Gerado automaticamente na criacao e editavel pelo painel de usuarios.</td></tr>
       <tr><td><code>auth_provider</code></td><td>ENUM</td><td>LOCAL ou GOOGLE.</td></tr>
-      <tr><td><code>google_subject</code></td><td>VARCHAR</td><td>ID estável da conta Google (único).</td></tr>
+      <tr><td><code>google_subject</code></td><td>VARCHAR, UNIQUE</td><td>ID estavel da conta Google (unico). NULL se login local.</td></tr>
     </tbody>
   </table>
 
   <h3>5.5 <code>cliente</code></h3>
-  <p><strong>Função:</strong> quem compra no site. Pode ter senha local ou conta Google; CPF opcional para nota.</p>
+  <p><strong>Funcao:</strong> quem compra no site. Pode ter senha local ou conta Google. Nao tem CPF no cadastro — CPF para nota fiscal fica no campo <code>cpf_nota</code> do <code>pedido</code>, preenchido opcionalmente na hora de fechar o pedido.</p>
   <table class="dict">
-    <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Descricao</th></tr></thead>
     <tbody>
       <tr><td><code>id_cliente</code></td><td>INT, PK</td><td>Identificador do cliente.</td></tr>
       <tr><td><code>nome_cliente</code></td><td>VARCHAR</td><td>Nome exibido.</td></tr>
-      <tr><td><code>email</code>, <code>telefone</code></td><td>VARCHAR</td><td>Login / contato (únicos).</td></tr>
-      <tr><td><code>senha</code></td><td>VARCHAR</td><td>Hash; NULL se Google.</td></tr>
+      <tr><td><code>email</code>, <code>telefone</code></td><td>VARCHAR, UNIQUE</td><td>Login / contato — ambos unicos no sistema.</td></tr>
+      <tr><td><code>senha</code></td><td>VARCHAR(255)</td><td>Hash da senha; NULL se usar Google.</td></tr>
       <tr><td><code>auth_provider</code></td><td>ENUM</td><td>LOCAL ou GOOGLE.</td></tr>
-      <tr><td><code>google_subject</code></td><td>VARCHAR</td><td>Identificador Google (único).</td></tr>
-      <tr><td><code>cpf</code></td><td>VARCHAR(14)</td><td>CPF normalizado ou formatado (único se preenchido).</td></tr>
+      <tr><td><code>google_subject</code></td><td>VARCHAR, UNIQUE</td><td>Identificador Google (unico). NULL se login local.</td></tr>
     </tbody>
   </table>
 

@@ -1,13 +1,14 @@
 <?php 
 session_start();
-include '../includes/user_header.php'; 
-include '../config/config.php';
 
 // Segurança: se não estiver logado, chuta pro login
 if (!isset($_SESSION['idlogado'])) {
     header("Location: login.php");
     exit;
 }
+
+include '../includes/user_header.php'; 
+include '../config/config.php';
 
 $id_cliente = $_SESSION['idlogado'];
 
@@ -35,7 +36,7 @@ $enderecosMock = [];
 <header class="page-header">
     <a href="index.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
     <div>
-        <p class="logo-mini">Chokko<span> Melt</span></p>
+        <a href="index.php" class="logo-mini" style="text-decoration: none; display: block;">Chokko<span> Melt</span></a>
         <p class="page-subtitle">Meu Perfil</p>
     </div>
 </header>

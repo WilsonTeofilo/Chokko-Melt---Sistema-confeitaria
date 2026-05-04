@@ -1,7 +1,7 @@
 /* =========================================================
-   CHOKKO MELT — SCRIPT COMPLETO PARA IMPORT (MySQL 8+)
+   CHOKKO MELT Ã¢â‚¬â€ SCRIPT COMPLETO PARA IMPORT (MySQL 8+)
    - Cria banco + tabelas + FKs
-   - Seeds mínimos para o sistema ligar
+   - Seeds mÃƒÂ­nimos para o sistema ligar
 
    Login inicial (usuario id=1):
    - E-mail: admin@chokkomelt.local
@@ -21,7 +21,7 @@ USE `chokko_melt`;
 SET FOREIGN_KEY_CHECKS = 0;
 
 /* =========================
-   status_pedido (catálogo)
+   status_pedido (catÃƒÂ¡logo)
    ========================= */
 CREATE TABLE `status_pedido` (
   `id_status_pedido` INT NOT NULL AUTO_INCREMENT,
@@ -48,7 +48,7 @@ INSERT INTO `status_pedido` (`id_status_pedido`, `descricao`) VALUES
 (7,'CANCELADO_LOJA');
 
 /* =========================
-   status_pagamento (catálogo)
+   status_pagamento (catÃƒÂ¡logo)
    ========================= */
 CREATE TABLE `status_pagamento` (
   `id_status_pagamento` INT NOT NULL AUTO_INCREMENT,
@@ -89,6 +89,7 @@ CREATE TABLE `usuario` (
   `telefone` VARCHAR(20) NOT NULL,
   `tipo_usuario` ENUM('ADMIN','FUNCIONARIO') NOT NULL,
   `root` BOOLEAN NOT NULL DEFAULT FALSE,
+  `permissoes` VARCHAR(255) NULL COMMENT 'Modulos liberados: pedidos,extrato,produtos,usuarios,config',
   `auth_provider` ENUM('LOCAL','GOOGLE') NOT NULL DEFAULT 'LOCAL',
   `google_subject` VARCHAR(191) NULL,
   PRIMARY KEY (`id_usuario`),
@@ -98,7 +99,7 @@ CREATE TABLE `usuario` (
 ) ENGINE=InnoDB;
 
 INSERT INTO `usuario` (
-  `id_usuario`,`nome`,`email`,`senha`,`telefone`,`tipo_usuario`,`root`,`auth_provider`,`google_subject`
+  `id_usuario`,`nome`,`email`,`senha`,`telefone`,`tipo_usuario`,`root`,`permissoes`,`auth_provider`,`google_subject`
 ) VALUES (
   1,
   'Administrador',
@@ -107,6 +108,7 @@ INSERT INTO `usuario` (
   '11999999999',
   'ADMIN',
   TRUE,
+  'pedidos,extrato,produtos,usuarios,config',
   'LOCAL',
   NULL
 );

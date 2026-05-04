@@ -4,7 +4,7 @@
 
 <!-- ── HEADER PRINCIPAL ── -->
 <header class="main-header">
-    <div class="logo">Chokko<span> Melt</span></div>
+    <a href="index.php" class="logo" style="text-decoration: none;">Chokko<span> Melt</span></a>
     <div class="status-badge" id="store-status-badge">Loja Aberta</div>
 </header>
 

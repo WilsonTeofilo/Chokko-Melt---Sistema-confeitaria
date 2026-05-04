@@ -11,8 +11,13 @@
     <main class="container">
     <!-- FORMULÁRIO :-->
 
+<?php
+// Prepara o terreno pra saber pra onde ir depois do login
+$redirectUrl = isset($_GET['redirect']) ? htmlspecialchars($_GET['redirect']) : 'index.php';
+?>
         <form action="src/auth.php" method="POST">
-        <input type="hidden" name="acao" value="Logar">
+            <input type="hidden" name="acao" value="Logar">
+            <input type="hidden" name="redirect" value="<?= $redirectUrl ?>">
             <h1>Fazer Login</h1>
             <div class="input-box">
                 <input placeholder="E-mail" type="email" name="email" required autocomplete="on">
@@ -53,7 +58,7 @@
             </button>
 
             <div class="register-link">
-                <p>Não tem uma conta? <a href="cadastro.php">Cadastre-se</a></p>
+                <p>Não tem uma conta? <a href="cadastro.php<?= isset($_GET['redirect']) ? '?redirect=' . htmlspecialchars($_GET['redirect']) : '' ?>">Cadastre-se</a></p>
             </div>
 
             <!-- Link para voltar ao cardápio SEM login -->

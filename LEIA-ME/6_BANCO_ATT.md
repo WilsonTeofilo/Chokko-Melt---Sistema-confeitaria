@@ -6,13 +6,31 @@ Além disso, ENUMs foram alterados e cinco novas tabelas foram criadas — desta
 
 > ⚠️ Os diagramas (DER, Modelo Lógico, Esquema Relacional) precisam ser atualizados para refletir essas mudanças.
 
+---
 
+## Banco Original (Pedro/Lohan) — Referência Base
 
+Para fins de comparação, o banco original possuía as seguintes tabelas com suas colunas essenciais:
 
+| Tabela | Colunas originais |
+|---|---|
+| `usuario` | id, nome, email, senha NOT NULL, telefone, tipo_usuario, root |
+| `cliente` | id, nome_cliente, email, senha NOT NULL, telefone |
+| `endereco` | id, rua, numero, complemento, bairro, cep, id_cliente |
+| `produto` | id, nome, descricao, disponibilidade, imagem, preco, custo_compra, id_categoria |
+| `categoria` | id, nome |
+| `pedido` | id, data_hora, valor_total, observacao, tipo_entrega(DELIVERY\|RETIRADA), taxa_entrega, id_usuario, id_status_pedido, id_cliente, id_endereco |
+| `status_pedido` | id, descricao ENUM(PENDENTE, **PAGO**, EM_PREPARO, ENVIADO, ENTREGUE, **CANCELADO**) |
+| `item_pedido` | id, preco_unitario, quantidade, custo_unitario, observacao, id_produto, id_pedido |
+| `avaliacao` | id, estrelas, comentarios, id_pedido |
+| `carrinho` | id, id_cliente |
+| `item_carrinho` | id, preco_unitario, quantidade, id_produto, id_carrinho |
+| `status_pagamento` | id, descricao ENUM(PENDENTE, PAGO, CANCELADO, REEMBOLSADO) |
+| `pagamento` | id, data_hora, valor_pago, forma_pagamento, id_status_pagamento, id_pedido |
 
+> Nenhuma tabela de adicionais existia. Não havia `config_loja`, não havia snapshots, não havia suporte a OAuth e o cancelamento era um único valor genérico.
 
-
-
+---
 
 ## 1. Mudanças de NULL / NOT NULL (impacto no backend)
 
@@ -37,51 +55,80 @@ Além disso, ENUMs foram alterados e cinco novas tabelas foram criadas — desta
 |---|---|---|
 | `google_subject` | `usuario` | Um Google account por usuário admin |
 | `google_subject` | `cliente` | Um Google account por cliente |
-| ``email` | `telefone` | email e telefone único por cliente |
+| `email` e `telefone` | `cliente` e `usuario` | Email e telefone únicos por conta — validados também no PHP antes do INSERT |
 | `id_cliente` | `carrinho` | **1 carrinho por cliente** (era possível ter mais de 1 antes) |
 | `id_pedido` | `avaliacao` | **1 avaliação por pedido** |
 
 ---
 
-## 3. Colunas novas em tabelas que já existiam
+## 3. Mudanças nos ENUMs
+
+### `status_pedido.descricao`
+
+| Antes (Pedro/Lohan) | Agora | Motivo |
+|---|---|---|
+| `PENDENTE` | `PENDENTE` | Mantido |
+| `PAGO` | ~~removido~~ | Status de pagamento não pertence ao fluxo de pedido — pertence à tabela `pagamento` |
+| `EM_PREPARO` | `EM_PREPARO` | Mantido |
+| `ENVIADO` | `ENVIADO` | Mantido |
+| `ENTREGUE` | `ENTREGUE` | Mantido |
+| `CANCELADO` | ~~removido~~ | Substituído por dois valores mais específicos |
+| — | **`ACEITO`** | Adicionado — etapa entre PENDENTE e EM_PREPARO, quando o admin confirma o pedido |
+| — | **`CANCELADO_CLIENTE`** | Cancelamento feito pelo próprio cliente |
+| — | **`CANCELADO_LOJA`** | Cancelamento feito pelo administrador |
+
+### `pedido.tipo_entrega`
+
+| Antes | Agora | Motivo |
+|---|---|---|
+| `DELIVERY` | `DELIVERY` | Mantido |
+| `RETIRADA` | `RETIRADA` | Mantido |
+| — | **`LOCAL`** | Adicionado — cliente consome no próprio estabelecimento, sem endereço de entrega |
+
+---
+
+## 4. Colunas novas em tabelas que já existiam
 
 ### `usuario`
-| Coluna | Tipo |
-|---|---|
-| `auth_provider` | ENUM('LOCAL','GOOGLE') |
-| `google_subject` | VARCHAR(191) UNIQUE |
+| Coluna | Tipo | Motivo |
+|---|---|---|
+| `auth_provider` | ENUM('LOCAL','GOOGLE') | Distingue se o login é local (senha) ou OAuth Google |
+| `google_subject` | VARCHAR(191) UNIQUE NULL | ID único do Google para login social |
+| `permissoes` | VARCHAR(255) NULL | Módulos liberados para o usuário, separados por vírgula. Ex: `pedidos,extrato,produtos,usuarios,config`. Derivado do `tipo_usuario` na criação, mas editável individualmente pelo admin master |
+
+> **Lógica de permissões:** ADMIN criado recebe automaticamente todos os módulos. FUNCIONARIO recebe `pedidos,produtos` por padrão. O admin pode editar via painel de Usuários. A sessão PHP carrega `$_SESSION['admin_permissoes']` no login para controle de acesso nas páginas do painel.
 
 ### `cliente`
-| Coluna | Tipo |
-|---|---|
-| `auth_provider` | ENUM('LOCAL','GOOGLE') |
-| `google_subject` | VARCHAR(191) UNIQUE |
+| Coluna | Tipo | Motivo |
+|---|---|---|
+| `auth_provider` | ENUM('LOCAL','GOOGLE') | Distingue se o login é local (senha) ou OAuth Google |
+| `google_subject` | VARCHAR(191) UNIQUE NULL | ID único do Google para login social |
 
 ### `endereco`
-| Coluna | Tipo |
-|---|---|
-| `ponto_referencia` | VARCHAR(120) |
+| Coluna | Tipo | Motivo |
+|---|---|---|
+| `ponto_referencia` | VARCHAR(120) NULL | Campo adicional para orientar entregadores — não existia no banco original |
 
 ### `pedido`
 | Coluna | Tipo | Impacto |
 |---|---|---|
-| `subtotal` | DECIMAL(8,2) | Valor dos itens sem taxa de entrega |
-| `custo_total` | DECIMAL(10,2) | Custo total de produção do pedido |
-| `lucro` | DECIMAL(10,2) | lucro = valor_total - custo_total |
-| `cpf_nota` | VARCHAR(14) | CPF do cliente para nota fiscal |
-| `motivo_cancelamento` | VARCHAR(500) | Justificativa do cancelamento |
-| `cancelado_por` | ENUM('CLIENTE','ADMIN') | Quem cancelou |
-| `cancelado_em` | TIMESTAMP | Quando foi cancelado |
+| `subtotal` | DECIMAL(8,2) NULL | Valor dos itens sem taxa de entrega |
+| `custo_total` | DECIMAL(10,2) NULL | Custo total de produção do pedido |
+| `lucro` | DECIMAL(10,2) NULL | lucro = valor_total - custo_total |
+| `cpf_nota` | VARCHAR(14) NULL | CPF do cliente para nota fiscal |
+| `motivo_cancelamento` | VARCHAR(500) NULL | Justificativa obrigatória quando admin cancela |
+| `cancelado_por` | ENUM('CLIENTE','ADMIN') NULL | Rastreio de quem cancelou |
+| `cancelado_em` | TIMESTAMP NULL | Quando o cancelamento ocorreu |
 
 ### `pagamento`
 | Coluna | Tipo | Impacto |
 |---|---|---|
-| `valor_entregue` | DECIMAL(8,2) | Quanto o cliente entregou em dinheiro |
-| `troco` | DECIMAL(8,2) | troco = valor_entregue - valor_pago |
+| `valor_entregue` | DECIMAL(8,2) NULL | Quanto o cliente entregou em dinheiro (apenas forma DINHEIRO) |
+| `troco` | DECIMAL(8,2) NULL | troco = valor_entregue - valor_pago |
 
 ---
 
-## 4. Tabelas novas — colunas e relacionamentos
+## 5. Tabelas novas — colunas e relacionamentos
 
 ### `adicional` — catálogo de complementos disponíveis
 | Coluna | Tipo |
@@ -139,7 +186,7 @@ Relaciona com: `produto_adicional`, `item_pedido_adicional`, `item_carrinho_adic
 | `whatsapp` | VARCHAR(20) NULL |
 | `taxa_entrega_padrao` | DECIMAL(8,2) |
 
-Tabela sem relacionamentos diretos (independente) — lida por qualquer parte do sistema. Caracteriza uma entidade singleton controlada por regra de aplicação (não por constraint de banco). A restrição é controlada pela aplicação por simplicidade, embora pudesse ser reforçada com constraints adicionais ou triggers no banco.
+Tabela sem relacionamentos diretos (independente) — lida por qualquer parte do sistema. Caracteriza uma entidade singleton controlada por regra de aplicação (não por constraint de banco).
 
 **Como o singleton é garantido na prática:**
 - A PK `id_config` é fixa em `1` (definida pelo `DEFAULT 1` e pelo seed)
@@ -149,25 +196,30 @@ Tabela sem relacionamentos diretos (independente) — lida por qualquer parte do
 
 ---
 
-## 5. Conceito de Snapshot (importante para TCC)
+## 6. Conceito de Snapshot (importante para TCC)
 
 Nas tabelas `item_pedido_adicional` e `item_carrinho_adicional`, os campos `nome_snapshot` e `preco_unitario_snapshot` guardam uma **cópia** do nome e preço do adicional no momento da venda.
 
-**Por quê isso importa:** se o dono mudar o preço ou nome de um adicional no futuro, os pedidos antigos continuam mostrando os valores corretos da época da compra. Sem o snapshot, o histórico seria corrompido automaticamente. Isso preserva a consistência histórica dos dados transacionais. Essa abordagem evita anomalias de atualização e garante independência estrutural entre dados transacionais e dados de catálogo.
+**Por quê isso importa:** se o dono mudar o preço ou nome de um adicional no futuro, os pedidos antigos continuam mostrando os valores corretos da época da compra. Sem o snapshot, o histórico seria corrompido automaticamente.
 
 **Detalhe crítico:** o FK `id_adicional` pode ser `NULL` nessas tabelas. Isso garante que mesmo se o adicional for **deletado** do sistema, o histórico continua válido — os dados do snapshot são autossuficientes e não dependem da existência do registro original.
 
 ---
 
-## 6. Resumo do que o banco evoluiu
+## 7. Resumo completo do que o banco evoluiu
 
-| Antes (banco Pedro/Lohan) | Agora |
+| Antes (banco Pedro/Lohan) | Agora (chokko_melt.sql atual) |
 |---|---|
 | CRUD simples | Sistema transacional com controle financeiro e rastreabilidade |
 | Sem controle de lucro | Rastreio financeiro completo (subtotal, custo, lucro) |
-| Cancelamento genérico | Cancelamento separado por quem cancelou e quando |
-| Sem adicionais | Modelagem N:N produto ↔ adicional |
-| Histórico vulnerável a mudanças | Histórico imutável via snapshot |
-| Sem login social | Suporte a Google OAuth (auth_provider + google_subject) |
-| Sem configuração da loja | config_loja singleton no banco |
-| 1 tipo de cancelamento | 2 tipos: CANCELADO_CLIENTE e CANCELADO_LOJA |
+| Cancelamento genérico (`CANCELADO`) | Cancelamento separado: `CANCELADO_CLIENTE` e `CANCELADO_LOJA`, com motivo e timestamp |
+| Sem etapa de confirmação do admin | Status `ACEITO` entre PENDENTE e EM_PREPARO |
+| tipo_entrega: só DELIVERY e RETIRADA | Adicionado `LOCAL` para consumo no estabelecimento |
+| Sem adicionais | Modelagem N:N produto ↔ adicional com 3 tabelas novas |
+| Histórico vulnerável a mudanças de preço | Histórico imutável via snapshot em item_pedido_adicional |
+| Sem login social | Suporte a Google OAuth (`auth_provider` + `google_subject`) |
+| Sem configuração da loja | `config_loja` singleton no banco (horário, taxa, whatsapp) |
+| `usuario` com apenas tipo e root | `usuario` com `permissoes` granulares editáveis por módulo |
+| Sem ponto de referência no endereço | Campo `ponto_referencia` no endereço para orientar entregadores |
+| Sem troco no pagamento | Campos `valor_entregue` e `troco` em `pagamento` |
+| Login separado por tipo de tela | Login unificado: mesmo formulário autentica cliente e admin |

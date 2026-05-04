@@ -1,4 +1,29 @@
-<?php include '../includes/user_header.php'; ?>
+<?php 
+session_start();
+
+// 1. Se clicou em "Continuar Comprando" no carrinho, devolve pro cardápio
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['acao'] === 'continuar') {
+    header("Location: index.php");
+    exit;
+}
+
+// 2. Se não estiver logado, obriga a logar antes de ver essa página
+if (!isset($_SESSION['idlogado'])) {
+    // Guarda na sessão qual entrega ele escolheu pra não perder
+    if (isset($_POST['entrega'])) {
+        $_SESSION['forma_entrega_pendente'] = $_POST['entrega'];
+    }
+    // Vai pro login com a indicação de voltar pra cá depois
+    header("Location: login.php?redirect=finalizarPedido.php");
+    exit;
+}
+
+// Terreno preparado! Agora você já sabe que o cliente está logado e tem os dados em $_SESSION['idlogado']
+// A forma de entrega escolhida pode ser recuperada assim:
+$forma_entrega = $_POST['entrega'] ?? $_SESSION['forma_entrega_pendente'] ?? 'delivery';
+
+include '../includes/user_header.php'; 
+?>
 <link rel="stylesheet" href="assets/css/carrinho.css">
 <link rel="stylesheet" href="assets/css/finalizar.css">
 
@@ -6,7 +31,7 @@
 <header class="page-header">
     <a href="carrinho.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
     <div>
-        <p class="logo-mini">Chokko<span> Melt</span></p>
+        <a href="index.php" class="logo-mini" style="text-decoration: none; display: block;">Chokko<span> Melt</span></a>
         <p class="page-subtitle">Finalizar Pedido</p>
     </div>
 </header>
