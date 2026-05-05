@@ -25,7 +25,7 @@ if ($resCliente && $resCliente->num_rows > 0) {
 }
 
 // --- 2. TERRENO PREPARADO PARA OS ENDEREÇOS ---
-// TODO: Escreva aqui a lógica (SELECT) para buscar os endereços desse cliente no banco!
+// TODO: Escrever aqui a lógica (SELECT) para buscar os endereços desse cliente no banco!
 // Por enquanto, vou criar o array vazio só pra página não quebrar de erro.
 $enderecosMock = []; 
 
