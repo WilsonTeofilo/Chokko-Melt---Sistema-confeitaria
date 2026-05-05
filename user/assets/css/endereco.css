@@ -1,0 +1,466 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lily+Script+One&display=swap');
+
+/* ═══════════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════════ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+:root {
+    --marrom-escuro:  #3b2313;
+    --marrom-medio:   #4E342E;
+    --marrom-quente:  #9b3f21;
+    --creme:          #fdf6ee;
+    --branco:         #ffffff;
+    --cinza-texto:    #555;
+    --glass-bg:       rgba(255,255,255,0.12);
+    --glass-border:   rgba(255,255,255,0.3);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   DESKTOP (>= 768px) — Layout Split Screen
+═══════════════════════════════════════════════════════ */
+@media (min-width: 768px) {
+
+    body {
+        display: flex;
+        min-height: 100vh;
+        background-color: var(--creme);
+        overflow: hidden;
+    }
+
+    /* ── Painel esquerdo decorativo ── */
+    .painel-esquerdo {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 42%;
+        min-height: 100vh;
+        background: linear-gradient(160deg, var(--marrom-escuro) 0%, var(--marrom-quente) 100%);
+        padding: 60px 50px;
+        position: relative;
+        overflow: hidden;
+        gap: 30px;
+        text-align: center;
+    }
+
+    /* Bolhas decorativas de fundo no painel esquerdo */
+    .painel-esquerdo::before {
+        content: '';
+        position: absolute;
+        width: 350px;
+        height: 350px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.05);
+        top: -80px;
+        left: -80px;
+    }
+    .painel-esquerdo::after {
+        content: '';
+        position: absolute;
+        width: 250px;
+        height: 250px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.05);
+        bottom: -60px;
+        right: -60px;
+    }
+
+    .painel-esquerdo .logo-painel {
+        font-family: 'Lily Script One', cursive;
+        font-size: 2.8rem;
+        color: var(--branco);
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+    }
+
+    .painel-esquerdo .logo-painel span {
+        color: #f4c28a;
+    }
+
+    .painel-esquerdo .icone-mapa {
+        font-size: 5rem;
+        color: rgba(255,255,255,0.85);
+        position: relative;
+        z-index: 1;
+        filter: drop-shadow(0 4px 15px rgba(0,0,0,0.3));
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50%       { transform: translateY(-12px); }
+    }
+
+    .painel-esquerdo h2 {
+        font-size: 1.5rem;
+        color: var(--branco);
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+        line-height: 1.4;
+    }
+
+    .painel-esquerdo p {
+        font-size: 0.95rem;
+        color: rgba(255,255,255,0.7);
+        position: relative;
+        z-index: 1;
+        line-height: 1.6;
+        max-width: 300px;
+    }
+
+    /* ── Painel direito com o formulário ── */
+    .painel-direito {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 60px 40px;
+        background: var(--branco);
+        overflow-y: auto;
+    }
+
+    #form-container {
+        width: 100%;
+        max-width: 480px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    #form-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid var(--creme);
+        padding-bottom: 20px;
+    }
+
+    #form-title {
+        font-family: 'Lily Script One', cursive;
+        font-size: 2.2rem;
+        color: var(--marrom-escuro);
+        font-weight: 400;
+    }
+
+    /* Botão de voltar — desktop */
+    #btn-back {
+        background: transparent;
+        border: 2px solid var(--marrom-medio);
+        color: var(--marrom-medio);
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.25s;
+        font-size: 1rem;
+    }
+    #btn-back:hover {
+        background: var(--marrom-medio);
+        color: var(--branco);
+    }
+
+    /* Grid do form */
+    #input_container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* Linha de campos lado a lado */
+    .input-row {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 15px;
+    }
+
+    /* ── Estilo "underline" para os inputs no desktop ── */
+    .input-box {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--marrom-escuro);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .input-field {
+        display: flex;
+        align-items: center;
+        border: none;
+        border-bottom: 2px solid #e0e0e0;
+        background: transparent;
+        padding: 8px 0;
+        gap: 10px;
+        transition: border-color 0.25s;
+    }
+
+    .input-field:focus-within {
+        border-bottom-color: var(--marrom-quente);
+    }
+
+    .input-field input {
+        flex: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 1rem;
+        color: #222;
+        padding: 4px 0;
+    }
+
+    .input-field input::placeholder {
+        color: #c0c0c0;
+        font-size: 0.9rem;
+    }
+
+    .input-field i {
+        color: #c0c0c0;
+        font-size: 1rem;
+        transition: color 0.25s;
+    }
+
+    .input-field:focus-within i {
+        color: var(--marrom-quente);
+    }
+
+    /* Botão de salvar — desktop */
+    #btn-salvar-endereco {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, var(--marrom-quente), var(--marrom-escuro));
+        color: var(--branco);
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        letter-spacing: 0.05em;
+        transition: all 0.3s;
+        box-shadow: 0 4px 20px rgba(59,35,19,0.3);
+        margin-top: 10px;
+    }
+
+    #btn-salvar-endereco:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(59,35,19,0.4);
+    }
+
+    #btn-salvar-endereco:active {
+        transform: translateY(0);
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   MOBILE (< 768px) — Bottom Sheet
+   Header-hero escuro c/ foto + card branco sólido por baixo
+═══════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+
+    .painel-esquerdo { display: none; }
+
+    body {
+        min-height: 100vh;
+        background: var(--marrom-escuro);
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    /* Wrapper ocupa 100% e empilha verticalmente */
+    .painel-direito {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        width: 100%;
+        min-height: 100vh;
+        padding: 0;
+    }
+
+    /* ── Hero no topo: foto + overlay escuro ── */
+    .painel-direito::before {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 200px;
+        flex-shrink: 0;
+        background:
+            linear-gradient(to bottom, rgba(30,13,5,0.55) 0%, rgba(59,35,19,0.95) 100%),
+            url('../photos/fundo.png') center/cover no-repeat;
+    }
+
+    /* ── Card branco que "sobe" sobre o hero ── */
+    #form-container {
+        flex: 1;
+        background: #fff;
+        border-radius: 28px 28px 0 0;
+        margin-top: -36px;
+        padding: 14px 22px 50px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        box-shadow: 0 -6px 30px rgba(0,0,0,0.18);
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ── Alça decorativa no topo do card ── */
+    #form-container::before {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 4px;
+        border-radius: 99px;
+        background: #ddd;
+        margin: 0 auto 6px;
+        flex-shrink: 0;
+    }
+
+    #form-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 16px;
+        border-bottom: 1.5px solid #f0ece8;
+    }
+
+    #form-title {
+        font-family: 'Lily Script One', cursive;
+        font-size: 1.75rem;
+        color: var(--marrom-escuro);
+        font-weight: 400;
+    }
+
+    /* ── Botão de voltar fixo sobre o hero ── */
+    #btn-back {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 10;
+        background: rgba(255,255,255,0.18);
+        border: 1.5px solid rgba(255,255,255,0.45);
+        color: #fff;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.9rem;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        transition: background 0.2s;
+    }
+    #btn-back:hover { background: rgba(255,255,255,0.32); }
+
+    #input_container {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    /* Número e bairro: 1:2 mesmo no mobile */
+    .input-row {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 12px;
+    }
+
+    .input-box {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .form-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--marrom-escuro);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+    }
+
+    /* Inputs com fundo cinza claro — legível e clean */
+    .input-field {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #f7f3f0;
+        border: 1.5px solid transparent;
+        border-radius: 10px;
+        padding: 11px 13px;
+        transition: border-color 0.2s, background 0.2s;
+    }
+
+    .input-field:focus-within {
+        background: #fff;
+        border-color: var(--marrom-quente);
+    }
+
+    .input-field input {
+        flex: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 0.95rem;
+        color: #222;
+    }
+
+    .input-field input::placeholder {
+        color: #bbb;
+        font-size: 0.88rem;
+    }
+
+    .input-field i {
+        color: #c8b8b0;
+        font-size: 0.9rem;
+        transition: color 0.2s;
+    }
+
+    .input-field:focus-within i {
+        color: var(--marrom-quente);
+    }
+
+    /* Botão de salvar — mobile */
+    #btn-salvar-endereco {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, var(--marrom-quente), var(--marrom-escuro));
+        color: var(--branco);
+        border: none;
+        border-radius: 14px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        letter-spacing: 0.04em;
+        box-shadow: 0 5px 20px rgba(59,35,19,0.35);
+        transition: all 0.25s;
+        margin-top: 6px;
+    }
+
+    #btn-salvar-endereco:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 10px rgba(59,35,19,0.25);
+    }
+}

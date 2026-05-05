@@ -224,7 +224,7 @@ switch(@$_REQUEST['page']) {
         break;
 
     case 'CadastroUS':
-        include ("src/auth.php");
+        include ("src/auth/auth.php");
         break;
 }
 ?>

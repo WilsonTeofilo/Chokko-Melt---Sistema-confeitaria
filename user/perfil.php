@@ -1,4 +1,6 @@
+
 <?php 
+
 session_start();
 
 // Segurança: se não estiver logado, chuta pro login
@@ -9,6 +11,7 @@ if (!isset($_SESSION['idlogado'])) {
 
 include '../includes/user_header.php'; 
 include '../config/config.php';
+include '../includes/modal.php'; // Função central de modais
 
 $id_cliente = $_SESSION['idlogado'];
 
@@ -24,14 +27,32 @@ if ($resCliente && $resCliente->num_rows > 0) {
     $telefoneCliente = "Telefone não cadastrado";
 }
 
-// --- 2. TERRENO PREPARADO PARA OS ENDEREÇOS ---
-// TODO: Escrever aqui a lógica (SELECT) para buscar os endereços desse cliente no banco!
-// Por enquanto, vou criar o array vazio só pra página não quebrar de erro.
-$enderecosMock = []; 
 
+// --- 2. BUSCANDO ENDERECOS:
+
+$listaEnderecos = array();
+
+$selectEndereco = "SELECT id_endereco, rua, numero, complemento, bairro, cep, ponto_referencia FROM endereco WHERE id_cliente = '$id_cliente'";
+$resEndereco = $conn->query($selectEndereco);
+
+if ($resEndereco && $resEndereco->num_rows > 0) {
+    while($row = $resEndereco->fetch_assoc()) {
+        $listaEnderecos[] = $row;
+    }
+} else {
+    // Exibe o modal de endereço não cadastrado usando a função centralizada
+    exibirModalOverlay(
+        'modal-no-address',
+        'Você não tem endereço cadastrado',
+        'Para receber suas delícias em casa, precisamos que você cadastre pelo menos um endereço de entrega.',
+        'src/AdressCRUD/Endereco.php',
+        'Cadastrar Endereço',
+        'fa-map-location-dot',
+        '#3b2313'
+    );
+}
 ?>
 <link rel="stylesheet" href="assets/css/perfil.css">
-
 <div class="page-header-wrap">
 <header class="page-header">
     <a href="index.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
@@ -62,51 +83,50 @@ $enderecosMock = [];
                 <section class="addresses-section">
                     <div class="section-header">
                         <h3>Meus Endereços</h3>
-                        <span class="address-count"><?= count($enderecosMock) ?> endereço(s)</span>
+                        <span class="address-count"><?= count($listaEnderecos) ?>/3 endereço(s)</span>
                     </div>
                     
-                    <button class="btn-add-address">+ Adicionar novo endereço</button>
-
-                    <?php foreach ($enderecosMock as $end): ?>
-                    <div class="address-card" data-endereco-id="<?= $end['id'] ?>">
-                        <div class="address-header">
-                            <strong><?= htmlspecialchars($end['icon']) ?> <?= htmlspecialchars($end['apelido']) ?></strong>
-                            <?php if ($end['is_default']): ?>
-                            <span class="badge-default">✓ Endereço padrão</span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="address-body">
-                            <p><?= htmlspecialchars($end['logradouro']) ?></p>
-                            <p><?= htmlspecialchars($end['bairro']) ?></p>
-                            <p>CEP: <?= htmlspecialchars($end['cep']) ?></p>
-                        </div>
-                        <div class="address-footer">
-                            <button class="btn-outline" onclick="editarEndereco(this)">Editar</button>
-                            <button class="btn-outline-danger" onclick="excluirEndereco(this)">Excluir</button>
-                        </div>
+                    <div style="margin-top: 20px;">
+                        <?php foreach($listaEnderecos as $index => $end): ?>
+                            <div class="card-branco" style="margin-bottom: 15px; border: 1px solid #e0e0e0; padding: 20px; box-shadow: none;">
+                                <div class="address-header">
+                                    <strong><i class="fa-solid fa-map-pin" style="color: #d32f2f;"></i> Endereço <?= $index + 1 ?></strong>
+                                    <?php if($index == 0): ?>
+                                        <span class="badge-default">✔ Endereço padrão</span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="address-body" style="line-height: 1.5; margin-top: 10px;">
+                                    <?= htmlspecialchars($end['rua'] . ', ' . $end['numero']) ?><br>
+                                    <?php if(!empty($end['complemento'])) echo htmlspecialchars($end['complemento']) . '<br>'; ?>
+                                    <?= htmlspecialchars($end['bairro']) ?><br>
+                                    CEP: <?= htmlspecialchars($end['cep']) ?>
+                                </div>
+                                <div class="address-footer">
+                                    <button class="btn-outline">Editar</button>
+                                    <button class="btn-outline-danger">Excluir</button>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
-                    <?php endforeach; ?>
+                    
+                    <?php if(count($listaEnderecos) < 3): ?>
+                        <button class="btn-add-address" onclick="window.location.href='src/AdressCRUD/Endereco.php'"> 
+                            + Adicionar novo endereço
+                        </button>
+                    <?php else: ?>
+                        <p style="text-align: center; color: #888; font-size: 0.9em; margin-top: 15px; background: #f9f9f9; padding: 10px; border-radius: 8px;">
+                            Você atingiu o limite máximo de 3 endereços.
+                        </p>
+                    <?php endif; ?>
                 </section>
-            </div>
-            
-            <button class="btn-outline-danger btn-logout" onclick="window.location.href='src/logout.php'">
+            <button class="btn-outline-danger btn-logout" onclick="window.location.href='src/auth/logout.php'">
                 Sair da Conta
             </button>
         </div>
     </main>
 </div>
 
-<!-- Modal Overlay -->
-<div id="modal-overlay" class="modal-overlay">
-    <div class="modal-card">
-        <h3 id="modal-title">Editar Informações</h3>
-        <div id="modal-body"></div>
-        <div class="modal-footer">
-            <button class="btn-cancel">Cancelar</button>
-            <button class="btn-save" id="btn-salvar-modal">Salvar Alterações</button>
-        </div>
-    </div>
-</div>
+
 
 <script src="assets/js/chokko_digits.js"></script>
 <script src="assets/js/perfil.js"></script>

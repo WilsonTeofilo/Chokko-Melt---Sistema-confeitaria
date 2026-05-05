@@ -80,7 +80,7 @@ Ambos pesquisam e entendem:
 
 Wilson fez **todo** o sistema de autenticacao. Um unico formulario de login serve clientes e admins.
 
-**`/user/src/auth.php`** — switch com dois cases:
+**`/user/src/auth/auth.php`** — switch com dois cases:
 - `acao=Cadastrar`: INSERT em `cliente` com `password_hash()`. Valida email/telefone contra `cliente` E `usuario`.
 - `acao=Logar`: busca em `cliente` primeiro. Se achar -> sessao de cliente. Se nao -> busca em `usuario` -> sessao de admin. Redireciona para a origem (redirect param).
 
@@ -92,7 +92,7 @@ Wilson fez **todo** o sistema de autenticacao. Um unico formulario de login serv
 **`/includes/admin_header.php`** — guarda de sessao admin em todas as paginas do painel.
 **`/includes/user_footer.php`** e `user_header.php` — includos em todas as paginas do cliente.
 
-**Logout:** `user/src/logout.php` — session_destroy() + redirect.
+**Logout:** `user/src/auth/logout.php` — session_destroy() + redirect.
 
 ---
 

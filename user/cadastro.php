@@ -23,7 +23,7 @@
     
 <!-- FORMULÁRIO :-->
 <?php $redirectUrl = isset($_GET['redirect']) ? htmlspecialchars($_GET['redirect']) : ''; ?>
- <form action="src/auth.php" method="POST">
+ <form action="src/auth/auth.php" method="POST">
         <input type="hidden" name="acao" value="Cadastrar">
         <input type="hidden" name="redirect" value="<?= $redirectUrl ?>">
 

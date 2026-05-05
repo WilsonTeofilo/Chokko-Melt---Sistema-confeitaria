@@ -40,7 +40,7 @@ function temPermissao($modulo, $permissoes, $tipo) {
             </a>
         </div>
         <nav class="top-nav">
-            <a href="../user/login.php">Sair <i class="fa-solid fa-right-from-bracket"></i></a>
+            <a href="../user/src/auth/logout.php">Sair <i class="fa-solid fa-right-from-bracket"></i></a>
         </nav>
     </header>
 

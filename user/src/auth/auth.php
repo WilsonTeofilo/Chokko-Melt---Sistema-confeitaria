@@ -1,32 +1,7 @@
 <?php 
 session_start();
-include('../../config/config.php'); 
-
-//modal bonitinho pra substituir o window alert feio.
-function exibirModalEVoltar($titulo, $mensagem, $url, $icone = 'fa-circle-exclamation', $corIcone = '#e74c3c') {
-    echo '
-    <!DOCTYPE html>
-    <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    </head>
-    <body style="margin: 0; padding: 0; font-family: \'Inter\', sans-serif; background: #fdfaf6;">
-        <div style="z-index: 99999; display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); justify-content: center; align-items: center; padding: 20px;">
-            <div style="background: white; width: 380px; max-width: 100%; border-radius: 12px; padding: 30px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-                <i class="fa-solid '.$icone.'" style="font-size: 3.5rem; color: '.$corIcone.'; margin-bottom: 15px;"></i>
-                <h2 style="color: #3b2313; margin-top: 0; margin-bottom: 10px; font-size: 1.4rem;">'.$titulo.'</h2>
-                <p style="color: #555; margin-bottom: 25px; line-height: 1.4; font-size: 0.95rem;">'.$mensagem.'</p>
-                <button onclick="window.location.href=\''.$url.'\'" style="background: #3b2313; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%;">OK, Entendi</button>
-            </div>
-        </div>
-    </body>
-    </html>
-    ';
-    exit;
-}
+include('../../../config/config.php');
+include('../../../includes/modal.php'); // exibirModalEVoltar() centralizada
 
         // 1. Vetores para Clientes
         $id=array();
@@ -103,7 +78,7 @@ switch (@$_REQUEST['acao']){
                 $_SESSION['idtelefone']  = $telefone;
 
                 // Vai direto pro destino sem passar pelo login
-                header("Location: ../" . $redirectDestino);
+                header("Location: ../../" . $redirectDestino);
                 exit;
             } else {
                 exibirModalEVoltar('Erro', 'Erro no banco de dados: ' . addslashes($conn->error), 'javascript:window.history.back()');
@@ -130,7 +105,7 @@ switch (@$_REQUEST['acao']){
                 
                 $redirecionar = $_POST['redirect'];
                 if($redirecionar == ""){ $redirecionar = "index.php"; }
-                header("Location: ../" . $redirecionar);
+                header("Location: ../../" . $redirecionar);
                 exit;
             }else{
                 exibirModalEVoltar('Acesso Negado', 'Senha incorreta para o cliente.', 'javascript:window.history.back()');
@@ -149,7 +124,7 @@ switch (@$_REQUEST['acao']){
                 // Usa diretamente a coluna permissoes do banco (ja com fallback na carga)
                 $_SESSION['admin_permissoes'] = $admin_permissoes[$indexAdmin];
 
-                header("Location: ../../admin/index.php");
+                header("Location: ../../../admin/index.php");
                 exit;
             } else {
                 exibirModalEVoltar('Acesso Negado', 'Senha incorreta para o administrador.', 'javascript:window.history.back()');
@@ -158,7 +133,7 @@ switch (@$_REQUEST['acao']){
     } 
     // Se não achou em lugar nenhum
     else {
-         exibirModalEVoltar('Atenção', 'Conta não cadastrada na base de dados.', '../cadastro.php');
+         exibirModalEVoltar('Atenção', 'Conta não cadastrada na base de dados.', '../../cadastro.php');
     }
     break; 
 }

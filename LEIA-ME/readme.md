@@ -103,7 +103,7 @@ ChokkoSemIA/
 ### ✅ Concluído — Backend (PHP + MySQL)
 
 **Auth e Segurança**
-- [x] Login unificado: mesmo formulário autentica cliente e admin — `user/src/auth.php`
+- [x] Login unificado: mesmo formulário autentica cliente e admin — `user/src/auth/auth.php`
 - [x] Cadastro de cliente com validação de e-mail e telefone duplicado (verifica em `cliente` e `usuario`)
 - [x] Cadastro de admin com validação de senha forte e confirmação
 - [x] Todas as páginas do `/user/` protegidas: `perfil.php`, `pedidos.php`, `detalhes_pedido.php`, `finalizarPedido.php`
@@ -149,7 +149,7 @@ ChokkoSemIA/
 
 O sistema usa **um único formulário de login** (`user/login.php`) para clientes e administradores:
 
-1. O `user/src/auth.php` busca o e-mail primeiro na tabela `cliente`
+1. O `user/src/auth/auth.php` busca o e-mail primeiro na tabela `cliente`
 2. Se achar → cria sessão de cliente (`$_SESSION['idlogado']`, `$_SESSION['userlogado']`) e vai para `user/index.php`
 3. Se não achar em `cliente` → busca na tabela `usuario`
 4. Se achar → cria sessão de admin (`$_SESSION['admin_id']`, `$_SESSION['admin_nome']`, `$_SESSION['admin_permissoes']`) e redireciona para `admin/index.php`

@@ -15,7 +15,7 @@
 // Prepara o terreno pra saber pra onde ir depois do login
 $redirectUrl = isset($_GET['redirect']) ? htmlspecialchars($_GET['redirect']) : 'index.php';
 ?>
-        <form action="src/auth.php" method="POST">
+        <form action="src/auth/auth.php" method="POST">
             <input type="hidden" name="acao" value="Logar">
             <input type="hidden" name="redirect" value="<?= $redirectUrl ?>">
             <h1>Fazer Login</h1>

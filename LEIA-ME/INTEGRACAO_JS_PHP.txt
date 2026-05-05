@@ -18,11 +18,11 @@ Para "juntar" os dois, quase sempre voce usa UM destes caminhos:
      Exemplo: const produtos = <?= json_encode($produtos, JSON_HEX_TAG) ?>;
 
   3) JavaScript chama um arquivo PHP via fetch (AJAX)
-     fetch('src/auth.php', { method:'POST', body: formData })
+     fetch('src/auth/auth.php', { method:'POST', body: formData })
      O PHP recebe $_POST, fala com MySQL e pode devolver JSON ou redirecionar.
 
   4) Formulario classico (sem JS ou com pouco JS)
-     <form action="src/auth.php" method="post"> — o navegador envia e a pagina recarrega.
+     <form action="src/auth/auth.php" method="post"> — o navegador envia e a pagina recarrega.
      ** ESTE E O PADRAO ADOTADO NO PROJETO para auth e acoes criticas. **
 
   5) Form dinamico criado pelo JS (usado para acoes de CRUD no admin)
@@ -36,7 +36,7 @@ Para "juntar" os dois, quase sempre voce usa UM destes caminhos:
 
 Area do CLIENTE (pasta user/)
 
-  * user/src/auth.php
+  * user/src/auth/auth.php
     - Recebe $_POST da tela de login (acao=Logar) e cadastro (acao=Cadastrar)
     - Login: busca email em 'cliente' primeiro, depois em 'usuario'
       - Se cliente  -> grava $_SESSION['idlogado'], $_SESSION['userlogado'], etc.
@@ -47,11 +47,11 @@ Area do CLIENTE (pasta user/)
     - Cadastro: INSERT em 'cliente', valida email/telefone contra as duas tabelas
     - Exibe modal de feedback (sucesso ou erro) em vez de alert()
 
-  * user/src/logout.php
+  * user/src/auth/logout.php
     - session_start() + session_destroy() + redireciona para user/login.php
 
   * user/login.php
-    - Form classico: action="src/auth.php" + campo oculto 'redirect'
+    - Form classico: action="src/auth/auth.php" + campo oculto 'redirect'
     - Se o usuario tentou acessar finalizarPedido.php sem sessao, o PHP captura
       e armazena a origem em ?redirect=finalizarPedido.php
     - Apos login bem-sucedido o auth.php redireciona de volta para essa origem
