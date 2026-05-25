@@ -1,4 +1,14 @@
-<?php include '../includes/admin_header.php'; ?>
+<?php 
+session_start();
+if (!isset($_SESSION['admin_id'])) {
+    header("Location: login.php");
+    exit;
+}
+include '../includes/admin_header.php'; 
+require_once '../config/config.php';
+require_once '../classes/Produto.php';
+require_once '../classes/Categoria.php';
+?>
 <link rel="stylesheet" href="assets/css/produtos.css">
 
 <section class="welcome-area">
@@ -40,37 +50,38 @@
                 <th>AÇÕES</th>
             </tr>
         </thead>
+
         <tbody>
-            <tr data-produto-id="1" data-status="ativo">
-                <td>#1</td>
+             <?php $listarProd = new Produto(DATABASE,HOST,USER,PASS);
+            try {
+                $Produtos = $listarProd->listarTodos();
+                foreach($Produtos as $prods):
+                    $status_produto = $prods['disponibilidade'] == 1 ? 'ativo' : 'congelado';
+                    $classe_badge_status = $prods['disponibilidade'] == 1 ? 'badge-ativo' : 'badge-congelado';
+                    $status_legivel = $prods['disponibilidade'] == 1 ? 'Ativo' : 'Congelado';
+            ?>
+            <tr data-produto-id="<?php echo $prods['id_produto']; ?>" data-status="<?php echo $status_produto; ?>">
+                <td><?php echo $prods['id_produto']; ?></td>
                 <td class="prod-info-cell">
-                    <img src="https://images.unsplash.com/photo-1578985545062-69928b1ea345?w=50" alt="Bolo">
-                    <span>Bolo de Chocolate</span>
+                    <img src="<?php echo $prods['imagem']; ?>" alt="<?php echo $prods['nome']; ?>">
+                    <span><?php echo $prods['nome']; ?></span>
                 </td>
-                <td>Bolos de Pote</td>
-                <td class="bold-text">R$ 25,00</td>
-                <td><span class="badge badge-ativo">Ativo</span></td>
+                <td><?php echo $prods['nome_categoria']; ?></td>
+                <td class="bold-text">R$ <?php echo number_format($prods['preco'], 2, ',', '.'); ?></td>
+                <td><span class="badge <?php echo $classe_badge_status; ?>"><?php echo $status_legivel; ?></span></td>
                 <td>
                     <button type="button" class="btn-action-accept btn-edit" title="Editar" onclick="abrirModalProduto(true, this)"><i class="fa-solid fa-pen"></i></button>
-                    <button type="button" class="btn-action-accept btn-freeze" title="Congelar item" onclick="congelarProduto(this)"><i class="fa-solid fa-snowflake"></i></button>
+                    <!-- Exibir botão congelar se ativo, descongelar se congelado -->
+                    <button type="button" class="btn-action-accept btn-freeze" title="Congelar" onclick="congelarProduto(this)"><i class="fa-solid fa-snowflake"></i></button>
                     <button type="button" class="btn-action-accept btn-del" title="Excluir" onclick="excluirProduto(this)"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
-            <tr data-produto-id="2" data-status="congelado">
-                <td>#2</td>
-                <td class="prod-info-cell">
-                    <img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?w=50" alt="Sobremesa">
-                    <span>Torta de Limão</span>
-                </td>
-                <td>Tortas de Pote</td>
-                <td class="bold-text">R$ 22,00</td>
-                <td><span class="badge badge-congelado">Congelado</span></td>
-                <td>
-                    <button type="button" class="btn-action-accept btn-edit" title="Editar" onclick="abrirModalProduto(true, this)"><i class="fa-solid fa-pen"></i></button>
-                    <button type="button" class="btn-action-accept btn-unfreeze" title="Ativar item" onclick="descongelarProduto(this)"><i class="fa-solid fa-fire"></i></button>
-                    <button type="button" class="btn-action-accept btn-del" title="Excluir" onclick="excluirProduto(this)"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            </tr>
+            <?php 
+                endforeach; 
+            } catch (Exception $e) {
+                echo '<tr><td colspan="6" style="text-align:center;">' . $e->getMessage() . '</td></tr>';
+            }
+            ?>
         </tbody>
     </table>
 </section>
@@ -140,14 +151,12 @@
 
             <h3 class="modal-subtitle mt-20">Adicionais / Complementos</h3>
             <div class="adicionais-list" id="adicionais-list">
-                <label class="adicional-item">
-                    <input type="checkbox" class="checkbox-marrom">
-                    <span>Calda de Chocolate extra (+ R$ 3,00)</span>
-                </label>
-                <label class="adicional-item">
-                    <input type="checkbox" class="checkbox-marrom">
-                    <span>Morango Pedaços (+ R$ 4,50)</span>
-                </label>
+                <!-- MODELO FOREACH ADICIONAIS DO PRODUTO -->
+                <!-- <label class="adicional-item">
+                    <input type="checkbox" class="checkbox-marrom" value="[id_adicional]">
+                    <span>[nome_adicional] (+ R$ [preco_adicional])</span>
+                </label> -->
+                <!-- FIM MODELO -->
                 <button type="button" class="btn-text-add" onclick="abrirModalAdicional()">+ Criar novo adicional</button>
             </div>
 

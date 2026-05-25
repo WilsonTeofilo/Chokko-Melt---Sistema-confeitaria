@@ -24,38 +24,39 @@
 </section>
 
 <section class="metrics-container">
+    <!-- MODELO FOREACH METRICAS (puxar do PHP via SUM/COUNT no banco) -->
     <div class="m-card blue">
         <i class="fa-solid fa-hand-holding-dollar"></i>
         <div class="m-info">
-            <strong>R$ 1.540,00</strong>
+            <strong>R$ [faturamento_bruto]</strong>
             <span>Faturamento Bruto</span>
         </div>
     </div>
     <div class="m-card lucro-card">
         <i class="fa-solid fa-piggy-bank"></i>
         <div class="m-info">
-            <strong>R$ 850,00</strong>
+            <strong>R$ [lucro_liquido]</strong>
             <span>Lucro Líquido</span>
         </div>
     </div>
     <div class="m-card green">
         <i class="fa-solid fa-qrcode"></i>
         <div class="m-info">
-            <strong>R$ 890,00</strong>
+            <strong>R$ [total_pix]</strong>
             <span>Pix (Bruto)</span>
         </div>
     </div>
     <div class="m-card orange">
         <i class="fa-solid fa-credit-card"></i>
         <div class="m-info">
-            <strong>R$ 420,00</strong>
+            <strong>R$ [total_cartao]</strong>
             <span>Cartão (Bruto)</span>
         </div>
     </div>
     <div class="m-card brown">
         <i class="fa-solid fa-money-bill-1-wave"></i>
         <div class="m-info">
-            <strong>R$ 230,00</strong>
+            <strong>R$ [total_dinheiro]</strong>
             <span>Dinheiro (Bruto)</span>
         </div>
     </div>
@@ -73,18 +74,14 @@
             </tr>
         </thead>
         <tbody>
+            <!-- MODELO PARA FOREACH PHP -->
             <tr>
-                <td>27/01/2026</td>
-                <td>Ana Oliveira</td>
-                <td><i class="fa-solid fa-qrcode"></i> Pix</td>
-                <td class="bold-text">R$ 45,00</td>
+                <td>[data_pedido_formatada]</td>
+                <td>[nome_do_cliente]</td>
+                <td><i class="[icone_pagamento]"></i> [forma_pagamento]</td>
+                <td class="bold-text">R$ [valor_bruto]</td>
             </tr>
-            <tr>
-                <td>27/01/2026</td>
-                <td>Ricardo Silva</td>
-                <td><i class="fa-solid fa-money-bill-1-wave"></i> Dinheiro</td>
-                <td class="bold-text">R$ 12,00</td>
-            </tr>
+            <!-- FIM MODELO PHP -->
         </tbody>
     </table>
 </section>

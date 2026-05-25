@@ -31,73 +31,26 @@
             </tr>
         </thead>
         <tbody>
-            <tr data-status="PENDENTE">
-                <td>#1024</td>
-                <td>Juliana Souza</td>
-                <td><i class="fa-solid fa-motorcycle"></i> Delivery</td>
-                <td>Pix</td>
-                <td class="bold-text">R$ 45,00</td>
-                <td><span class="badge badge-pendente">PENDENTE</span></td>
+            <!-- MODELO PARA FOREACH PHP -->
+            <tr data-status="[STATUS_DO_PEDIDO]">
+                <td>#[id_pedido]</td>
+                <td>[nome_do_cliente]</td>
+                <td><i class="[icone_tipo_entrega]"></i> [tipo_entrega]</td>
+                <td>[forma_pagamento]</td>
+                <td class="bold-text">R$ [valor_total]</td>
+                <td><span class="badge [classe_badge_status]">[status_legivel]</span></td>
                 <td class="acoes-pedido">
                     <button class="btn-action-accept btn-detalhes" onclick="verDetalhesPedido(this)" title="Ver Detalhes">
                         <i class="fa-solid fa-eye"></i> Detalhes
                     </button>
-                    <button class="btn-action-accept btn-aceitar" onclick="atualizarStatusPedido(this, 'EM_PREPARO')" title="Aceitar pedido">
-                        <i class="fa-solid fa-check"></i> Aceitar
-                    </button>
-                    <button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, 'CANCELADO')" title="Cancelar pedido">
-                        <i class="fa-solid fa-xmark"></i> Cancelar
-                    </button>
+                    <!-- Exibir os botões abaixo conforme o status do pedido -->
+                    <!-- PENDENTE: Aceitar + Cancelar -->
+                    <!-- EM_PREPARO: Enviar + Cancelar -->
+                    <!-- ENVIADO: Entregue -->
+                    <!-- ENTREGUE: apenas Detalhes -->
                 </td>
             </tr>
-            <tr data-status="EM_PREPARO">
-                <td>#1023</td>
-                <td>Carlos Pereira</td>
-                <td><i class="fa-solid fa-store"></i> Retirada</td>
-                <td>Dinheiro</td>
-                <td class="bold-text">R$ 22,00</td>
-                <td><span class="badge badge-preparo">EM PREPARO</span></td>
-                <td class="acoes-pedido">
-                    <button class="btn-action-accept btn-detalhes" onclick="verDetalhesPedido(this)" title="Ver Detalhes">
-                        <i class="fa-solid fa-eye"></i> Detalhes
-                    </button>
-                    <button class="btn-action-accept btn-enviar" onclick="atualizarStatusPedido(this, 'ENVIADO')" title="Marcar como enviado">
-                        <i class="fa-solid fa-paper-plane"></i> Enviar
-                    </button>
-                    <button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, 'CANCELADO')" title="Cancelar pedido">
-                        <i class="fa-solid fa-xmark"></i> Cancelar
-                    </button>
-                </td>
-            </tr>
-            <tr data-status="ENVIADO">
-                <td>#1022</td>
-                <td>Ana Oliveira</td>
-                <td><i class="fa-solid fa-motorcycle"></i> Delivery</td>
-                <td>Cartão</td>
-                <td class="bold-text">R$ 67,50</td>
-                <td><span class="badge badge-enviado">ENVIADO</span></td>
-                <td class="acoes-pedido">
-                    <button class="btn-action-accept btn-detalhes" onclick="verDetalhesPedido(this)" title="Ver Detalhes">
-                        <i class="fa-solid fa-eye"></i> Detalhes
-                    </button>
-                    <button class="btn-action-accept btn-entregar" onclick="atualizarStatusPedido(this, 'ENTREGUE')" title="Confirmar entrega">
-                        <i class="fa-solid fa-flag-checkered"></i> Entregue
-                    </button>
-                </td>
-            </tr>
-            <tr data-status="ENTREGUE">
-                <td>#1021</td>
-                <td>Marcos Lima</td>
-                <td><i class="fa-solid fa-motorcycle"></i> Delivery</td>
-                <td>Pix</td>
-                <td class="bold-text">R$ 30,00</td>
-                <td><span class="badge badge-entregue">ENTREGUE</span></td>
-                <td class="acoes-pedido">
-                    <button class="btn-action-accept btn-detalhes" onclick="verDetalhesPedido(this)" title="Ver Detalhes">
-                        <i class="fa-solid fa-eye"></i> Detalhes
-                    </button>
-                </td>
-            </tr>
+            <!-- FIM MODELO PHP -->
         </tbody>
     </table>
 </section>

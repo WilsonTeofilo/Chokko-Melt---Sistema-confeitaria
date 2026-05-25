@@ -1,7 +1,6 @@
 <?php
 /**
- * CHOKKO MELT - Entrypoint Principal
- * 
+
  * Este arquivo fica na raiz do servidor apenas para capturar 
  * os acessos diretos (ex: localhost/ChokkoSemIA/) e 
  * redirecionar o cliente automaticamente para a loja (/user/).

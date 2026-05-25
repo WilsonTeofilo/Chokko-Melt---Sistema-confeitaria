@@ -1,0 +1,208 @@
+<?php
+session_start();
+
+// Segurança: Se não estiver logado, redireciona
+if (!isset($_SESSION['idlogado'])) {
+    header("Location: login.php");
+    exit;
+}
+
+require_once '../config/config.php';
+require_once '../classes/Endereco.php';
+
+$id_cliente = $_SESSION['idlogado'];
+$enderecoCRUD = new Endereco(DATABASE, HOST, USER, PASS);
+
+// Variáveis para preencher o formulário (em caso de edição ou erro)
+$dados_form = [
+    'id_endereco' => '',
+    'cep' => '',
+    'rua' => '',
+    'numero' => '',
+    'bairro' => '',
+    'complemento' => '',
+    'ponto_referencia' => ''
+];
+
+$erro = "";
+$sucesso = "";
+$modo_edicao = false;
+
+// 1. PROCESSAR EXCLUSÃO (via GET)
+if (isset($_GET['acao']) && $_GET['acao'] === 'excluir' && isset($_GET['id'])) {
+    $id_endereco = (int)$_GET['id'];
+    try {
+        $enderecoCRUD->excluir($id_endereco, $id_cliente);
+        header("Location: perfil.php?msg=Endereço excluído com sucesso");
+        exit;
+    } catch (Exception $e) {
+        $erro = $e->getMessage();
+    }
+}
+
+// 2. PROCESSAR CARREGAMENTO DE EDIÇÃO (via GET)
+if (isset($_GET['id']) && empty($_POST)) {
+    $id_endereco = (int)$_GET['id'];
+    try {
+        $end_existente = $enderecoCRUD->buscarPorId($id_endereco, $id_cliente);
+        if ($end_existente) {
+            $modo_edicao = true;
+            $dados_form = $end_existente;
+        } else {
+            $erro = "Endereço não encontrado ou você não tem permissão para acessá-lo.";
+        }
+    } catch (Exception $e) {
+        $erro = $e->getMessage();
+    }
+}
+
+// 3. PROCESSAR FORMULÁRIO (POST - Cadastrar ou Editar)
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $id_endereco_post = isset($_POST['id_endereco']) ? (int)$_POST['id_endereco'] : 0;
+    
+    // Captura os dados
+    $dados = [
+        'cep' => trim($_POST['cep'] ?? ''),
+        'rua' => trim($_POST['rua'] ?? ''),
+        'numero' => trim($_POST['numero'] ?? ''),
+        'bairro' => trim($_POST['bairro'] ?? ''),
+        'complemento' => trim($_POST['complemento'] ?? ''),
+        'ponto_referencia' => trim($_POST['ponto_referencia'] ?? '')
+    ];
+
+    // Mantém os dados preenchidos em caso de erro
+    $dados_form = $dados;
+    $dados_form['id_endereco'] = $id_endereco_post;
+
+    if (!empty($dados['cep']) && !empty($dados['rua']) && !empty($dados['numero']) && !empty($dados['bairro'])) {
+        try {
+            if ($id_endereco_post > 0) {
+                // EDIÇÃO
+                $enderecoCRUD->editar($id_endereco_post, $id_cliente, $dados);
+                $sucesso = "Endereço atualizado com sucesso!";
+            } else {
+                // CADASTRO
+                $enderecoCRUD->cadastrar($id_cliente, $dados);
+                $sucesso = "Endereço cadastrado com sucesso!";
+            }
+            // Redireciona de volta ao perfil após sucesso
+            header("Location: perfil.php?msg=" . urlencode($sucesso));
+            exit;
+        } catch (Exception $e) {
+            $erro = $e->getMessage();
+            if ($id_endereco_post > 0) $modo_edicao = true;
+        }
+    } else {
+        $erro = "Preencha todos os campos obrigatórios.";
+        if ($id_endereco_post > 0) $modo_edicao = true;
+    }
+}
+
+?>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="assets/css/endereco.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <title><?= $modo_edicao ? 'Editar Endereço' : 'Cadastrar Endereço' ?> — Chokko Melt</title>
+</head>
+<body>
+
+<!-- ── PAINEL ESQUERDO (só visível no desktop) ── -->
+<div class="painel-esquerdo">
+    <a href="index.php" class="logo-painel">Chokko<span> Melt</span></a>
+    <i class="fa-solid fa-map-location-dot icone-mapa"></i>
+    <h2><?= $modo_edicao ? 'Atualizar local<br>de entrega' : 'Onde entregamos<br>sua felicidade?' ?></h2>
+    <p><?= $modo_edicao ? 'Mantenha seus dados atualizados para não atrasar a sua sobremesa.' : 'Cadastre um endereço de entrega e receba nossas delícias artesanais direto na sua porta. 🍫' ?></p>
+</div>
+
+<!-- ── PAINEL DIREITO com o formulário ── -->
+<div class="painel-direito">
+<main id="form-container">
+    <div id="form-header">
+        <h1 id="form-title"><?= $modo_edicao ? 'Editar Endereço' : 'Novo Endereço' ?></h1>
+        <button type="button" id="btn-back" onclick="window.history.back()">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+    </div>
+    
+    <?php if(!empty($erro)): ?>
+        <div style="background-color: #ffebee; color: #c62828; padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em; border-left: 4px solid #c62828;">
+            <i class="fa-solid fa-circle-exclamation"></i> <?= htmlspecialchars($erro) ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- FORMULÁRIO -->
+    <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'])?>" method="POST">
+        <input type="hidden" name="id_endereco" value="<?= htmlspecialchars($dados_form['id_endereco']) ?>">
+        
+        <div id="input_container">
+            
+            <!-- CEP:-->
+            <div class="input-box">
+                <label for="cepJS" class="form-label">CEP</label>
+                <div class="input-field"><i class="fa-solid fa-location-dot"></i>
+                    <input type="text" name="cep" id="cepJS" value="<?= htmlspecialchars($dados_form['cep']) ?>" placeholder="00000-000" maxlength="10" required autocomplete="off">
+                </div>
+            </div>
+
+            <!-- Rua:-->
+            <div class="input-box">
+                <label for="ruaJS" class="form-label">Rua</label>
+                <div class="input-field"> <i class="fa-solid fa-road"></i>
+                    <input type="text" name="rua" id="ruaJS" value="<?= htmlspecialchars($dados_form['rua']) ?>" placeholder="Ex: Av. Paulista" maxlength="50" required autocomplete="off">
+                </div>
+            </div>
+
+            <!-- Número e Bairro lado a lado -->
+            <div class="input-row">
+                <div class="input-box">
+                    <label for="numeroJS" class="form-label">Número</label>
+                    <div class="input-field"> <i class="fa-solid fa-hashtag"></i>
+                        <input type="text" name="numero" id="numeroJS" value="<?= htmlspecialchars($dados_form['numero']) ?>" placeholder="Ex: 123" maxlength="10" required autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- Bairro:-->
+                <div class="input-box">
+                    <label for="bairroJS" class="form-label">Bairro</label>
+                    <div class="input-field">  <i class="fa-solid fa-tree-city"></i>
+                        <input type="text" name="bairro" id="bairroJS" value="<?= htmlspecialchars($dados_form['bairro']) ?>" placeholder="Ex: Jardim Shangrilá" maxlength="29" required autocomplete="off">
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Complemento:-->
+            <div class="input-box">
+                <label for="complementoJS" class="form-label">Complemento (Opcional)</label>
+                <div class="input-field">
+                    <i class="fa-solid fa-building"></i>
+                    <input type="text" name="complemento" id="complementoJS" value="<?= htmlspecialchars($dados_form['complemento']) ?>" placeholder="Ex: Apto 45, Bloco B" maxlength="50" autocomplete="off">
+                </div>
+            </div>
+
+            <!-- Ponto de Referência:-->
+            <div class="input-box">
+                <label for="pontoReferenciaJS" class="form-label">Ponto de Referência (Opcional)</label>
+                <div class="input-field">
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                    <input type="text" name="ponto_referencia" id="pontoReferenciaJS" value="<?= htmlspecialchars($dados_form['ponto_referencia']) ?>" placeholder="Ex: Próximo ao mercado..." maxlength="120" autocomplete="off">
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Enviar:-->
+        <input type="submit" name="Salvar" id="btn-salvar-endereco" value="<?= $modo_edicao ? 'Atualizar Endereço' : 'Salvar Endereço' ?>">
+    
+    </form>
+</main>
+</div>
+
+<!-- Lógica de máscaras e busca de CEP (ViaCEP) -->
+<script src="assets/js/endereco.js"></script>
+</body>
+</html>

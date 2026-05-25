@@ -4,9 +4,11 @@ define('USER','root');
 define('PASS','');
 define('DATABASE', 'chokko_melt');
 
-$conn = new mysqli(HOST, USER, PASS, DATABASE);
-
-if ($conn->connect_error) {
-    die("Erro na conexão: " . $conn->connect_error);
+try {
+    $conn = new PDO("mysql:host=" . HOST . ";dbname=" . DATABASE . ";charset=utf8mb4", USER, PASS);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch(PDOException $e) {
+    die("Erro na conexão: " . $e->getMessage());
 }
 ?>

@@ -1,8 +1,6 @@
 /* =========================================================
-   CHOKKO MELT Ã¢â‚¬â€ SCRIPT COMPLETO PARA IMPORT (MySQL 8+)
    - Cria banco + tabelas + FKs
-   - Seeds mÃƒÂ­nimos para o sistema ligar
-
+ 
    Login inicial (usuario id=1):
    - E-mail: admin@chokkomelt.local
    - Senha:  admin123
@@ -21,8 +19,7 @@ USE `chokko_melt`;
 SET FOREIGN_KEY_CHECKS = 0;
 
 /* =========================
-   status_pedido (catÃƒÂ¡logo)
-   ========================= */
+   status_pedido    ========================= */
 CREATE TABLE `status_pedido` (
   `id_status_pedido` INT NOT NULL AUTO_INCREMENT,
   `descricao` ENUM(
@@ -48,8 +45,7 @@ INSERT INTO `status_pedido` (`id_status_pedido`, `descricao`) VALUES
 (7,'CANCELADO_LOJA');
 
 /* =========================
-   status_pagamento (catÃƒÂ¡logo)
-   ========================= */
+   status_pagamento    ========================= */
 CREATE TABLE `status_pagamento` (
   `id_status_pagamento` INT NOT NULL AUTO_INCREMENT,
   `descricao` ENUM('PENDENTE','PAGO','CANCELADO','REEMBOLSADO') NOT NULL,
@@ -118,7 +114,7 @@ INSERT INTO `usuario` (
    ========================= */
 CREATE TABLE `cliente` (
   `id_cliente` INT NOT NULL AUTO_INCREMENT,
-  `nome_cliente` VARCHAR(50) NULL,
+  `nome` VARCHAR(50) NOT NULL,
   `email` VARCHAR(50) NOT NULL,
   `senha` VARCHAR(255) NULL,
   `telefone` VARCHAR(20) NOT NULL,
@@ -182,8 +178,8 @@ CREATE TABLE `produto_adicional` (
   `id_produto` INT NOT NULL,
   `id_adicional` INT NOT NULL,
   PRIMARY KEY (`id_produto`,`id_adicional`),
-  CONSTRAINT `fk_pa_produto` FOREIGN KEY (`id_produto`) REFERENCES `produto` (`id_produto`),
-  CONSTRAINT `fk_pa_adicional` FOREIGN KEY (`id_adicional`) REFERENCES `adicional` (`id_adicional`)
+  CONSTRAINT `fk_pa_produto` FOREIGN KEY (`id_produto`) REFERENCES `produto` (`id_produto`) ON DELETE CASCADE,
+  CONSTRAINT `fk_pa_adicional` FOREIGN KEY (`id_adicional`) REFERENCES `adicional` (`id_adicional`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 INSERT INTO `produto_adicional` (`id_produto`,`id_adicional`) VALUES (1,1);
@@ -202,7 +198,7 @@ CREATE TABLE `endereco` (
   `id_cliente` INT NULL,
   PRIMARY KEY (`id_endereco`),
   KEY `fk_endereco_cliente` (`id_cliente`),
-  CONSTRAINT `fk_endereco_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `cliente` (`id_cliente`)
+  CONSTRAINT `fk_endereco_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `cliente` (`id_cliente`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 /* =========================
@@ -231,10 +227,10 @@ CREATE TABLE `pedido` (
   KEY `fk_pedido_status` (`id_status_pedido`),
   KEY `fk_pedido_cliente` (`id_cliente`),
   KEY `fk_pedido_endereco` (`id_endereco`),
-  CONSTRAINT `fk_pedido_usuario` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`),
+  CONSTRAINT `fk_pedido_usuario` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`) ON DELETE SET NULL,
   CONSTRAINT `fk_pedido_status` FOREIGN KEY (`id_status_pedido`) REFERENCES `status_pedido` (`id_status_pedido`),
-  CONSTRAINT `fk_pedido_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `cliente` (`id_cliente`),
-  CONSTRAINT `fk_pedido_endereco` FOREIGN KEY (`id_endereco`) REFERENCES `endereco` (`id_endereco`)
+  CONSTRAINT `fk_pedido_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `cliente` (`id_cliente`) ON DELETE SET NULL,
+  CONSTRAINT `fk_pedido_endereco` FOREIGN KEY (`id_endereco`) REFERENCES `endereco` (`id_endereco`) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE `item_pedido` (
@@ -248,8 +244,8 @@ CREATE TABLE `item_pedido` (
   PRIMARY KEY (`id_item_pedido`),
   KEY `fk_item_pedido_produto` (`id_produto`),
   KEY `fk_item_pedido_pedido` (`id_pedido`),
-  CONSTRAINT `fk_item_pedido_produto` FOREIGN KEY (`id_produto`) REFERENCES `produto` (`id_produto`),
-  CONSTRAINT `fk_item_pedido_pedido` FOREIGN KEY (`id_pedido`) REFERENCES `pedido` (`id_pedido`)
+  CONSTRAINT `fk_item_pedido_produto` FOREIGN KEY (`id_produto`) REFERENCES `produto` (`id_produto`) ON DELETE SET NULL,
+  CONSTRAINT `fk_item_pedido_pedido` FOREIGN KEY (`id_pedido`) REFERENCES `pedido` (`id_pedido`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE `item_pedido_adicional` (
@@ -263,8 +259,8 @@ CREATE TABLE `item_pedido_adicional` (
   PRIMARY KEY (`id_item_pedido_adicional`),
   KEY `fk_ipa_item` (`id_item_pedido`),
   KEY `fk_ipa_ad` (`id_adicional`),
-  CONSTRAINT `fk_ipa_item` FOREIGN KEY (`id_item_pedido`) REFERENCES `item_pedido` (`id_item_pedido`),
-  CONSTRAINT `fk_ipa_ad` FOREIGN KEY (`id_adicional`) REFERENCES `adicional` (`id_adicional`)
+  CONSTRAINT `fk_ipa_item` FOREIGN KEY (`id_item_pedido`) REFERENCES `item_pedido` (`id_item_pedido`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ipa_ad` FOREIGN KEY (`id_adicional`) REFERENCES `adicional` (`id_adicional`) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 /* =========================
@@ -277,7 +273,7 @@ CREATE TABLE `avaliacao` (
   `id_pedido` INT NULL,
   PRIMARY KEY (`id_avaliacao`),
   UNIQUE KEY `uk_avaliacao_pedido` (`id_pedido`),
-  CONSTRAINT `fk_avaliacao_pedido` FOREIGN KEY (`id_pedido`) REFERENCES `pedido` (`id_pedido`)
+  CONSTRAINT `fk_avaliacao_pedido` FOREIGN KEY (`id_pedido`) REFERENCES `pedido` (`id_pedido`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 /* =========================
@@ -288,7 +284,7 @@ CREATE TABLE `carrinho` (
   `id_cliente` INT NULL,
   PRIMARY KEY (`id_carrinho`),
   UNIQUE KEY `uk_carrinho_cliente` (`id_cliente`),
-  CONSTRAINT `fk_carrinho_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `cliente` (`id_cliente`)
+  CONSTRAINT `fk_carrinho_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `cliente` (`id_cliente`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE `item_carrinho` (
@@ -300,8 +296,8 @@ CREATE TABLE `item_carrinho` (
   PRIMARY KEY (`id_item_carrinho`),
   KEY `fk_ic_produto` (`id_produto`),
   KEY `fk_ic_carrinho` (`id_carrinho`),
-  CONSTRAINT `fk_ic_produto` FOREIGN KEY (`id_produto`) REFERENCES `produto` (`id_produto`),
-  CONSTRAINT `fk_ic_carrinho` FOREIGN KEY (`id_carrinho`) REFERENCES `carrinho` (`id_carrinho`)
+  CONSTRAINT `fk_ic_produto` FOREIGN KEY (`id_produto`) REFERENCES `produto` (`id_produto`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ic_carrinho` FOREIGN KEY (`id_carrinho`) REFERENCES `carrinho` (`id_carrinho`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE `item_carrinho_adicional` (
@@ -315,8 +311,8 @@ CREATE TABLE `item_carrinho_adicional` (
   PRIMARY KEY (`id_item_carrinho_adicional`),
   KEY `fk_ica_ic` (`id_item_carrinho`),
   KEY `fk_ica_ad` (`id_adicional`),
-  CONSTRAINT `fk_ica_ic` FOREIGN KEY (`id_item_carrinho`) REFERENCES `item_carrinho` (`id_item_carrinho`),
-  CONSTRAINT `fk_ica_ad` FOREIGN KEY (`id_adicional`) REFERENCES `adicional` (`id_adicional`)
+  CONSTRAINT `fk_ica_ic` FOREIGN KEY (`id_item_carrinho`) REFERENCES `item_carrinho` (`id_item_carrinho`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ica_ad` FOREIGN KEY (`id_adicional`) REFERENCES `adicional` (`id_adicional`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 /* =========================
@@ -335,7 +331,7 @@ CREATE TABLE `pagamento` (
   KEY `fk_pagamento_status` (`id_status_pagamento`),
   KEY `fk_pagamento_pedido` (`id_pedido`),
   CONSTRAINT `fk_pagamento_status` FOREIGN KEY (`id_status_pagamento`) REFERENCES `status_pagamento` (`id_status_pagamento`),
-  CONSTRAINT `fk_pagamento_pedido` FOREIGN KEY (`id_pedido`) REFERENCES `pedido` (`id_pedido`)
+  CONSTRAINT `fk_pagamento_pedido` FOREIGN KEY (`id_pedido`) REFERENCES `pedido` (`id_pedido`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -35,16 +35,7 @@ $redirectUrl = isset($_GET['redirect']) ? htmlspecialchars($_GET['redirect']) : 
                 <a href="">Esqueci a senha</a>
             </div>
 
-            <!--
-                NOTA BACKEND: ao clicar em "Entrar", validar email/senha no banco:
-                SELECT id, nome, senha_hash FROM usuarios WHERE email = $_POST['email'];
-                Verificar com password_verify($_POST['senha'], $row['senha_hash']);
-                Se válido: $_SESSION['usuario_id'] = $row['id'];
 
-                Verificar $_GET['retorno']:
-                  Se 'finalizar' → header('Location: carrinho.php?retorno=finalizar');
-                  Senão          → header('Location: index.php');
-            -->
      <input type="submit" value="Entrar" class="login" id="btn-login">
             <div class="divider">
                 <hr>
@@ -61,7 +52,7 @@ $redirectUrl = isset($_GET['redirect']) ? htmlspecialchars($_GET['redirect']) : 
                 <p>Não tem uma conta? <a href="cadastro.php<?= isset($_GET['redirect']) ? '?redirect=' . htmlspecialchars($_GET['redirect']) : '' ?>">Cadastre-se</a></p>
             </div>
 
-            <!-- Link para voltar ao cardápio SEM login -->
+  
             <div class="guest-link-container">
                 <a href="index.php" class="guest-link">
                     Continuar sem entrar → Ver cardápio

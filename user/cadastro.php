@@ -43,7 +43,7 @@
             <div class="input-box">
                 <label for="emailJS" class="form-label">Email</label> 
                 <div class="input-field">
-                    <input type="email" name="emails" id="emailJS" class="form-control" placeholder="GuiVeloso@gmail.com" required autocomplete="off" maxlength="100">
+                    <input type="email" name="emails" id="emailJS" class="form-control" placeholder="GuiVeloso@gmail.com" required autocomplete="off" maxlength="60">
                     <i class="fa-solid fa-envelope"></i>
                 </div>
             </div>

@@ -1,49 +1,4 @@
 <?php
-/*
- * ══════════════════════════════════════════════════════════════
- *  NOTA BACKEND — carrinho.php
- * ══════════════════════════════════════════════════════════════
- *
- *  PASSO 1 — Processar ações do carrinho (antes de renderizar):
- *
- *  session_start(); // já feito pelo header incluído
- *  if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao_carrinho'])) {
- *      $idx = intval($_POST['item_idx'] ?? -1);
- *      switch ($_POST['acao_carrinho']) {
- *          case 'alterar_qtd':
- *              $delta = intval($_POST['delta'] ?? 0);
- *              if (isset($_SESSION['carrinho'][$idx])) {
- *                  $_SESSION['carrinho'][$idx]['qty'] += $delta;
- *                  if ($_SESSION['carrinho'][$idx]['qty'] < 1) {
- *                      array_splice($_SESSION['carrinho'], $idx, 1);
- *                  } elseif ($_SESSION['carrinho'][$idx]['qty'] > 10) {
- *                      $_SESSION['carrinho'][$idx]['qty'] = 10;
- *                  }
- *              }
- *              break;
- *          case 'remover_item':
- *              if (isset($_SESSION['carrinho'][$idx])) {
- *                  array_splice($_SESSION['carrinho'], $idx, 1);
- *              }
- *              break;
- *      }
- *      header('Location: carrinho.php'); exit;
- *  }
- *
- *  PASSO 2 — Ler o carrinho da sessão:
- *
- *  $carrinho      = $_SESSION['carrinho'] ?? [];
- *  $taxa_entrega  = 5.00; // pode vir do banco/config
- *
- *  PASSO 3 — Ao receber o form de checkout (finalizarPedido.php):
- *
- *  $_POST['acao']    → 'finalizar' | 'continuar'
- *  $_POST['entrega'] → 'delivery'  | 'retirada'  | 'local'
- *  O carrinho vem de $_SESSION['carrinho'] — não precisa de JSON.
- * ══════════════════════════════════════════════════════════════
- */
-
-// Mockup: carrinho vazio até o backend preencher $_SESSION['carrinho']
 $carrinho     = $_SESSION['carrinho'] ?? [];
 $taxa_entrega = 5.00;
 $subtotal     = 0;
@@ -193,22 +148,13 @@ $total = $subtotal + $taxa_entrega;
         </div>
     </div>
 
-    <!-- ── FORMULÁRIO DE CHECKOUT (Preparado para PHP) ── -->
-    <form id="form-carrinho" action="finalizarPedido.php" method="POST">
-        <!--
-            NOTA BACKEND: ao receber este POST em finalizarPedido.php:
-              $_POST['acao']    → 'finalizar' | 'continuar'
-              $_POST['entrega'] → 'delivery'  | 'retirada'  | 'local'
-              O carrinho vem de $_SESSION['carrinho'] — não precisa de JSON.
 
-            Se acao === 'continuar':
-              header('Location: index.php'); exit;
-            Se acao === 'finalizar':
-              Verificar sessão → montar tela de confirmação do pedido.
-        -->
+    <form id="form-carrinho" action="finalizarPedido.php" method="POST">
+  
+  
         <input type="hidden" name="entrega" id="hidden-entrega" value="delivery">
 
-        <!-- ── BOTÕES DE AÇÃO ── -->
+    
         <div id="cart-actions">
             <button type="submit" name="acao" value="finalizar" class="btn btn-success" id="btn-finalizar">
                 <i class="fa-solid fa-check"></i>
@@ -227,5 +173,5 @@ $total = $subtotal + $taxa_entrega;
 </div>
 
 <?php include '../includes/user_footer.php'; ?>
-<!-- carrinho.js: UI de entrega + verificação de login. PHP gerencia o carrinho via $_SESSION. -->
+
 <script src="assets/js/carrinho.js"></script>

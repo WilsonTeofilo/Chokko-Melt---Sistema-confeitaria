@@ -125,7 +125,7 @@ Area do ADMIN (pasta admin/)
 
   CLIENTE logado:
     $_SESSION['idlogado']    = id_cliente (int)
-    $_SESSION['userlogado']  = nome_cliente (string)
+    $_SESSION['userlogado']  = nome (string)
     $_SESSION['idemail']     = email (string)
     $_SESSION['idtelefone']  = telefone (string)
 

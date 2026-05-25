@@ -316,3 +316,48 @@ body.perfil-bg {
     padding: 15px;
     margin-top: 10px;
 }
+
+/* ==========================================================
+   RESPONSIVIDADE MOBILE
+   ========================================================== */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px 15px;
+        margin: 10px auto;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+    }
+    .user-card, .cart-card, .card-branco {
+        padding: 20px 15px;
+        margin-bottom: 15px;
+    }
+    .profile-info {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    .avatar {
+        margin-right: 0;
+        width: 110px; height: 110px;
+    }
+    .contact-row {
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+    .address-footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .address-header {
+        flex-direction: column;
+        gap: 5px;
+        align-items: flex-start;
+    }
+    .header-titles p {
+        font-size: 32px;
+    }
+    .address-body {
+        font-size: 13px;
+    }
+}

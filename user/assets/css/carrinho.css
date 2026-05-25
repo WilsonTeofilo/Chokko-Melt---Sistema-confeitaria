@@ -427,3 +427,24 @@
 .mt-10 {
     margin-top: 10px;
 }
+
+/* ==========================================================
+   RESPONSIVIDADE MOBILE - CARRINHO
+   ========================================================== */
+@media (max-width: 768px) {
+  body {
+    /* Garante que a barra inferior e o botão de finalizar não tapem o último item */
+    padding-bottom: 120px !important;
+  }
+  .cart-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .cart-item-main {
+    width: 100%;
+  }
+  .qty-ctrl {
+    align-self: flex-end;
+    margin-top: -30px;
+  }
+}

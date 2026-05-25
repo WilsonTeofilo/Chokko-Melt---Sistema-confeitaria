@@ -16,13 +16,16 @@
 include '../config/config.php';
 $usuariosBD = [];
 
-// Busca os usuarios reais no banco
 $sqlBusca = "SELECT * FROM usuario";
-$resBusca = @$conn->query($sqlBusca);
-if ($resBusca && $resBusca->num_rows > 0) {
-    while($row = $resBusca->fetch_assoc()) {
-        $usuariosBD[] = $row;
+try {
+    $stmt = $conn->query($sqlBusca);
+    if ($stmt) {
+        while($row = $stmt->fetch()) {
+            $usuariosBD[] = $row;
+        }
     }
+} catch (PDOException $e) {
+    // Tabela possivelmente não existe
 }
 ?>
 <section class="table-wrapper">

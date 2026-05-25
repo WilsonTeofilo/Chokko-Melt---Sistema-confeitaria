@@ -106,32 +106,32 @@ $is_finalizado = in_array($status_atual, ['entregue', 'cancelado']);
         Horario da etapa: date('H:i', strtotime($pedido['producao_em'])) etc.
     -->
     <ul class="det-timeline">
-        <li class="det-tl-step done">
+        <li class="det-tl-step [classe_se_realizado]">
             <span class="det-tl-dot"><i class="fa-solid fa-check"></i></span>
             <div class="det-tl-content">
                 <span class="det-tl-label">Pedido realizado</span>
-                <span class="det-tl-time">19:30</span>
+                <span class="det-tl-time">[hora_realizado_ou_traco]</span>
             </div>
         </li>
-        <li class="det-tl-step done">
+        <li class="det-tl-step [classe_se_producao]">
             <span class="det-tl-dot"><i class="fa-solid fa-fire-burner"></i></span>
             <div class="det-tl-content">
                 <span class="det-tl-label">Pedido em produção</span>
-                <span class="det-tl-time">19:32</span>
+                <span class="det-tl-time">[hora_producao_ou_traco]</span>
             </div>
         </li>
-        <li class="det-tl-step">
+        <li class="det-tl-step [classe_se_saiu_entrega]">
             <span class="det-tl-dot"><i class="fa-solid fa-motorcycle"></i></span>
             <div class="det-tl-content">
                 <span class="det-tl-label">Saiu para entrega</span>
-                <span class="det-tl-time">—</span>
+                <span class="det-tl-time">[hora_saiu_ou_traco]</span>
             </div>
         </li>
-        <li class="det-tl-step">
+        <li class="det-tl-step [classe_se_entregue]">
             <span class="det-tl-dot"><i class="fa-solid fa-flag-checkered"></i></span>
             <div class="det-tl-content">
                 <span class="det-tl-label">Pedido finalizado</span>
-                <span class="det-tl-time">—</span>
+                <span class="det-tl-time">[hora_entregue_ou_traco]</span>
             </div>
         </li>
     </ul>
@@ -139,17 +139,14 @@ $is_finalizado = in_array($status_atual, ['entregue', 'cancelado']);
     <div class="divider"></div>
 
     <!-- ══ FORMA DE ENTREGA ══ -->
-    <!-- NOTA BACKEND: $pedido['forma_entrega'] = 'delivery' | 'retirada' | 'local' -->
-    <!-- Icone e texto mudam conforme o valor do campo no banco -->
     <div class="det-info-block">
         <div class="det-section-label">Forma de entrega</div>
         <div class="det-info-row">
-            <i class="fa-solid fa-motorcycle"></i>
+            <i class="[icone_forma_entrega]"></i>
             <div>
-                <p class="det-info-title">Entrega via delivery</p>
-                <!-- NOTA BACKEND: exibir endereco se forma_entrega == 'delivery' -->
-                <!-- $pedido['logradouro'] . ', ' . $pedido['numero'] . ' - ' . $pedido['bairro'] -->
-                <p class="det-info-sub">Rua das Flores, 123 · Jardim Primavera, Grajaú</p>
+                <p class="det-info-title">[titulo_forma_entrega]</p>
+                <!-- Exibir endereco ou retirar no local -->
+                <p class="det-info-sub">[descricao_endereco_ou_local]</p>
             </div>
         </div>
     </div>
@@ -157,15 +154,13 @@ $is_finalizado = in_array($status_atual, ['entregue', 'cancelado']);
     <div class="divider"></div>
 
     <!-- ══ FORMA DE PAGAMENTO ══ -->
-    <!-- NOTA BACKEND: $pedido['forma_pagamento'] = 'pix' | 'credito' | 'dinheiro' -->
-    <!-- Icone muda: pix = fa-brands fa-pix (cor #32BCAD), credito = fa-regular fa-credit-card (azul), dinheiro = fa-solid fa-money-bill-wave (verde) -->
     <div class="det-info-block">
         <div class="det-section-label">Forma de pagamento</div>
         <div class="det-info-row">
-            <i class="fa-regular fa-credit-card icon-credit-card"></i>
+            <i class="[icone_forma_pagamento]"></i>
             <div>
-                <p class="det-info-title">Cartão de Crédito</p>
-                <p class="det-info-sub">Pagamento na entrega</p>
+                <p class="det-info-title">[titulo_forma_pagamento]</p>
+                <p class="det-info-sub">[descricao_forma_pagamento]</p>
             </div>
         </div>
     </div>
@@ -175,75 +170,54 @@ $is_finalizado = in_array($status_atual, ['entregue', 'cancelado']);
     <!-- ══ ITENS DO PEDIDO ══ -->
     <div class="det-section-label">Itens do pedido</div>
 
-    <!--
-        NOTA BACKEND: foreach ($itens as $item) — gerar um .det-item para cada item
-        Campos: $item['quantidade'], $item['nome'], $item['imagem'],
-                $item['preco_unitario'], $item['adicionais'], $item['obs']
-    -->
     <div class="det-items-list">
-
+        <!-- MODELO FOREACH ITENS -->
         <div class="det-item">
-            <!-- NOTA BACKEND: src = $item['imagem'] -->
             <img class="det-item-img"
-                 src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=160"
-                 alt="Bolo de Chocolate">
+                 src="[url_imagem_produto]"
+                 alt="[nome_produto]">
             <div class="det-item-info">
-                <!-- NOTA BACKEND: $item['quantidade'] . 'x ' . $item['nome'] -->
-                <p class="det-item-name">1x Bolo de Chocolate no Pote</p>
-                <!-- NOTA BACKEND: exibir apenas se $item['adicionais'] nao for vazio -->
-                <p class="det-item-addons">+ Cobertura extra de brigadeiro</p>
-                <!-- NOTA BACKEND: number_format($item['preco_unitario'] * $item['quantidade'], 2, ',', '.') -->
-                <p class="det-item-price">R$ 15,00</p>
+                <p class="det-item-name">[quantidade]x [nome_produto]</p>
+                <!-- Exibir apenas se tiver adicionais -->
+                <p class="det-item-addons">+ [lista_de_adicionais_formatada]</p>
+                <p class="det-item-price">R$ [preco_unitario_vezes_qtd]</p>
             </div>
         </div>
 
-        <div class="det-item">
-            <img class="det-item-img"
-                 src="https://images.unsplash.com/photo-1541783245831-57d6fb0926d3?w=160"
-                 alt="Brigadeiro Gourmet">
-            <div class="det-item-info">
-                <p class="det-item-name">1x Brigadeiro Gourmet Kit</p>
-                <!-- NOTA BACKEND: NAO exibir o p.det-item-addons se $item['adicionais'] for vazio -->
-                <p class="det-item-price">R$ 13,00</p>
-            </div>
-        </div>
-
-        <!-- NOTA BACKEND: exibir .det-obs-box apenas se $item['obs'] nao for vazio -->
+        <!-- Exibir .det-obs-box apenas se item tiver observação -->
+        <!--
         <div class="det-obs-box">
             <i class="fa-solid fa-note-sticky"></i>
-            <!-- NOTA BACKEND: htmlspecialchars($item['obs']) -->
-            <span>Sem cobertura extra no brigadeiro</span>
+            <span>[observacao_do_item]</span>
         </div>
-
+        -->
+        <!-- FIM MODELO FOREACH ITENS -->
     </div>
-    <!-- NOTA BACKEND: fim do foreach ($itens as $item) -->
 
     <div class="divider"></div>
 
     <!-- ══ RESUMO FINANCEIRO ══ -->
-    <!-- NOTA BACKEND: todos os valores vem da tabela pedidos -->
     <div class="det-summary">
         <div class="det-summary-row">
             <span>Subtotal</span>
-            <!-- NOTA BACKEND: 'R$ ' . number_format($pedido['subtotal'], 2, ',', '.') -->
-            <span>R$ 28,00</span>
+            <span>R$ [subtotal]</span>
         </div>
         <div class="det-summary-row">
             <span>Taxa de entrega</span>
-            <!-- NOTA BACKEND: 'R$ ' . number_format($pedido['taxa_entrega'], 2, ',', '.') -->
-            <!-- Se forma_entrega != 'delivery', exibir 'Gratis' e taxa = 0 -->
-            <span>R$ 5,00</span>
+            <span>R$ [taxa_entrega_ou_gratis]</span>
         </div>
-        <!-- NOTA BACKEND: exibir esta linha somente se $pedido['desconto'] > 0 -->
+        
+        <!-- Exibir somente se houver desconto -->
+        <!--
         <div class="det-summary-row det-summary-desconto">
             <span>Desconto</span>
-            <!-- NOTA BACKEND: '- R$ ' . number_format($pedido['desconto'], 2, ',', '.') -->
-            <span>— R$ 2,00</span>
+            <span>— R$ [desconto]</span>
         </div>
+        -->
+
         <div class="det-summary-row det-summary-total">
             <span>Total</span>
-            <!-- NOTA BACKEND: 'R$ ' . number_format($pedido['total'], 2, ',', '.') -->
-            <span>R$ 31,00</span>
+            <span>R$ [total_final]</span>
         </div>
     </div>
 

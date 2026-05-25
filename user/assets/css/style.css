@@ -228,6 +228,7 @@ a { text-decoration: none; color: inherit; }
   border: none;
   cursor: pointer;
   width: 100%;
+  max-width: 450px;
 }
 .btn-primary { background: var(--marrom); color: #fff; box-shadow: 0 4px 14px rgba(78,52,46,.25); }
 .btn-primary:hover { background: var(--marrom-dark); transform: translateY(-1px); }

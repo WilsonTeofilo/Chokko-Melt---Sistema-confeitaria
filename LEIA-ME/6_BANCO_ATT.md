@@ -15,7 +15,7 @@ Para fins de comparação, o banco original possuía as seguintes tabelas com su
 | Tabela | Colunas originais |
 |---|---|
 | `usuario` | id, nome, email, senha NOT NULL, telefone, tipo_usuario, root |
-| `cliente` | id, nome_cliente, email, senha NOT NULL, telefone |
+| `cliente` | id, nome, email, senha NOT NULL, telefone |
 | `endereco` | id, rua, numero, complemento, bairro, cep, id_cliente |
 | `produto` | id, nome, descricao, disponibilidade, imagem, preco, custo_compra, id_categoria |
 | `categoria` | id, nome |

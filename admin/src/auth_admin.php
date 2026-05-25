@@ -1,6 +1,7 @@
 <?php 
 session_start();
-include('../../config/config.php'); 
+require_once '../../config/config.php'; 
+require_once '../../classes/Auth.php';
 
 // Modal de alerta seguindo seu padrão UI
 function exibirModalEVoltar($titulo, $mensagem, $url, $icone = 'fa-circle-exclamation', $corIcone = '#e74c3c') {
@@ -46,122 +47,55 @@ function exibirModalEVoltar($titulo, $mensagem, $url, $icone = 'fa-circle-exclam
     exit;
 }
 
-// Vetores vazios que vão ser preenchidos ao carregar pelo BD pra conferência
-$logins = array();
-$number = array();
-
-// 1. Puxa todos da tabela CLIENTE
-$sqlCliente = "SELECT * FROM cliente";
-$resCliente = $conn->query($sqlCliente);
-if($resCliente && $resCliente->num_rows > 0){
-   while($row = $resCliente->fetch_assoc()){
-      array_push($logins, $row['email']);
-      array_push($number, $row['telefone']);
-   }
-}
-
-// 2. Puxa todos da tabela USUARIO (Admins/Funcionários)
-// O @ evita Warning se a tabela não existir ainda na hora de testar
-$sqlUsuario = "SELECT * FROM usuario";
-$resUsuario = @$conn->query($sqlUsuario);
-if($resUsuario && $resUsuario->num_rows > 0){
-   while($row = $resUsuario->fetch_assoc()){
-      array_push($logins, $row['email']);
-      array_push($number, $row['telefone']);
-   }
-}
-
+$auth = new Auth(DATABASE, HOST, USER, PASS);
 
 switch (@$_REQUEST['acao']){
 
     //----- CADASTRAR NOVO USUÁRIO ADMIN:
     case "CadastrarUsuario":
         $nome = $_POST['usr_nome'];
-        $email = $_POST['usr_email'];
-        // Limpar telefone mantendo só números se vier máscara, 
-        // ou você pode salvar com a máscara, usando o padrão que preferir.
+        $email = strtolower(trim($_POST['usr_email']));
         $telefone = preg_replace('/[^0-9]/', '', $_POST['usr_telefone']);
-        $senha = password_hash($_POST['usr_senha'], PASSWORD_DEFAULT);
+        $senha = $_POST['usr_senha'];
         $tipo = $_POST['usr_tipo'];
         
-        // Pega os checkboxes marcados e transforma em string (só pro nosso controle interno)
-        $permissoes = isset($_POST['permissoes']) ? $_POST['permissoes'] : array();
-        
-        // Na sua tabela não tem a coluna 'permissoes', mas tem a coluna 'root'
-        // Se for ADMIN, ele é root.
-        $is_root = ($tipo === 'ADMIN') ? 1 : 0;
-
-        // Validação MÁXIMA: O e-mail e telefone não podem existir nem em cliente nem em usuário!
-        if(!in_array($email, $logins) && !in_array($telefone, $number)){
-            
-        // O INSERT agora inclui a coluna permissoes
-        $permissoes_string = ($tipo === 'ADMIN') ? 'pedidos,extrato,produtos,usuarios,config' : 'pedidos,produtos';
-        $sql = "INSERT INTO usuario (nome, email, telefone, senha, tipo_usuario, root, permissoes) VALUES 
-        ('$nome', '$email', '$telefone', '$senha', '$tipo', $is_root, '$permissoes_string')";
-        
-        $res = @$conn->query($sql);
-
-            if ($res) {
-                exibirModalEVoltar('Sucesso!', 'Usuário administrativo cadastrado com sucesso!', '../usuarios.php', 'fa-check-circle', '#2ecc71');
-            } else {
-                exibirModalEVoltar('Erro SQL', 'Verifique a tabela: ' . addslashes($conn->error), 'javascript:window.history.back()');
-            }  
-        } else {
-            exibirModalEVoltar('Conflito de Dados', 'Esse e-mail ou número de telefone já pertence a uma conta (pode ser de um cliente ou de outro administrador).', 'javascript:window.history.back()');
+        try {
+            $auth->cadastrarAdmin($nome, $email, $telefone, $senha, $tipo);
+            exibirModalEVoltar('Sucesso!', 'Usuário administrativo cadastrado com sucesso!', '../usuarios.php', 'fa-check-circle', '#2ecc71');
+        } catch (Exception $e) {
+            exibirModalEVoltar('Conflito de Dados', $e->getMessage(), 'javascript:window.history.back()');
         }
         break;
 
 
-    //----- LOGAR ADMIN:
+    //----- LOGAR ADMIN (LEGADO / RETIDO PARA COMPATIBILIDADE SE HOUVER ACESSO DIRETO):
     case "LogarAdmin":
-        $logar = $_POST['email'];
+        $logar = strtolower(trim($_POST['email']));
         $pass = $_POST['senha'];
       
-        // Mesma lógica de vetores separados que você usa:
-        $emailsAdmin = array();
-        $senhasAdmin = array();
-        $idsAdmin = array();
-        $tiposAdmin = array();
-        $permsAdmin = array();
-        $nomesAdmin = array();
-
-        // Como já foi consultado lá em cima e consumido, precisamos dar um data_seek ou rodar de novo:
-        if($resUsuario && $resUsuario->num_rows > 0){
-            $resUsuario->data_seek(0);
-            while($rowAdmin = $resUsuario->fetch_assoc()){
-                array_push($emailsAdmin, $rowAdmin['email']);
-                array_push($senhasAdmin, $rowAdmin['senha']);
-                array_push($idsAdmin, $rowAdmin['id_usuario']); 
-                array_push($tiposAdmin, $rowAdmin['tipo_usuario']);
-                array_push($nomesAdmin, $rowAdmin['nome']);
+        try {
+            $admin = $auth->buscarAdminPorEmail($logar);
+            if ($admin && password_verify($pass, $admin['senha'])) {
+                $_SESSION['adminlogado'] = true;
+                $_SESSION['admin_id'] = $admin['id_usuario'];
+                $_SESSION['admin_nome'] = $admin['nome'];
+                $_SESSION['admin_tipo'] = $admin['tipo_usuario'];
                 
-                // Pra fingir as permissões já que não tem a coluna, a gente checa se é root
-                $permString = ($rowAdmin['tipo_usuario'] === 'ADMIN' || $rowAdmin['root'] == 1) 
-                    ? 'pedidos,extrato,produtos,usuarios,config' 
-                    : 'pedidos,produtos';
-                array_push($permsAdmin, $permString);
+                $permString = !empty($admin['permissoes']) 
+                    ? $admin['permissoes'] 
+                    : (($admin['tipo_usuario'] === 'ADMIN' || $admin['root'] == 1) 
+                        ? 'pedidos,extrato,produtos,usuarios,config' 
+                        : 'pedidos,produtos');
+                    
+                $_SESSION['admin_permissoes'] = $permString;
+    
+                header("Location: ../index.php");
+                exit;
+            } else {
+                exibirModalEVoltar('Acesso Negado', 'E-mail ou senha inválidos.', 'javascript:window.history.back()');
             }
-        }
-      
-        if(in_array($logar, $emailsAdmin)){
-            $index = array_search($logar, $emailsAdmin);
-            if ($index !== false && $index >= 0){
-                if(password_verify($pass, $senhasAdmin[$index])){
-                    // Sucesso!
-                    $_SESSION['adminlogado'] = true;
-                    $_SESSION['admin_id'] = $idsAdmin[$index];
-                    $_SESSION['admin_nome'] = $nomesAdmin[$index];
-                    $_SESSION['admin_tipo'] = $tiposAdmin[$index];
-                    $_SESSION['admin_permissoes'] = $permsAdmin[$index];
-
-                    header("Location: ../index.php");
-                    exit;
-                } else {
-                    exibirModalEVoltar('Acesso Negado', 'Senha inválida.', 'javascript:window.history.back()');
-                }
-            }
-        } else {
-            exibirModalEVoltar('Atenção', 'Administrador não encontrado na base de dados.', 'javascript:window.history.back()');
+        } catch(Exception $e) {
+            exibirModalEVoltar('Atenção', $e->getMessage(), 'javascript:window.history.back()');
         }
         break;
 
@@ -177,11 +111,11 @@ switch (@$_REQUEST['acao']){
         if (isset($_SESSION['admin_id']) && $idDeletar == $_SESSION['admin_id']) {
             exibirModalEVoltar('Atenção', 'Você não pode excluir a sua própria conta!', 'javascript:window.history.back()');
         } else {
-            $sqlDelete = "DELETE FROM usuario WHERE id_usuario = $idDeletar";
-            if ($conn->query($sqlDelete)) {
+            try {
+                $auth->excluirAdmin($idDeletar);
                 exibirModalEVoltar('Sucesso', 'Usuário excluído com sucesso do banco de dados.', '../usuarios.php', 'fa-check-circle', '#2ecc71');
-            } else {
-                exibirModalEVoltar('Erro', 'Não foi possível excluir o usuário.', 'javascript:window.history.back()');
+            } catch(Exception $e) {
+                exibirModalEVoltar('Erro', 'Não foi possível excluir o usuário: ' . $e->getMessage(), 'javascript:window.history.back()');
             }
         }
         break;
@@ -189,14 +123,13 @@ switch (@$_REQUEST['acao']){
     case "AtualizarPermissoes":
         $idAtualizar  = intval($_POST['id_usuario']);
         $novoTipo     = $_POST['tipo_usuario'] === 'ADMIN' ? 'ADMIN' : 'FUNCIONARIO';
-        $novoRoot     = ($novoTipo === 'ADMIN') ? 1 : 0;
         $novasPerms   = isset($_POST['permissoes']) ? $_POST['permissoes'] : '';
 
-        $sqlUpdate = "UPDATE usuario SET tipo_usuario = '$novoTipo', root = $novoRoot, permissoes = '$novasPerms' WHERE id_usuario = $idAtualizar";
-        if ($conn->query($sqlUpdate)) {
-            exibirModalEVoltar('Sucesso', 'Permissoes atualizadas com sucesso!', '../usuarios.php', 'fa-check-circle', '#2ecc71');
-        } else {
-            exibirModalEVoltar('Erro', 'Nao foi possivel atualizar as permissoes.', 'javascript:window.history.back()');
+        try {
+            $auth->atualizarPermissoesAdmin($idAtualizar, $novoTipo, $novasPerms);
+            exibirModalEVoltar('Sucesso', 'Permissões atualizadas com sucesso!', '../usuarios.php', 'fa-check-circle', '#2ecc71');
+        } catch(Exception $e) {
+            exibirModalEVoltar('Erro', 'Não foi possível atualizar as permissões: ' . $e->getMessage(), 'javascript:window.history.back()');
         }
         break;
 }
