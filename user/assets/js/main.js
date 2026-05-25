@@ -22,35 +22,10 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     // ============================================================
-    // 1. Badge da sacola — mostra quantos itens estão no carrinho
+    // 1. Badge da sacola
     // ============================================================
-    // NOTA BACKEND: remova este bloco quando o PHP gerar o número direto no HTML
-    try {
-        var dadosCarrinho = localStorage.getItem('chokko_cart');
-        var carrinho = dadosCarrinho ? JSON.parse(dadosCarrinho) : [];
-        var totalItens = 0;
-
-        for (var i = 0; i < carrinho.length; i++) {
-            var item = carrinho[i];
-            var qtd = parseInt(item.qty);
-            if (!isNaN(qtd)) {
-                totalItens = totalItens + qtd;
-            }
-        }
-
-        var badge = document.getElementById('cart-badge');
-        if (badge) {
-            if (totalItens > 0) {
-                badge.textContent = totalItens;
-                badge.classList.add('has-items');
-            } else {
-                badge.textContent = '';
-                badge.classList.remove('has-items');
-            }
-        }
-    } catch (e) {
-        // Se der erro ao ler o carrinho, apenas ignora
-    }
+    // O número da sacola agora é gerado pelo PHP no user_footer.php (via $_SESSION)
+    // O localStorage foi removido completamente do projeto.
 
 
     // ============================================================

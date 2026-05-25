@@ -10,6 +10,14 @@
  *   • Guia geral na raiz: INTEGRACAO_JS_PHP.txt
  */
 $current_page = basename($_SERVER['PHP_SELF']);
+
+// Conta quantos itens tem no carrinho para mostrar na bolinha do ícone
+$totalItensCarrinho = 0;
+if (isset($_SESSION['carrinho']) && is_array($_SESSION['carrinho'])) {
+    foreach ($_SESSION['carrinho'] as $item) {
+        $totalItensCarrinho += intval($item['quantidade'] ?? 0);
+    }
+}
 ?>
     <footer class="bottom-nav">
         <a href="index.php" class="nav-item <?= $current_page == 'index.php' ? 'active' : '' ?>">
@@ -20,7 +28,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </a>
         <a href="carrinho.php" class="nav-item <?= $current_page == 'carrinho.php' ? 'active' : '' ?>">
             <i class="fa-solid fa-bag-shopping"></i>
-            <span class="badge-count" id="cart-badge"></span>
+            <?php if ($totalItensCarrinho > 0): ?>
+                <span class="badge-count has-items" id="cart-badge"><?= $totalItensCarrinho ?></span>
+            <?php else: ?>
+                <span class="badge-count" id="cart-badge"></span>
+            <?php endif; ?>
             <span>Sacola</span>
         </a>
         <a href="perfil.php" class="nav-item <?= $current_page == 'perfil.php' ? 'active' : '' ?>">

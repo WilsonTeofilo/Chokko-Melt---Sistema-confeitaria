@@ -1,15 +1,17 @@
 // ============================================================
-// cardapio.js — Lógica do cardápio e do modal de produto
+// cardapio.js — Vitrine: modal do produto + filtro de categoria
 // ============================================================
-// NOTA BACKEND: quando o PHP estiver pronto, os <article class="product-card">
-// serão gerados via foreach no banco de dados com data-* reais.
-// O localStorage do carrinho é temporário e vai ser substituído
-// por $_SESSION no PHP.
+// O que este arquivo faz:
+//   1. Abre o modal quando o cliente clica em um produto
+//   2. Controla o +/- de quantidade dentro do modal
+//   3. Envia o produto para o carrinho (via form POST para o PHP)
+//   4. Filtra os produtos por categoria
 // ============================================================
 
-// Variáveis globais que guardam o estado do modal aberto
-var produtoAtual = null; // qual produto está sendo visto
-var quantidadeAtual = 1; // quantidade selecionada
+
+// Variáveis globais: guardam o produto que está sendo visto no modal
+var produtoAtual    = null;
+var quantidadeAtual = 1;
 
 // Pega os elementos do modal da tela
 var modal           = document.getElementById('productModal');
@@ -29,150 +31,88 @@ var toast           = document.getElementById('toastCart');
 var toastMensagem   = document.getElementById('toastMsg');
 
 
-// ── Funções de apoio ─────────────────────────────────────────
-
-// Transforma um número em formato de dinheiro: 13 → "R$ 13,00"
+// ── Função: formatar número como dinheiro ─────────────────────
+// Ex: 13.5 → "R$ 13,50"
 function formatarDinheiro(valor) {
     return 'R$ ' + valor.toFixed(2).replace('.', ',');
 }
 
-// Atualiza o número no ícone da sacola na navegação inferior lendo direto do backend
-function atualizarBadge() {
-    // Isso aqui agora será atualizado pegando do PHP no carregamento da página 
-    // ou no retorno do fetch, por enquanto deixamos o elemento visual estático
-    var badge = document.getElementById('cart-badge');
-    if (!badge) return;
-    
-    // Podemos fazer um fetch para checar quantidade se necessário futuramente
-}
 
-// Mostra a mensagem de confirmação (Toast) quando algo é adicionado
-function mostrarToast(mensagem) {
-    toastMensagem.textContent = mensagem;
-    toast.classList.add('show');
-    // Esconde automaticamente depois de 2,2 segundos
-    setTimeout(function() {
-        toast.classList.remove('show');
-    }, 2200);
-}
-
-// Recalcula o preço total mostrado no botão "Adicionar" do modal
-// Leva em conta a quantidade e os adicionais marcados
+// ── Função: atualiza o preço no botão "Adicionar" ─────────────
+// Recalcula toda vez que muda a quantidade
 function atualizarPrecoNoBotao() {
-    if (!produtoAtual) {
-        return;
-    }
+    if (!produtoAtual) return;
 
-    var precoBase = produtoAtual.price;
-    var precoExtra = 0;
-
-    // Percorre todos os checkboxes de adicionais marcados
-    var checkboxesMarcados = document.querySelectorAll('.addon-check:checked');
-    for (var i = 0; i < checkboxesMarcados.length; i++) {
-        var cb = checkboxesMarcados[i];
-        precoExtra = precoExtra + parseFloat(cb.dataset.price || 0);
-    }
-
-    var total = (precoBase + precoExtra) * quantidadeAtual;
+    var total = produtoAtual.price * quantidadeAtual;
     modalBtnPrecoEl.textContent = formatarDinheiro(total);
 }
 
 
-// ── Abrir o modal do produto ──────────────────────────────────
+// ── Função: abre o modal com os dados do produto clicado ──────
 function abrirModalProduto(card) {
-    // Verifica se a loja está aberta (variável definida pelo main.js)
+
+    // Verifica se a loja está aberta (definida pelo main.js)
     if (window.isLojaAberta === false) {
         alert('A loja está fechada no momento. Confira nosso horário de funcionamento!');
         return;
     }
 
-    // Lê os dados do produto a partir dos atributos data-* do card HTML
+    // Lê os dados do produto nos atributos data-* do card HTML
+    // Esses atributos são gerados pelo PHP no foreach do banco de dados
     produtoAtual = {
         id    : card.dataset.id,
         name  : card.dataset.name,
         desc  : card.dataset.desc,
         price : parseFloat(card.dataset.price),
-        img   : card.dataset.img,
-        addons: [] // adicionais do produto
+        img   : card.dataset.img
     };
-
-    // Tenta ler os adicionais (formato JSON)
-    try {
-        produtoAtual.addons = JSON.parse(card.dataset.addons || '[]');
-    } catch (e) {
-        produtoAtual.addons = [];
-    }
 
     quantidadeAtual = 1;
 
     // Preenche o modal com as informações do produto
-    modalImg.src                = produtoAtual.img;
-    modalImg.alt                = produtoAtual.name;
-    modalTitulo.textContent     = produtoAtual.name;
-    modalDescricao.textContent  = produtoAtual.desc;
-    modalPrecoEl.textContent    = formatarDinheiro(produtoAtual.price);
-    modalQtdEl.textContent      = '1';
-    modalObs.value              = '';
+    modalImg.src               = produtoAtual.img;
+    modalImg.alt               = produtoAtual.name;
+    modalTitulo.textContent    = produtoAtual.name;
+    modalDescricao.textContent = produtoAtual.desc;
+    modalPrecoEl.textContent   = formatarDinheiro(produtoAtual.price);
+    modalQtdEl.textContent     = '1';
 
-    // Limpa e monta a lista de adicionais (se existirem)
-    listaAddons.innerHTML = '';
-    if (produtoAtual.addons.length > 0) {
-        secaoAddons.style.display = 'block';
+    // Limpa o campo de observação
+    if (modalObs) {
+        modalObs.value = '';
+    }
 
-        for (var i = 0; i < produtoAtual.addons.length; i++) {
-            var addon = produtoAtual.addons[i];
-            var labelPreco = '';
-
-            if (addon.price > 0) {
-                labelPreco = '+' + formatarDinheiro(addon.price);
-            } else {
-                labelPreco = 'Grátis';
-            }
-
-            listaAddons.innerHTML += '<label class="addon-item">' +
-                '<div class="addon-left">' +
-                    '<span class="addon-name">' + addon.name + '</span>' +
-                    '<span class="addon-price">' + labelPreco + '</span>' +
-                '</div>' +
-                '<input type="checkbox" class="addon-check"' +
-                    ' data-price="' + addon.price + '"' +
-                    ' data-id="' + addon.id + '"' +
-                    ' data-name="' + addon.name + '">' +
-            '</label>';
-        }
-
-        // Atualiza o preço quando marcar/desmarcar um adicional
-        listaAddons.onchange = atualizarPrecoNoBotao;
-
-    } else {
+    // Esconde a seção de adicionais (não implementada ainda)
+    if (secaoAddons) {
         secaoAddons.style.display = 'none';
-        listaAddons.onchange = null;
     }
 
     atualizarPrecoNoBotao();
 
-    // Botão de diminuir começa desabilitado (quantidade mínima é 1)
+    // Começa com o botão de diminuir desabilitado (mínimo é 1)
     botaoMenos.disabled = true;
 
-    // Abre o modal
+    // Abre o modal e trava o scroll da página
     modal.classList.add('open');
-    document.body.style.overflow = 'hidden'; // Trava o scroll da página
+    document.body.style.overflow = 'hidden';
 }
 
+
+// ── Função: fecha o modal ─────────────────────────────────────
 function fecharModal() {
     modal.classList.remove('open');
-    document.body.style.overflow = ''; // Libera o scroll
+    document.body.style.overflow = '';
     produtoAtual = null;
 }
 
 
-// ── Botões de quantidade no modal ─────────────────────────────
+// ── Botão de diminuir quantidade ─────────────────────────────
 botaoMenos.addEventListener('click', function() {
     if (quantidadeAtual > 1) {
         quantidadeAtual = quantidadeAtual - 1;
         modalQtdEl.textContent = quantidadeAtual;
 
-        // Desabilita o botão de menos se chegou em 1
+        // Desabilita o botão quando chega em 1
         if (quantidadeAtual === 1) {
             botaoMenos.disabled = true;
         }
@@ -181,6 +121,8 @@ botaoMenos.addEventListener('click', function() {
     }
 });
 
+
+// ── Botão de aumentar quantidade ─────────────────────────────
 botaoMais.addEventListener('click', function() {
     if (quantidadeAtual < 10) {
         quantidadeAtual = quantidadeAtual + 1;
@@ -191,71 +133,45 @@ botaoMais.addEventListener('click', function() {
 });
 
 
-// ── Botão Adicionar ao carrinho ───────────────────────────────
-// NOTA BACKEND: quando o PHP assumir o carrinho via sessão, este
-// botão vai fazer um POST para carrinho.php ao invés de salvar em localStorage.
+// ── Botão "Adicionar" — envia para o PHP via form POST ────────
+// Cria um formulário invisível na hora e submete.
+// O PHP (src/carrinho_acao.php) salva na sessão e redireciona de volta.
 modalBotaoAdd.addEventListener('click', function() {
-    if (!produtoAtual) {
-        return;
+    if (!produtoAtual) return;
+
+    // Monta o formulário invisível
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'src/carrinho_acao.php';
+
+    // Dados que o PHP precisa para salvar o item na sessão
+    var campos = {
+        acao           : 'adicionar',
+        id_produto     : produtoAtual.id,
+        nome           : produtoAtual.name,
+        imagem         : produtoAtual.img,
+        preco_unitario : produtoAtual.price,
+        quantidade     : quantidadeAtual,
+        observacao     : (modalObs ? modalObs.value.trim() : '')
+    };
+
+    // Cria um <input hidden> para cada dado e adiciona no form
+    for (var campo in campos) {
+        var input = document.createElement('input');
+        input.type  = 'hidden';
+        input.name  = campo;
+        input.value = campos[campo];
+        form.appendChild(input);
     }
 
-    // Coleta os adicionais marcados pelo usuário
-    var adicionaisSelecionados = [];
-    var precoExtra = 0;
-    var checkboxesMarcados = document.querySelectorAll('.addon-check:checked');
-
-    for (var i = 0; i < checkboxesMarcados.length; i++) {
-        var cb = checkboxesMarcados[i];
-        var precoAddon = parseFloat(cb.dataset.price || 0);
-
-        adicionaisSelecionados.push({
-            id    : cb.dataset.id,
-            name  : cb.dataset.name,
-            price : precoAddon
-        });
-
-        precoExtra = precoExtra + precoAddon;
-    }
-
-    var observacao = modalObs.value.trim();
-    var precoUnitario = produtoAtual.price + precoExtra;
-
-    // Prepara os dados para mandar para o PHP
-    var dadosCarrinho = new FormData();
-    dadosCarrinho.append('acao_carrinho', 'adicionar');
-    dadosCarrinho.append('id_produto', produtoAtual.id);
-    dadosCarrinho.append('nome', produtoAtual.name);
-    dadosCarrinho.append('imagem', produtoAtual.img);
-    dadosCarrinho.append('preco_base', produtoAtual.price);
-    dadosCarrinho.append('preco_unitario', precoUnitario);
-    dadosCarrinho.append('quantidade', quantidadeAtual);
-    dadosCarrinho.append('observacao', observacao);
-    dadosCarrinho.append('adicionais', JSON.stringify(adicionaisSelecionados));
-
-    // Envia pro PHP usando Fetch API (pra não recarregar a tela e o toast funcionar lindo)
-    fetch('carrinho.php', {
-        method: 'POST',
-        body: dadosCarrinho
-    })
-    .then(response => response.text())
-    .then(data => {
-        // Quando o PHP salva na $_SESSION, a gente mostra o Toast pro usuário
-        mostrarToast(produtoAtual.name + ' adicionado à sacola!');
-        fecharModal();
-        // Opcional: Atualizar a bolinha (badge) do carrinho aqui
-    })
-    .catch(error => {
-        console.error('Erro ao adicionar:', error);
-        alert('Erro ao adicionar produto no carrinho.');
-    });
-    mostrarToast(produtoAtual.name + ' adicionado à sacola!');
-    fecharModal();
+    // Coloca o form na página e dispara o envio
+    document.body.appendChild(form);
+    form.submit();
 });
 
 
-// ── Fechar modal clicando fora ────────────────────────────────
+// ── Fechar modal clicando no fundo escuro ─────────────────────
 modal.addEventListener('click', function(e) {
-    // Só fecha se clicou no fundo escuro, não dentro do modal
     if (e.target === modal) {
         fecharModal();
     }
@@ -276,7 +192,7 @@ var botoesCat = document.querySelectorAll('.cat-btn');
 botoesCat.forEach(function(btn) {
     btn.addEventListener('click', function() {
 
-        // Remove o destaque de todos os botões de categoria
+        // Tira o destaque de todos os botões
         botoesCat.forEach(function(b) {
             b.classList.remove('active');
         });
@@ -284,7 +200,7 @@ botoesCat.forEach(function(btn) {
 
         var categoriaSelecionada = btn.dataset.cat;
 
-        // Mostra ou esconde os cards de acordo com a categoria
+        // Mostra ou esconde os cards conforme a categoria
         var todosCards = document.querySelectorAll('.product-card');
         todosCards.forEach(function(card) {
             if (categoriaSelecionada === 'todos' || card.dataset.cat === categoriaSelecionada) {
@@ -295,7 +211,3 @@ botoesCat.forEach(function(btn) {
         });
     });
 });
-
-
-// ── Inicializa o badge ao carregar a página ───────────────────
-atualizarBadge();
