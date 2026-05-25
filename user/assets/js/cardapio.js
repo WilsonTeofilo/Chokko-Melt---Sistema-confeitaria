@@ -36,48 +36,14 @@ function formatarDinheiro(valor) {
     return 'R$ ' + valor.toFixed(2).replace('.', ',');
 }
 
-// Lê o carrinho salvo no navegador (localStorage)
-// NOTA BACKEND: quando o PHP assumir o carrinho, apague esta função
-function pegarCarrinho() {
-    var dados = localStorage.getItem('chokko_cart');
-    if (!dados) {
-        return [];
-    }
-    try {
-        return JSON.parse(dados);
-    } catch (e) {
-        return [];
-    }
-}
-
-// Salva o carrinho atualizado no navegador
-// NOTA BACKEND: quando o PHP assumir o carrinho, apague esta função
-function salvarCarrinho(carrinho) {
-    localStorage.setItem('chokko_cart', JSON.stringify(carrinho));
-    atualizarBadge();
-}
-
-// Atualiza o número no ícone da sacola na navegação inferior
+// Atualiza o número no ícone da sacola na navegação inferior lendo direto do backend
 function atualizarBadge() {
-    var carrinho = pegarCarrinho();
-    var totalItens = 0;
-
-    // Conta quantos itens tem no carrinho somando as quantidades
-    for (var i = 0; i < carrinho.length; i++) {
-        var item = carrinho[i];
-        totalItens = totalItens + item.qty;
-    }
-
+    // Isso aqui agora será atualizado pegando do PHP no carregamento da página 
+    // ou no retorno do fetch, por enquanto deixamos o elemento visual estático
     var badge = document.getElementById('cart-badge');
-    if (badge) {
-        if (totalItens > 0) {
-            badge.textContent = totalItens;
-            badge.classList.add('has-items');
-        } else {
-            badge.textContent = '';
-            badge.classList.remove('has-items');
-        }
-    }
+    if (!badge) return;
+    
+    // Podemos fazer um fetch para checar quantidade se necessário futuramente
 }
 
 // Mostra a mensagem de confirmação (Toast) quando algo é adicionado
@@ -254,44 +220,34 @@ modalBotaoAdd.addEventListener('click', function() {
     var observacao = modalObs.value.trim();
     var precoUnitario = produtoAtual.price + precoExtra;
 
-    // Cria uma chave única para identificar este item no carrinho
-    // (mesmo produto com adicionais diferentes vira item separado)
-    var idsAdicionais = '';
-    for (var j = 0; j < adicionaisSelecionados.length; j++) {
-        idsAdicionais = idsAdicionais + adicionaisSelecionados[j].id + ',';
-    }
-    var chaveItem = produtoAtual.id + '|' + idsAdicionais + '|' + observacao;
+    // Prepara os dados para mandar para o PHP
+    var dadosCarrinho = new FormData();
+    dadosCarrinho.append('acao_carrinho', 'adicionar');
+    dadosCarrinho.append('id_produto', produtoAtual.id);
+    dadosCarrinho.append('nome', produtoAtual.name);
+    dadosCarrinho.append('imagem', produtoAtual.img);
+    dadosCarrinho.append('preco_base', produtoAtual.price);
+    dadosCarrinho.append('preco_unitario', precoUnitario);
+    dadosCarrinho.append('quantidade', quantidadeAtual);
+    dadosCarrinho.append('observacao', observacao);
+    dadosCarrinho.append('adicionais', JSON.stringify(adicionaisSelecionados));
 
-    var carrinho = pegarCarrinho();
-
-    // Verifica se já existe um item igual no carrinho
-    var itemExistente = null;
-    for (var k = 0; k < carrinho.length; k++) {
-        if (carrinho[k].key === chaveItem) {
-            itemExistente = carrinho[k];
-            break;
-        }
-    }
-
-    if (itemExistente) {
-        // Se já existe, apenas aumenta a quantidade (máximo 10)
-        itemExistente.qty = Math.min(itemExistente.qty + quantidadeAtual, 10);
-    } else {
-        // Se não existe, adiciona como novo item
-        carrinho.push({
-            key       : chaveItem,
-            id        : produtoAtual.id,
-            name      : produtoAtual.name,
-            img       : produtoAtual.img,
-            basePrice : produtoAtual.price,
-            addons    : adicionaisSelecionados,
-            unitPrice : precoUnitario,
-            qty       : quantidadeAtual,
-            obs       : observacao
-        });
-    }
-
-    salvarCarrinho(carrinho);
+    // Envia pro PHP usando Fetch API (pra não recarregar a tela e o toast funcionar lindo)
+    fetch('carrinho.php', {
+        method: 'POST',
+        body: dadosCarrinho
+    })
+    .then(response => response.text())
+    .then(data => {
+        // Quando o PHP salva na $_SESSION, a gente mostra o Toast pro usuário
+        mostrarToast(produtoAtual.name + ' adicionado à sacola!');
+        fecharModal();
+        // Opcional: Atualizar a bolinha (badge) do carrinho aqui
+    })
+    .catch(error => {
+        console.error('Erro ao adicionar:', error);
+        alert('Erro ao adicionar produto no carrinho.');
+    });
     mostrarToast(produtoAtual.name + ' adicionado à sacola!');
     fecharModal();
 });

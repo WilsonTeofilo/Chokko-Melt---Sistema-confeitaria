@@ -114,6 +114,8 @@ function abrirModalProduto(edit, btnEl) {
         document.getElementById('prod-preco').value = '';
         var pc = document.getElementById('prod-custo');
         if (pc) pc.value = '';
+        var desc = document.getElementById('prod-descricao');
+        if (desc) desc.value = '';
         var cat = document.getElementById('prod-categoria');
         if (cat) cat.selectedIndex = 0;
         document.getElementById('prod-status').value = 'ativo';
@@ -143,6 +145,12 @@ function abrirModalProduto(edit, btnEl) {
 
         document.getElementById('prod-status').value = tr.dataset.status === 'congelado' ? 'congelado' : 'ativo';
 
+        var desc = document.getElementById('prod-descricao');
+        if (desc) desc.value = tr.dataset.descricao || '';
+        
+        var pc = document.getElementById('prod-custo');
+        if (pc) pc.value = tr.dataset.custo || '';
+
         var img = tr.querySelector('.prod-info-cell img');
         _imagemProduto = (img && img.src) ? img.src : '';
         if (imgPreview && _imagemProduto) {
@@ -159,6 +167,10 @@ function abrirModalProduto(edit, btnEl) {
 }
 
 function fecharModalProduto() {
+    if (window.location.search.indexOf('acao=editar') !== -1) {
+        window.location.href = 'produtos.php';
+        return;
+    }
     document.getElementById('modal-produto').style.display = 'none';
     document.getElementById('prod-edit-id').value = '';
     _editingProdutoTr = null;
@@ -170,6 +182,10 @@ function fecharModalProduto() {
     var inputFile = document.getElementById('imagem_produto');
     if (inputFile) inputFile.value = '';
     _imagemProduto = '';
+    var desc = document.getElementById('prod-descricao');
+    if (desc) desc.value = '';
+    var pc = document.getElementById('prod-custo');
+    if (pc) pc.value = '';
 }
 
 function obterProximoIdProduto() {
@@ -289,38 +305,27 @@ function salvarProduto(event) {
 
 function excluirProduto(btn) {
     var tr   = btn.closest('tr');
+    var id   = tr.dataset.produtoId;
     var span = tr.querySelector('.prod-info-cell span');
     var nome = span ? span.innerText.trim() : 'este produto';
 
     adminConfirm('Tem certeza que deseja excluir "' + nome + '"?\nEsta ação não pode ser desfeita.', function() {
-        tr.style.transition = 'opacity 0.3s';
-        tr.style.opacity = '0';
-        setTimeout(function() { tr.remove(); }, 300);
+        window.location.href = 'produtos.php?acao=excluir&id_produto=' + id;
     });
 }
 
 function congelarProduto(btn) {
     var tr = btn.closest('tr');
     if (!tr) return;
-    var badge = tr.querySelector('.badge');
-    tr.dataset.status = 'congelado';
-    if (badge) {
-        badge.className = 'badge badge-congelado';
-        badge.textContent = 'Congelado';
-    }
-    btn.outerHTML = '<button type="button" class="btn-action-accept btn-unfreeze" title="Ativar item" onclick="descongelarProduto(this)"><i class="fa-solid fa-fire"></i></button>';
+    var id = tr.dataset.produtoId;
+    window.location.href = 'src/produtos_controller.php?acao=alterarStatus&status=0&id=' + id;
 }
 
 function descongelarProduto(btn) {
     var tr = btn.closest('tr');
     if (!tr) return;
-    var badge = tr.querySelector('.badge');
-    tr.dataset.status = 'ativo';
-    if (badge) {
-        badge.className = 'badge badge-ativo';
-        badge.textContent = 'Ativo';
-    }
-    btn.outerHTML = '<button type="button" class="btn-action-accept btn-freeze" title="Congelar item" onclick="congelarProduto(this)"><i class="fa-solid fa-snowflake"></i></button>';
+    var id = tr.dataset.produtoId;
+    window.location.href = 'src/produtos_controller.php?acao=alterarStatus&status=1&id=' + id;
 }
 
 function filtrarProdutos(status, btn) {

@@ -1,4 +1,9 @@
-<?php include '../includes/user_header.php'; ?>
+<?php 
+require_once '../config/config.php';
+require_once '../classes/Produto.php';
+require_once '../classes/Categoria.php';
+include '../includes/user_header.php';
+?>
 <link rel="stylesheet" href="assets/css/cardapio.css">
 <link rel="stylesheet" href="assets/css/produto-modal.css">
 
@@ -17,12 +22,17 @@
 <!-- ── FILTROS DE CATEGORIA ── -->
 <div class="categories-wrap">
     <button class="cat-btn active" data-cat="todos">Todos</button>
-    <button class="cat-btn" data-cat="bolos-pote">Bolos de Pote</button>
-    <button class="cat-btn" data-cat="tortas-pote">Tortas de Pote</button>
-    <button class="cat-btn" data-cat="brigadeiros">Brigadeiros</button>
-    <button class="cat-btn" data-cat="salgados">Salgados</button>
-    <button class="cat-btn" data-cat="bebidas">Bebidas</button>
-    <button class="cat-btn" data-cat="kits">Kits &amp; Bolos</button>
+    <?php
+    try {
+        $catObj = new Categoria(DATABASE, HOST, USER, PASS);
+        $todasCats = $catObj->listarTodas();
+        foreach ($todasCats as $c) {
+            echo '<button class="cat-btn" data-cat="' . $c['id_categoria'] . '">' . htmlspecialchars($c['nome']) . '</button>';
+        }
+    } catch (Exception $e) {
+        // Sem categorias ou erro
+    }
+    ?>
 </div>
 
 <p class="section-title">Mais Pedidos ✨</p>
@@ -31,29 +41,53 @@
 <!-- Cada article tem data-* com as infos do produto que o JS vai ler para o modal -->
 <div class="products-grid" id="products-grid">
 
-    <!-- MODELO PARA FOREACH PHP -->
-    <article class="product-card" data-cat="[categoria]"
-        data-id="[id_produto]"
-        data-name="[nome_do_produto]"
-        data-desc="[descricao_do_produto]"
-        data-price="[preco_do_produto]"
-        data-img="[url_da_imagem]"
-        data-addons='[json_dos_adicionais_ou_vazio]'>
+    <?php
+    try {
+        $prodObj = new Produto(DATABASE, HOST, USER, PASS);
+        $produtosAtivos = $prodObj->listarAtivos();
+        foreach ($produtosAtivos as $p):
+            $addonsJson = '[]';
+            
+            $imgSrc = $p['imagem'];
+            if (empty($imgSrc)) {
+                $imgSrc = 'https://placehold.co/150x150/f5e6d0/8B4513?text=Foto';
+            } else {
+                if (strpos($imgSrc, 'uploads/') === 0) {
+                    $imgSrc = '../admin/' . $imgSrc;
+                }
+            }
+            
+            $descCurta = $p['descricao'];
+            if (mb_strlen($descCurta) > 70) {
+                $descCurta = mb_substr($descCurta, 0, 67) . '...';
+            }
+    ?>
+    <article class="product-card" data-cat="<?php echo $p['id_categoria']; ?>"
+        data-id="<?php echo $p['id_produto']; ?>"
+        data-name="<?php echo htmlspecialchars($p['nome']); ?>"
+        data-desc="<?php echo htmlspecialchars($p['descricao']); ?>"
+        data-price="<?php echo $p['preco']; ?>"
+        data-img="<?php echo $imgSrc; ?>"
+        data-addons='<?php echo $addonsJson; ?>'>
         <div class="product-img-wrap">
-            <img src="[url_da_imagem]" alt="[nome_do_produto]">
-            <!-- Descomente e use se houver badge -->
-            <!-- <span class="product-badge">[badge]</span> -->
+            <img src="<?php echo $imgSrc; ?>" alt="<?php echo htmlspecialchars($p['nome']); ?>">
         </div>
         <div class="product-info">
-            <h3>[nome_do_produto]</h3>
-            <p class="product-desc">[descricao_curta_do_produto]</p>
+            <span class="produto-categoria-badge" style="font-size: 0.75rem; background: #ffe4c4; color: #8b4513; padding: 2px 8px; border-radius: 10px; margin-bottom: 5px; display: inline-block;"><?php echo isset($p['nome_categoria']) ? htmlspecialchars($p['nome_categoria']) : 'Sem Categoria'; ?></span>
+            <h3><?php echo htmlspecialchars($p['nome']); ?></h3>
+            <p class="product-desc"><?php echo htmlspecialchars($descCurta); ?></p>
             <div class="product-footer">
-                <span class="product-price">R$ [preco_do_produto]</span>
+                <span class="product-price">R$ <?php echo number_format($p['preco'], 2, ',', '.'); ?></span>
                 <button class="add-btn" title="Ver detalhes e adicionar"><i class="fa-solid fa-plus"></i></button>
             </div>
         </div>
     </article>
-    <!-- FIM MODELO PHP -->
+    <?php 
+        endforeach;
+    } catch (Exception $e) {
+        echo '<p style="grid-column: 1/-1; text-align: center; color: #777;">Nenhum produto disponível na vitrine no momento.</p>';
+    }
+    ?>
 
 </div>
 
@@ -114,18 +148,4 @@
 
 
 
-
-<!-- WILSON BACK-END -->
-
-<?php 
-include ("../config/config.php");
-switch(@$_REQUEST['page']) {
-   
-    case 'carrinhoUS':
-        break;
-
-    case 'CadastroUS':
-        include ("src/auth/auth.php");
-        break;
-}
-?>
+

@@ -1,5 +1,96 @@
 <?php
-$carrinho     = $_SESSION['carrinho'] ?? [];
+session_start();
+if (!isset($_SESSION['carrinho'])) {
+    $_SESSION['carrinho'] = [];
+}
+
+// LIDA COM AS AÇÕES DO CARRINHO (POST)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao_carrinho'])) {
+    $acao = $_POST['acao_carrinho'];
+
+    if ($acao === 'adicionar') {
+        // Recebe os dados via AJAX do cardapio.js
+        $id_produto = $_POST['id_produto'] ?? '';
+        $nome = $_POST['nome'] ?? '';
+        $imagem = $_POST['imagem'] ?? '';
+        $preco_unitario = floatval($_POST['preco_unitario'] ?? 0);
+        $quantidade = intval($_POST['quantidade'] ?? 1);
+        $observacao = $_POST['observacao'] ?? '';
+        $adicionais = json_decode($_POST['adicionais'] ?? '[]', true);
+
+        // Cria uma "chave única" para o item (id + adicionais + observação)
+        // Assim, se o cara pedir o mesmo bolo, mas um com granulado e outro sem, ficam separados!
+        $idsAdicionais = '';
+        if (is_array($adicionais)) {
+            foreach ($adicionais as $add) {
+                $idsAdicionais .= $add['id'] . ',';
+            }
+        }
+        $chaveItem = $id_produto . '|' . $idsAdicionais . '|' . $observacao;
+
+        // Verifica se já tem esse exato pedido no carrinho
+        $existe = false;
+        foreach ($_SESSION['carrinho'] as $idx => $item) {
+            if (isset($item['key']) && $item['key'] === $chaveItem) {
+                // Já existe, só aumenta a quantidade
+                $_SESSION['carrinho'][$idx]['qty'] += $quantidade;
+                $existe = true;
+                break;
+            }
+        }
+
+        // Se não existir, coloca na sacola
+        if (!$existe) {
+            $_SESSION['carrinho'][] = [
+                'key' => $chaveItem,
+                'id' => $id_produto,
+                'name' => $nome,
+                'img' => $imagem,
+                'unitPrice' => $preco_unitario,
+                'qty' => $quantidade,
+                'obs' => $observacao,
+                'addons' => $adicionais
+            ];
+        }
+
+        // Como foi uma requisição AJAX (fetch), a gente encerra o script aqui
+        // pra não carregar o HTML todo de volta no console do JS
+        echo "ok";
+        exit;
+    } 
+    
+    elseif ($acao === 'alterar_qtd') {
+        $idx = intval($_POST['item_idx']);
+        $delta = intval($_POST['delta']); // +1 ou -1
+        
+        if (isset($_SESSION['carrinho'][$idx])) {
+            $_SESSION['carrinho'][$idx]['qty'] += $delta;
+            
+            // Se a quantidade zerou, tira o item do carrinho
+            if ($_SESSION['carrinho'][$idx]['qty'] <= 0) {
+                unset($_SESSION['carrinho'][$idx]);
+            }
+        }
+        // Redireciona pra recarregar a tela limpa e evitar reenvio de formulário (F5)
+        header("Location: carrinho.php");
+        exit;
+    } 
+    
+    elseif ($acao === 'remover_item') {
+        $idx = intval($_POST['item_idx']);
+        if (isset($_SESSION['carrinho'][$idx])) {
+            unset($_SESSION['carrinho'][$idx]);
+        }
+        // Redireciona pra limpar o POST
+        header("Location: carrinho.php");
+        exit;
+    }
+}
+
+// Reindexa o array do carrinho pro foreach do HTML não bugar com índices faltando (ex: 0, 2, 3)
+$_SESSION['carrinho'] = array_values($_SESSION['carrinho']);
+
+$carrinho     = $_SESSION['carrinho'];
 $taxa_entrega = 5.00;
 $subtotal     = 0;
 foreach ($carrinho as $item) {

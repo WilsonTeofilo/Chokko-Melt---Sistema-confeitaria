@@ -18,10 +18,9 @@ class Produto {
         }
     }
 
-//cadastro :ainda falta colocar uma brecada caso o nome do produto ja exista 
     public function Cadastrar($nome,$descricao,$dispo,$img,$preco,$custo,$categoria) {
 
-        $cadastro = $this->pdo->prepare("INSERT INTO produto (nome,descricao,disponibilidade,imagem,preco,custo_compra,id_categoria) VALUES (:n,:descri,:dispo,:imag,:preco:custo,:idCAT)");
+        $cadastro = $this->pdo->prepare("INSERT INTO produto (nome,descricao,disponibilidade,imagem,preco,custo_compra,id_categoria) VALUES (:n,:descri,:dispo,:imag,:preco,:custo,:idCAT)");
         $cadastro->execute(
             [':n'=>$nome,
             ':descri'=>$descricao,
@@ -70,7 +69,7 @@ class Produto {
         $buscaunica->bindValue(':id',$id,PDO::PARAM_INT);
         $buscaunica->execute();
         $resultado = $buscaunica->fetch(PDO::FETCH_ASSOC);
-        if (count($resultado)>0){
+        if ($resultado){
         return $resultado;}
         else{ throw new Exception("NENHUM PRODUTO COM ESSE ID....");}}
 
@@ -109,7 +108,7 @@ public function atualizar($id, $nome, $descricao, $dispo, $img, $preco, $custo, 
 
  
         public function excluir($id) {
-        $deletar = $this->pdo->prepare("DELETE FROM produtos where id_produto = :id");
+        $deletar = $this->pdo->prepare("DELETE FROM produto where id_produto = :id");
         $deletar->bindValue(':id',$id,PDO::PARAM_INT);
         $deletar->execute();
         }

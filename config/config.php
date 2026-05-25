@@ -1,8 +1,10 @@
 <?php 
-define('HOST', 'localhost');
-define('USER','root');
-define('PASS','');
-define('DATABASE', 'chokko_melt');
+// O defined() garante que, mesmo que este arquivo seja incluído mais de uma
+// vez no mesmo script por engano, as constantes não serão redefinidas.
+defined('HOST')     || define('HOST',     'localhost');
+defined('USER')     || define('USER',     'root');
+defined('PASS')     || define('PASS',     '');
+defined('DATABASE') || define('DATABASE', 'chokko_melt');
 
 try {
     $conn = new PDO("mysql:host=" . HOST . ";dbname=" . DATABASE . ";charset=utf8mb4", USER, PASS);
