@@ -79,7 +79,7 @@ try {
                 <div class="profile-info">
                     <img src="https://img.freepik.com/vetores-premium/desenho-de-bolo-de-aniversario-ilustracao-de-vetor-de-alimentos-premium_1080480-131970.jpg?semt=ais_hybrid&w=740&q=80" alt="Avatar" class="avatar">
                     <div class="user-details">
-                       
+                        <h2 style="color: #3b2313; margin: 0 0 10px 0; font-size: 1.3rem;"><?= htmlspecialchars($_SESSION['userlogado'] ?? 'Cliente') ?></h2>
                         <div class="contact-row"><span>✉</span> <?= htmlspecialchars($emailCliente) ?></div>
                         <div class="contact-row"><span>📞</span> <?= htmlspecialchars($telefoneCliente) ?></div>
                         <button class="btn-edit-info">📝 Editar informações</button>
@@ -134,9 +134,49 @@ try {
     </main>
 </div>
 
-
+<!-- MODAL EDITAR INFORMAÇÕES -->
+<div id="modal-edit-profile" class="modal-overlay">
+    <div class="modal-content-box">
+        <form action="src/auth/auth.php" method="POST" id="form-edit-profile">
+            <input type="hidden" name="acao" value="EditarPerfil">
+            <div class="modal-header-box">
+                <h2 class="modal-title">Editar Informações</h2>
+                <button type="button" class="btn-close-modal btn-close-edit">&times;</button>
+            </div>
+            <div class="modal-body-box" style="text-align: left;">
+                <div class="input-box" style="margin-bottom: 15px;">
+                    <label class="form-label" style="font-weight: bold; color: #3b2313; display: block; margin-bottom: 5px;">Nome Completo</label>
+                    <input type="text" name="nome" value="<?= htmlspecialchars($_SESSION['userlogado'] ?? '') ?>" required maxlength="50" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;" autocomplete="off">
+                </div>
+                <div class="input-box" style="margin-bottom: 15px;">
+                    <label class="form-label" style="font-weight: bold; color: #3b2313; display: block; margin-bottom: 5px;">Telefone</label>
+                    <input type="tel" name="telefone" value="<?= htmlspecialchars($telefoneCliente) ?>" required maxlength="15" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;" autocomplete="off" oninput="typeof ChokkoMascaraTelefoneInput==='function' && ChokkoMascaraTelefoneInput(this)">
+                </div>
+                
+                <div style="border-top: 1px dashed #ccc; margin: 15px 0; padding-top: 10px;">
+                    <p style="font-size: 0.8em; color: #666; margin-bottom: 10px;"><i class="fa-solid fa-key"></i> Quer alterar sua senha? Preencha os campos abaixo:</p>
+                </div>
+                
+                <div class="input-box" style="margin-bottom: 10px;">
+                    <label class="form-label" style="font-weight: bold; color: #3b2313; display: block; margin-bottom: 5px;">Nova Senha</label>
+                    <input type="password" name="nova_senha" id="new_pass" placeholder="Mínimo 8 caracteres" maxlength="50" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;" autocomplete="new-password">
+                </div>
+                <div class="input-box" style="margin-bottom: 10px;">
+                    <label class="form-label" style="font-weight: bold; color: #3b2313; display: block; margin-bottom: 5px;">Confirmar Nova Senha</label>
+                    <input type="password" name="conf_nova_senha" id="conf_new_pass" placeholder="Repita a nova senha" maxlength="50" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;" autocomplete="new-password">
+                </div>
+                <span id="erro-senhas-edit" style="color: #d32f2f; font-size: 0.85em; display: block; margin-top: 5px;"></span>
+            </div>
+            <div class="modal-footer-box">
+                <button type="submit" class="btn btn-primary" style="background: #3b2313; color: #fff;">Salvar Alterações</button>
+                <button type="button" class="btn btn-cancel btn-close-edit">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script src="assets/js/chokko_digits.js"></script>
 <script src="assets/js/perfil.js"></script>
 
 <?php include '../includes/user_footer.php'; ?>
+

@@ -35,9 +35,9 @@ document.addEventListener('DOMContentLoaded', function() {
     window.isLojaAberta = true;
 
     function checarHorario() {
-        // Lê o horário de abertura do localStorage (admin grava lá)
-        var horaAbre  = localStorage.getItem('chokko_hora_abre')  || '15:00';
-        var horaFecha = localStorage.getItem('chokko_hora_fecha') || '22:00';
+        // Lê o horário de abertura do atributo data do body (vindo do banco via PHP)
+        var horaAbre  = document.body.dataset.horaAbre  || '15:00';
+        var horaFecha = document.body.dataset.horaFecha || '22:00';
 
         // Atualiza o texto de horário na tela se existir
         var textoHorario = document.getElementById('store-hours-text');
@@ -111,16 +111,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Estas funções só fazem algo se existirem os elementos na tela.
     // Se não estiver na tela de finalizar pedido, não acontece nada.
 
-    ensureTrocoUI();
+    // ensureTrocoUI(); // Desativado pois o troco agora é gerado e tratado de forma limpa direto no finalizarPedido.php
     ensureCPFValidation();
 
-    // Botão "Fazer Pedido" redireciona para a tela de detalhes
-    var btnFazerPedido = document.getElementById('btn-fazer-pedido');
-    if (btnFazerPedido) {
-        btnFazerPedido.addEventListener('click', function() {
-            window.location.href = 'detalhes_pedido.php';
-        });
-    }
+    // O botão "Fazer Pedido" agora submete o formulário HTML diretamente para o PHP.
 });
 
 
@@ -148,7 +142,7 @@ function ensureTrocoUI() {
                 '<label style="display:block; font-size:.85rem; font-weight:600; color:var(--cinza-texto); margin-bottom:8px;">' +
                     'Pagará com quanto? (opcional)' +
                 '</label>' +
-                '<input id="valor-pago-dinheiro" inputmode="decimal" class="form-control" placeholder="Ex: 50,00" style="margin-bottom:10px;">' +
+                '<input id="valor-pago-dinheiro" name="valor_pago_dinheiro" inputmode="decimal" class="form-control" placeholder="Ex: 50,00" style="margin-bottom:10px;">' +
                 '<div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">' +
                     '<span style="font-size:.8rem; color:var(--cinza-medio);">Troco estimado</span>' +
                     '<strong id="troco-valor" style="color:var(--marrom);">—</strong>' +

@@ -82,6 +82,36 @@ class Auth {
         return $this->pdo->lastInsertId();
     }
 
+    // Atualiza dados do cliente (com validação cruzada)
+    public function atualizarPerfilCliente($id_cliente, $nome, $telefone, $senha = null) {
+        $stmtEmail = $this->pdo->prepare("SELECT email FROM cliente WHERE id_cliente = :id LIMIT 1");
+        $stmtEmail->execute(['id' => $id_cliente]);
+        $cli = $stmtEmail->fetch();
+        $email = $cli ? $cli['email'] : '';
+
+        if ($this->verificarDuplicidade($email, $telefone, $id_cliente, 'cliente')) {
+            throw new Exception("Esse número de telefone já pertence a outra conta cadastrada.");
+        }
+
+        if (!empty($senha)) {
+            $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
+            $stmt = $this->pdo->prepare("UPDATE cliente SET nome = :nome, telefone = :telefone, senha = :senha WHERE id_cliente = :id");
+            return $stmt->execute([
+                'nome' => $nome,
+                'telefone' => $telefone,
+                'senha' => $senhaHash,
+                'id' => $id_cliente
+            ]);
+        } else {
+            $stmt = $this->pdo->prepare("UPDATE cliente SET nome = :nome, telefone = :telefone WHERE id_cliente = :id");
+            return $stmt->execute([
+                'nome' => $nome,
+                'telefone' => $telefone,
+                'id' => $id_cliente
+            ]);
+        }
+    }
+
     // Cadastra novo administrador/funcionario (com validação cruzada)
     public function cadastrarAdmin($nome, $email, $telefone, $senha, $tipo) {
         if ($this->verificarDuplicidade($email, $telefone)) {

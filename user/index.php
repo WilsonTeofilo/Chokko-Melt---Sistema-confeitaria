@@ -16,7 +16,7 @@ include '../includes/user_header.php';
 <!-- ── BANNER ── -->
 <div class="hero-banner">
     <h2>Cardápio Digital 🍫</h2>
-    <p>Confeitaria artesanal no Grajaú · Delivery das <span id="store-hours-text">15:00 às 22:00</span></p>
+    <p>Confeitaria artesanal no Grajaú · Delivery das <span id="store-hours-text"><?php echo $horario['horario']; ?></span></p>
 </div>
 
 <!-- ── FILTROS DE CATEGORIA ── -->

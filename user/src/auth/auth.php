@@ -97,4 +97,36 @@ switch (@$_REQUEST['acao']) {
             exibirModalEVoltar('Erro', $e->getMessage(), 'javascript:window.history.back()');
         }
         break;
+
+    case 'EditarPerfil':
+        if (!isset($_SESSION['idlogado'])) {
+            header("Location: ../../login.php");
+            exit;
+        }
+
+        $id_cliente = intval($_SESSION['idlogado']);
+        $nome       = trim($_POST['nome'] ?? '');
+        $telefone   = preg_replace('/[^0-9]/', '', $_POST['telefone'] ?? '');
+        $nova_senha = $_POST['nova_senha'] ?? '';
+
+        if (empty($nome) || empty($telefone)) {
+            exibirModalEVoltar('Atenção', 'Nome e telefone são campos obrigatórios.', 'javascript:window.history.back()');
+            exit;
+        }
+
+        try {
+            $senha_atualizar = !empty($nova_senha) ? $nova_senha : null;
+
+            $auth->atualizarPerfilCliente($id_cliente, $nome, $telefone, $senha_atualizar);
+
+            // Atualiza as sessões correspondentes com os novos dados salvos
+            $_SESSION['userlogado'] = $nome;
+            $_SESSION['idtelefone'] = $telefone;
+
+            header("Location: ../../perfil.php?msg=" . urlencode("Seus dados cadastrais foram atualizados com sucesso!"));
+            exit;
+        } catch (Exception $e) {
+            exibirModalEVoltar('Erro ao Atualizar', $e->getMessage(), 'javascript:window.history.back()');
+        }
+        break;
 }

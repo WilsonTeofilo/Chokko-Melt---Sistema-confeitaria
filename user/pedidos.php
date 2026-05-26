@@ -21,115 +21,168 @@ include '../includes/user_header.php';
 <div class="page-pad">
 
 <?php
-/*
- * ══════════════════════════════════════════════════════════════
- *  NOTA BACKEND — INTEGRAÇÃO PHP/MYSQL
- * ══════════════════════════════════════════════════════════════
- *
- *  O bloco abaixo é MOCKUP FRONT-END apenas.
- *  Quando o backend estiver pronto:
- *
- *  1. Buscar pedidos do usuário logado:
- *     SELECT p.id, p.status, p.total, p.criado_em,
- *            GROUP_CONCAT(prod.nome, ' x ', pi.quantidade SEPARATOR ', ') AS itens_resumo
- *     FROM pedidos p
- *     INNER JOIN pedido_itens pi ON pi.pedido_id = p.id
- *     INNER JOIN produtos prod ON prod.id = pi.produto_id
- *     WHERE p.usuario_id = $_SESSION['usuario_id']
- *     GROUP BY p.id
- *     ORDER BY p.criado_em DESC;
- *
- *  2. Status possíveis: 'aguardando', 'em_producao', 'saiu_entrega', 'entregue', 'cancelado'
- *
- *  3. Separar ativos dos finalizados:
- *     $ativos    = array_filter($pedidos, fn($p) => !in_array($p['status'], ['entregue','cancelado']));
- *     $historico = array_filter($pedidos, fn($p) =>  in_array($p['status'], ['entregue','cancelado']));
- *
- *  4. Substituir cada card de mockup por um foreach gerando o HTML dinamicamente.
- * ══════════════════════════════════════════════════════════════
- */
+// Carrega conexão e busca pedidos do usuário logado
+require_once '../config/config.php';
+
+$id_cliente = $_SESSION['idlogado'];
+
+// Busca todos os pedidos do cliente ordenados pelo mais recente
+$todosPedidos = [];
+try {
+    $sql = "
+        SELECT p.id_pedido, p.data_hora, p.valor_total, p.tipo_entrega, p.id_status_pedido,
+               sp.descricao AS status_descricao
+        FROM pedido p
+        INNER JOIN status_pedido sp ON p.id_status_pedido = sp.id_status_pedido
+        WHERE p.id_cliente = :id_cliente
+        ORDER BY p.data_hora DESC
+    ";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute(['id_cliente' => $id_cliente]);
+    $todosPedidos = $stmt->fetchAll();
+} catch (Exception $e) {
+    // Silencioso em caso de erro na query
+}
+
+// Prepara consulta para buscar itens de cada pedido
+$ativos = [];
+$historico = [];
+
+if (!empty($todosPedidos)) {
+    try {
+        $stmtItems = $conn->prepare("
+            SELECT ip.quantidade, p.nome
+            FROM item_pedido ip
+            INNER JOIN produto p ON ip.id_produto = p.id_produto
+            WHERE ip.id_pedido = :id_pedido
+        ");
+
+        foreach ($todosPedidos as $pedido) {
+            $stmtItems->execute(['id_pedido' => $pedido['id_pedido']]);
+            $pedido['itens'] = $stmtItems->fetchAll();
+
+            $status = $pedido['status_descricao'];
+            if (in_array($status, ['ENTREGUE', 'CANCELADO_CLIENTE', 'CANCELADO_LOJA'])) {
+                $historico[] = $pedido;
+            } else {
+                $ativos[] = $pedido;
+            }
+        }
+    } catch (Exception $e) {
+        // Silencioso
+    }
+}
+
+// Função auxiliar para formatar status de exibição
+function obterStatusFormatado($status_db) {
+    switch ($status_db) {
+        case 'PENDENTE':
+            return ['class' => 'aguardando', 'texto' => 'Aguardando'];
+        case 'ACEITO':
+            return ['class' => 'em-preparo', 'texto' => 'Aceito pela Loja'];
+        case 'EM_PREPARO':
+            return ['class' => 'em-preparo', 'texto' => 'Em Preparo'];
+        case 'ENVIADO':
+            return ['class' => 'saiu-entrega', 'texto' => 'Saiu para Entrega'];
+        case 'ENTREGUE':
+            return ['class' => 'entregue', 'texto' => 'Entregue'];
+        case 'CANCELADO_CLIENTE':
+        case 'CANCELADO_LOJA':
+            return ['class' => 'cancelado', 'texto' => 'Cancelado'];
+        default:
+            return ['class' => 'aguardando', 'texto' => $status_db];
+    }
+}
 ?>
 
-    <!-- Estado vazio: NOTA BACKEND — exibir esta div apenas se $pedidos estiver vazio -->
-    <div class="orders-empty hide" id="orders-empty">
-        <i class="fa-solid fa-clipboard-list"></i>
-        <p>Você ainda não fez nenhum pedido.</p>
-        <a href="index.php" class="btn btn-primary btn-auto btn-auto-pad">
-            Ver cardápio
-        </a>
-    </div>
-
-    <!-- ══ EM ANDAMENTO ══ -->
-    <!-- NOTA BACKEND: exibir esta secao e seu label apenas se $ativos nao estiver vazio -->
-    <p class="orders-section-label">Em Andamento</p>
-
-    <!-- NOTA BACKEND: foreach ($ativos as $pedido) — gerar um .order-card para cada pedido ativo -->
-    <!-- MODELO PARA FOREACH PHP (ATIVOS) -->
-    <div class="order-card order-card--active" data-pedido-id="[id_pedido]">
-        <div class="order-card-header">
-            <div class="order-card-info">
-                <span class="order-number">Pedido #[id_pedido]</span>
-                <span class="order-date">[data_e_hora_formatada]</span>
-            </div>
-            <!-- NOTA BACKEND: classe CSS do badge = $pedido['status'] (ex: 'em-producao', 'aguardando') -->
-            <span class="order-status [classe_status]">[status_legivel]</span>
-        </div>
-
-        <ul class="order-items-preview">
-            <!-- MODELO FOREACH ITENS DO PEDIDO -->
-            <li><i class="fa-solid fa-circle-dot"></i> [quantidade]x [nome_do_produto]</li>
-        </ul>
-
-        <div class="order-card-footer">
-            <span class="order-total">R$ [total_do_pedido]</span>
-            <a href="detalhes_pedido.php?id=[id_pedido]" class="btn-detalhes">
-                Ver detalhes <i class="fa-solid fa-chevron-right"></i>
+    <!-- Estado vazio se não houver pedidos -->
+    <?php if (empty($todosPedidos)): ?>
+        <div class="orders-empty" id="orders-empty">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <p>Você ainda não fez nenhum pedido.</p>
+            <a href="index.php" class="btn btn-primary btn-auto btn-auto-pad">
+                Ver cardápio
             </a>
         </div>
-    </div>
-    <!-- FIM MODELO PHP -->
+    <?php endif; ?>
+
+    <!-- ══ EM ANDAMENTO ══ -->
+    <?php if (!empty($ativos)): ?>
+        <p class="orders-section-label">Em Andamento</p>
+        
+        <?php foreach ($ativos as $pedido): 
+            $statusInfo = obterStatusFormatado($pedido['status_descricao']);
+            $data_formatada = date('d/m/Y H:i', strtotime($pedido['data_hora']));
+        ?>
+            <div class="order-card order-card--active" data-pedido-id="<?= $pedido['id_pedido'] ?>">
+                <div class="order-card-header">
+                    <div class="order-card-info">
+                        <span class="order-number">Pedido #<?= $pedido['id_pedido'] ?></span>
+                        <span class="order-date"><?= $data_formatada ?></span>
+                    </div>
+                    <span class="order-status <?= $statusInfo['class'] ?>"><?= $statusInfo['texto'] ?></span>
+                </div>
+
+                <ul class="order-items-preview">
+                    <?php foreach ($pedido['itens'] as $item): ?>
+                        <li><i class="fa-solid fa-circle-dot"></i> <?= $item['quantidade'] ?>x <?= htmlspecialchars($item['nome']) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+
+                <div class="order-card-footer">
+                    <span class="order-total">R$ <?= number_format($pedido['valor_total'], 2, ',', '.') ?></span>
+                    <a href="detalhes_pedido.php?id=<?= $pedido['id_pedido'] ?>" class="btn-detalhes">
+                        Ver detalhes <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
 
     <!-- ══ HISTÓRICO ══ -->
-    <!-- NOTA BACKEND: exibir esta secao e seu label apenas se $historico nao estiver vazio -->
-    <p class="orders-section-label mt-24">Histórico</p>
+    <?php if (!empty($historico)): ?>
+        <p class="orders-section-label mt-24">Histórico</p>
 
-    <!-- NOTA BACKEND: foreach ($historico as $pedido) — gerar um .order-card para cada pedido finalizado/cancelado -->
-    <!-- MODELO PARA FOREACH PHP (HISTORICO) -->
-    <div class="order-card [classe_extra_se_cancelado]" data-pedido-id="[id_pedido]">
-        <div class="order-card-header">
-            <div class="order-card-info">
-                <span class="order-number">Pedido #[id_pedido]</span>
-                <span class="order-date">[data_e_hora_formatada]</span>
+        <?php foreach ($historico as $pedido): 
+            $statusInfo = obterStatusFormatado($pedido['status_descricao']);
+            $data_formatada = date('d/m/Y H:i', strtotime($pedido['data_hora']));
+            $cancelado = in_array($pedido['status_descricao'], ['CANCELADO_CLIENTE', 'CANCELADO_LOJA']);
+        ?>
+            <div class="order-card <?= $cancelado ? 'order-card--cancelled' : '' ?>" data-pedido-id="<?= $pedido['id_pedido'] ?>">
+                <div class="order-card-header">
+                    <div class="order-card-info">
+                        <span class="order-number">Pedido #<?= $pedido['id_pedido'] ?></span>
+                        <span class="order-date"><?= $data_formatada ?></span>
+                    </div>
+                    <span class="order-status <?= $statusInfo['class'] ?>"><?= $statusInfo['texto'] ?></span>
+                </div>
+
+                <ul class="order-items-preview">
+                    <?php foreach ($pedido['itens'] as $item): ?>
+                        <li><i class="fa-solid fa-circle-dot"></i> <?= $item['quantidade'] ?>x <?= htmlspecialchars($item['nome']) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+
+                <div class="order-card-footer">
+                    <span class="order-total" style="<?= $cancelado ? 'text-decoration: line-through; color: var(--cinza-medio);' : '' ?>">
+                        R$ <?= number_format($pedido['valor_total'], 2, ',', '.') ?>
+                    </span>
+                    <div class="order-card-actions">
+                        <a href="detalhes_pedido.php?id=<?= $pedido['id_pedido'] ?>" class="btn-detalhes">
+                            Detalhes <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                        <form action="src/carrinho_acao.php" method="POST" style="display:inline;">
+                            <input type="hidden" name="acao" value="repetir_pedido">
+                            <input type="hidden" name="id_pedido" value="<?= $pedido['id_pedido'] ?>">
+                            <button type="submit" class="btn-repetir" style="background: none; border: 1px solid var(--marrom); color: var(--marrom); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                                <i class="fa-solid fa-rotate-right"></i> Repetir
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <span class="order-status [classe_status]">[status_legivel]</span>
-        </div>
-
-        <ul class="order-items-preview">
-            <!-- MODELO FOREACH ITENS -->
-            <li><i class="fa-solid fa-circle-dot"></i> [quantidade]x [nome_do_produto]</li>
-        </ul>
-
-        <!-- Exibir apenas se cancelado e com motivo -->
-        <!--
-        <p class="order-cancel-reason">
-            <i class="fa-solid fa-circle-info"></i> [motivo_cancelamento]
-        </p>
-        -->
-
-        <div class="order-card-footer">
-            <span class="order-total [classe_riscado_se_cancelado]">R$ [total_do_pedido]</span>
-            <div class="order-card-actions">
-                <a href="detalhes_pedido.php?id=[id_pedido]" class="btn-detalhes">
-                    Detalhes <i class="fa-solid fa-chevron-right"></i>
-                </a>
-                <!-- Exibir botao repetir apenas se entregue -->
-                <button class="btn-repetir btn-repetir-pedido" data-pedido-id="[id_pedido]">
-                    <i class="fa-solid fa-rotate-right"></i> Repetir
-                </button>
-            </div>
-        </div>
-    </div>
-    <!-- FIM MODELO PHP -->
+        <?php endforeach; ?>
+    <?php endif; ?>
 
 </div>
 

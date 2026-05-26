@@ -1,14 +1,33 @@
 <?php
 // ============================================================
 // carrinho.php — Página da Sacola do cliente
-// ============================================================
 
+
+session_start();
 require_once '../config/config.php';
 require_once '../classes/Carrinho.php';
 
+// Garante que o carrinho existe na sessão
+if (!isset($_SESSION['carrinho'])) {
+    $_SESSION['carrinho'] = [];
+}
+
+// Puxa a taxa de entrega padrão da tabela config_loja
+$taxa_entrega = 5.00;
+try {
+    $stmt = $conn->prepare("SELECT taxa_entrega_padrao FROM config_loja WHERE id_config = 1");
+    $stmt->execute();
+    $config_loja = $stmt->fetch();
+    if ($config_loja) {
+        $taxa_entrega = floatval($config_loja['taxa_entrega_padrao']);
+    }
+} catch (Exception $e) {
+    // Mantém o padrão em caso de erro
+}
+
+// Puxa os itens da sessão para uma variável local
 $carrinhoObj = new Carrinho(DATABASE, HOST, USER, PASS);
 $itens       = $carrinhoObj->listarItens();
-$taxa_entrega = 5.00;
 $subtotal     = $carrinhoObj->calcularSubtotal();
 $total        = $subtotal + $taxa_entrega;
 ?>

@@ -27,7 +27,7 @@ window.fecharSheetEnderecos = function() {
 }
 
 // Quando o usuário clica em um endereço da lista
-window.selecionarEndereco = function(elementoClicado, apelido, rua, bairro) {
+window.selecionarEndereco = function(elementoClicado, apelido, rua, bairro, idEndereco) {
     // Tira a borda verde de todos
     var todosEnderecos = document.querySelectorAll('.addr-option');
     for (var i = 0; i < todosEnderecos.length; i++) {
@@ -46,64 +46,44 @@ window.selecionarEndereco = function(elementoClicado, apelido, rua, bairro) {
     if (endLinha1) { endLinha1.textContent = rua; }
     if (endLinha2) { endLinha2.textContent = bairro; }
 
-    // NOTA BACKEND: aqui você deve atualizar um input hidden com o ID do endereço
-    // Exemplo: document.getElementById('endereco-id').value = elementoClicado.dataset.endId;
+    // Atualiza o input hidden com o ID do endereço
+    var hiddenInput = document.getElementById('id_endereco_input');
+    if (hiddenInput) {
+        hiddenInput.value = idEndereco;
+    }
 
     // Fecha a janelinha depois de um tempinho
     setTimeout(fecharSheetEnderecos, 250);
 }
 
-// Preenche o resumo do pedido (Subtotal, Taxa e Total)
-// NOTA BACKEND: Quando o PHP fizer isso, você pode apagar esta função.
+// Controla a exibição do campo de troco ao selecionar a opção Dinheiro
 document.addEventListener('DOMContentLoaded', function() {
-    
-    function preencherResumo() {
-        try {
-            var dadosCarrinho = localStorage.getItem('chokko_cart');
-            var carrinho = dadosCarrinho ? JSON.parse(dadosCarrinho) : [];
-            var entrega = localStorage.getItem('chokko_entrega') || 'delivery';
-            
-            var subtotal = 0;
-            var taxa = 0;
-            var total = 0;
+    var radiosPagamento = document.querySelectorAll('input[name="pagamento"]');
+    var trocoWrapper = document.getElementById('troco-wrapper');
+    var campoTroco = document.getElementById('valor_pago_dinheiro');
 
-            // Define a taxa de acordo com o tipo de entrega
-            if (entrega === 'delivery') {
-                taxa = 5.00;
-            } else {
-                taxa = 0.00;
+    function gerenciarTroco() {
+        if (!trocoWrapper) return;
+        
+        var selecionado = document.querySelector('input[name="pagamento"]:checked');
+        if (selecionado && selecionado.value === 'dinheiro') {
+            trocoWrapper.style.display = 'block';
+            if (campoTroco) campoTroco.setAttribute('required', 'required');
+        } else {
+            trocoWrapper.style.display = 'none';
+            if (campoTroco) {
+                campoTroco.removeAttribute('required');
+                campoTroco.value = ''; // Limpa valor se mudar de ideia
             }
-
-            // Calcula o subtotal somando os itens do localStorage
-            for (var i = 0; i < carrinho.length; i++) {
-                var item = carrinho[i];
-                subtotal = subtotal + (item.unitPrice * item.qty);
-            }
-
-            total = subtotal + taxa;
-
-            // Atualiza os valores na tela
-            var finSubtotal = document.getElementById('fin-subtotal');
-            var finTaxa = document.getElementById('fin-taxa');
-            var finTotal = document.getElementById('fin-total');
-
-            if (finSubtotal) {
-                finSubtotal.textContent = 'R$ ' + subtotal.toFixed(2).replace('.', ',');
-            }
-            if (finTaxa) {
-                if (taxa > 0) {
-                    finTaxa.textContent = 'R$ ' + taxa.toFixed(2).replace('.', ',');
-                } else {
-                    finTaxa.textContent = 'Grátis';
-                }
-            }
-            if (finTotal) {
-                finTotal.textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
-            }
-        } catch(erro) {
-            // Se der erro ao ler localStorage, apenas ignora
         }
     }
-    
-    preencherResumo();
+
+    // Registra o evento de escuta em todos os radios
+    if (radiosPagamento.length > 0) {
+        radiosPagamento.forEach(function(radio) {
+            radio.addEventListener('change', gerenciarTroco);
+        });
+        // Roda uma vez no início para garantir o estado inicial
+        gerenciarTroco();
+    }
 });
