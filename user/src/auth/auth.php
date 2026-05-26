@@ -2,6 +2,7 @@
 session_start();
 require_once '../../../config/config.php';
 require_once '../../../classes/Auth.php';
+require_once '../../../classes/Carrinho.php';
 require_once '../../../includes/modal.php'; // exibirModalEVoltar() centralizada
 
 $auth = new Auth(DATABASE, HOST, USER, PASS);
@@ -24,6 +25,10 @@ switch (@$_REQUEST['acao']) {
                 $_SESSION['idlogado']    = $novoId;
                 $_SESSION['idemail']     = $email;
                 $_SESSION['idtelefone']  = $telefone;
+
+                // Sincroniza o carrinho da sessão com o banco de dados
+                $carrinhoObj = new Carrinho(DATABASE, HOST, USER, PASS);
+                $carrinhoObj->sincronizarSessaoParaBanco($novoId);
 
                 header("Location: ../../" . $redirectDestino);
                 exit;
@@ -48,6 +53,10 @@ switch (@$_REQUEST['acao']) {
                     $_SESSION['idlogado']    = $cliente['id_cliente'];
                     $_SESSION['idemail']     = $cliente['email'];
                     $_SESSION['idtelefone']  = $cliente['telefone'];
+
+                    // Sincroniza o carrinho da sessão com o banco de dados
+                    $carrinhoObj = new Carrinho(DATABASE, HOST, USER, PASS);
+                    $carrinhoObj->sincronizarSessaoParaBanco($cliente['id_cliente']);
 
                     header("Location: ../../" . $redirectDestino);
                     exit;

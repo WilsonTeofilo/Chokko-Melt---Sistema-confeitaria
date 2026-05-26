@@ -291,6 +291,7 @@ CREATE TABLE `item_carrinho` (
   `id_item_carrinho` INT NOT NULL AUTO_INCREMENT,
   `preco_unitario` DECIMAL(8,2) NOT NULL,
   `quantidade` INT NOT NULL DEFAULT 1,
+  `observacao` VARCHAR(200) NULL,
   `id_produto` INT NULL,
   `id_carrinho` INT NULL,
   PRIMARY KEY (`id_item_carrinho`),

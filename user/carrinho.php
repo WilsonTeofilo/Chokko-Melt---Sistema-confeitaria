@@ -2,31 +2,15 @@
 // ============================================================
 // carrinho.php — Página da Sacola do cliente
 // ============================================================
-// O que este arquivo faz:
-//   1. Inicia a sessão e lê $_SESSION['carrinho']
-//   2. Calcula subtotal e total
-//   3. Exibe os itens ou a tela vazia
-//   4. Botões +/- e lixeira = mini-forms que postam para src/carrinho_acao.php
-// ============================================================
 
-session_start();
+require_once '../config/config.php';
+require_once '../classes/Carrinho.php';
 
-// Garante que o carrinho existe na sessão
-if (!isset($_SESSION['carrinho'])) {
-    $_SESSION['carrinho'] = [];
-}
-
-// Puxa os itens da sessão para uma variável local
-$carrinho     = $_SESSION['carrinho'];
+$carrinhoObj = new Carrinho(DATABASE, HOST, USER, PASS);
+$itens       = $carrinhoObj->listarItens();
 $taxa_entrega = 5.00;
-$subtotal     = 0;
-
-// Calcula o subtotal somando (preço x quantidade) de cada item
-foreach ($carrinho as $item) {
-    $subtotal += $item['preco_unitario'] * $item['quantidade'];
-}
-
-$total = $subtotal + $taxa_entrega;
+$subtotal     = $carrinhoObj->calcularSubtotal();
+$total        = $subtotal + $taxa_entrega;
 ?>
 <?php include '../includes/user_header.php'; ?>
 <link rel="stylesheet" href="assets/css/carrinho.css">
@@ -45,7 +29,7 @@ $total = $subtotal + $taxa_entrega;
 
     <div class="card" id="cart-container">
 
-        <?php if (empty($carrinho)): ?>
+        <?php if (empty($itens)): ?>
 
             <!-- Carrinho vazio -->
             <div class="cart-empty" id="cart-empty">
@@ -60,13 +44,23 @@ $total = $subtotal + $taxa_entrega;
 
             <!-- Lista de itens do carrinho -->
             <div id="cart-items-list">
-                <?php foreach ($carrinho as $idx => $item): ?>
+                <?php foreach ($itens as $item): 
+                    $chave = $item['chave'];
+                    
+                    // Tratamento amigável da URL da imagem
+                    $imgSrc = $item['imagem'];
+                    if (empty($imgSrc)) {
+                        $imgSrc = 'https://placehold.co/150x150/f5e6d0/8B4513?text=Foto';
+                    } else if (strpos($imgSrc, 'uploads/') === 0) {
+                        $imgSrc = '../admin/' . $imgSrc;
+                    }
+                ?>
                 <div class="cart-item">
 
                     <!-- Imagem + informações do produto -->
                     <div class="cart-item-main">
                         <img class="cart-item-img"
-                             src="<?= htmlspecialchars($item['imagem']) ?>"
+                             src="<?= htmlspecialchars($imgSrc) ?>"
                              alt="<?= htmlspecialchars($item['nome']) ?>">
                         <div class="cart-item-info">
                             <h4><?= htmlspecialchars($item['nome']) ?></h4>
@@ -87,7 +81,7 @@ $total = $subtotal + $taxa_entrega;
                         <!-- Botão diminuir -->
                         <form method="POST" action="src/carrinho_acao.php" style="display:inline;">
                             <input type="hidden" name="acao"  value="alterar_quantidade">
-                            <input type="hidden" name="idx"   value="<?= $idx ?>">
+                            <input type="hidden" name="chave" value="<?= htmlspecialchars($chave) ?>">
                             <input type="hidden" name="delta" value="-1">
                             <button type="submit">−</button>
                         </form>
@@ -97,7 +91,7 @@ $total = $subtotal + $taxa_entrega;
                         <!-- Botão aumentar -->
                         <form method="POST" action="src/carrinho_acao.php" style="display:inline;">
                             <input type="hidden" name="acao"  value="alterar_quantidade">
-                            <input type="hidden" name="idx"   value="<?= $idx ?>">
+                            <input type="hidden" name="chave" value="<?= htmlspecialchars($chave) ?>">
                             <input type="hidden" name="delta" value="1">
                             <button type="submit">+</button>
                         </form>
@@ -106,8 +100,8 @@ $total = $subtotal + $taxa_entrega;
 
                     <!-- Botão remover item -->
                     <form method="POST" action="src/carrinho_acao.php" style="display:inline;">
-                        <input type="hidden" name="acao" value="remover">
-                        <input type="hidden" name="idx"  value="<?= $idx ?>">
+                        <input type="hidden" name="acao"  value="remover">
+                        <input type="hidden" name="chave" value="<?= htmlspecialchars($chave) ?>">
                         <button type="submit" class="cart-item-remove" title="Remover">
                             <i class="fa-solid fa-trash"></i>
                         </button>
@@ -137,7 +131,7 @@ $total = $subtotal + $taxa_entrega;
 
     </div>
 
-    <?php if (!empty($carrinho)): ?>
+    <?php if (!empty($itens)): ?>
 
     <!-- Forma de recebimento -->
     <div class="card mb-14" id="card-entrega">

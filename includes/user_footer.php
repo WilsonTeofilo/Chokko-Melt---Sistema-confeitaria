@@ -11,13 +11,13 @@
  */
 $current_page = basename($_SERVER['PHP_SELF']);
 
-// Conta quantos itens tem no carrinho para mostrar na bolinha do ícone
-$totalItensCarrinho = 0;
-if (isset($_SESSION['carrinho']) && is_array($_SESSION['carrinho'])) {
-    foreach ($_SESSION['carrinho'] as $item) {
-        $totalItensCarrinho += intval($item['quantidade'] ?? 0);
-    }
-}
+// Importa classes necessárias de forma segura usando caminhos absolutos
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../classes/Carrinho.php';
+
+// Instancia a classe Carrinho e conta os itens
+$carrinhoObj = new Carrinho(DATABASE, HOST, USER, PASS);
+$totalItensCarrinho = $carrinhoObj->contarItens();
 ?>
     <footer class="bottom-nav">
         <a href="index.php" class="nav-item <?= $current_page == 'index.php' ? 'active' : '' ?>">
