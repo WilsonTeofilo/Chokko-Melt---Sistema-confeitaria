@@ -40,7 +40,10 @@ function temPermissao($modulo, $permissoes, $tipo) {
             </a>
         </div>
         <nav class="top-nav">
-            <a href="../user/src/auth/logout.php">Sair <i class="fa-solid fa-right-from-bracket"></i></a>
+            <!-- span em volta de "Sair" para poder esconder o texto no mobile (480px) mantendo o ícone -->
+            <a href="../user/src/auth/logout.php" aria-label="Sair do painel">
+                <span>Sair </span><i class="fa-solid fa-right-from-bracket"></i>
+            </a>
         </nav>
     </header>
 

@@ -75,3 +75,73 @@
 .success-title { color: var(--marrom); margin-bottom: 10px; font-size: 1.4rem; }
 .success-msg { color: #666; margin-bottom: 20px; line-height: 1.4; }
 .btn-success-ok { background: var(--marrom); color: white; border: none; padding: 10px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; }
+
+/* =========================================
+   RESPONSIVIDADE - PEDIDOS
+   ========================================= */
+@media (max-width: 768px) {
+    /* Tabs de status: scroll horizontal */
+    .status-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+        gap: 6px;
+        /* Esconde scrollbar visualmente mas mantém funcional */
+        scrollbar-width: none;
+    }
+    .status-tabs::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding: 8px 14px;
+        font-size: 0.85rem;
+    }
+
+    /* Modal de detalhes */
+    .modal-detalhes-content {
+        width: 95% !important;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    /* Modal de cancelamento */
+    .modal-cancel-content {
+        width: 95% !important;
+    }
+
+    /* Footer do modal: botões empilham */
+    .modal-footer-wrap {
+        flex-direction: column-reverse;
+        gap: 8px;
+    }
+
+    .btn-print-comanda,
+    .btn-fechar-modal,
+    .btn-confirm-cancel {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Botões de ação da linha de pedido ficam menores mas em linha */
+    .acoes-pedido {
+        gap: 5px;
+    }
+
+    .btn-action-accept {
+        padding: 7px 10px;
+        font-size: 0.8rem;
+    }
+
+    /* Modal sucesso cabe em telas pequenas */
+    .modal-success-content {
+        padding: 20px;
+    }
+
+    .success-icon { font-size: 2.5rem; }
+    .success-title { font-size: 1.2rem; }
+}

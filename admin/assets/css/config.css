@@ -130,3 +130,46 @@ input:checked + .slider:before {
 /* Utils para config.php */
 .flex-gap-15 { display: flex; gap: 15px; margin-bottom: 20px; }
 .flex-1 { flex: 1; }
+
+/* =========================================
+   RESPONSIVIDADE - CONFIG
+   ========================================= */
+@media (max-width: 768px) {
+    .config-wrapper {
+        max-width: 100%;
+    }
+
+    /* Horário de abertura e fechamento empilham no mobile */
+    .flex-gap-15 {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    /* Toggle ocupa largura inteira */
+    .toggle-container {
+        flex-direction: row;
+        align-items: center;
+        padding: 14px;
+    }
+
+    /* Botão salvar ocupa largura total */
+    .config-footer {
+        text-align: center;
+    }
+
+    .config-save-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .config-section {
+        padding: 18px 15px;
+    }
+
+    .toggle-container {
+        gap: 12px;
+    }
+}

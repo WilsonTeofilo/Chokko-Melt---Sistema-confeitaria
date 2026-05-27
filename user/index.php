@@ -58,8 +58,8 @@ include '../includes/user_header.php';
             }
             
             $descCurta = $p['descricao'];
-            if (mb_strlen($descCurta) > 70) {
-                $descCurta = mb_substr($descCurta, 0, 67) . '...';
+            if (strlen($descCurta) > 70) {
+                $descCurta = substr($descCurta, 0, 67) . '...';
             }
     ?>
     <article class="product-card" data-cat="<?php echo $p['id_categoria']; ?>"

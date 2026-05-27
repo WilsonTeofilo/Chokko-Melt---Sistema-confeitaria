@@ -241,6 +241,60 @@
         color: var(--marrom-quente);
     }
 
+    /* ── Select de bairro — desktop ── */
+    .input-field-select select {
+        flex: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 1rem;
+        color: #222;
+        padding: 4px 28px 4px 0;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        
+        /* Chevron minimalista em SVG (cor marrom-médio) */
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234E342E' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right center;
+        background-size: 16px;
+        transition: background-image 0.25s, color 0.25s;
+    }
+
+    .input-field-select select:focus {
+        outline: none;
+    }
+
+    /* Chevron muda de cor quando o container está em foco (marrom-quente) */
+    .input-field-select:focus-within select {
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239b3f21' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    }
+
+    .input-field-select select option {
+        background-color: var(--branco);
+        color: var(--marrom-escuro);
+        padding: 10px;
+    }
+
+    .input-field-select select:invalid,
+    .input-field-select select option[value=""] {
+        color: #c0c0c0;
+    }
+
+    /* hint de localidade */
+    .bairro-hint {
+        font-size: 0.72rem;
+        color: #9b7e6e;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 2px;
+    }
+
+    .bairro-hint i { font-size: 0.68rem; }
+
     /* Botão de salvar — desktop */
     #btn-salvar-endereco {
         width: 100%;
@@ -441,6 +495,59 @@
     .input-field:focus-within i {
         color: var(--marrom-quente);
     }
+
+    /* ── Select de bairro — mobile ── */
+    .input-field-select select {
+        flex: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 0.95rem;
+        color: #222;
+        padding: 4px 24px 4px 0;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        
+        /* Chevron minimalista em SVG (cor marrom-médio) */
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234E342E' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right center;
+        background-size: 14px;
+        transition: background-image 0.25s, color 0.25s;
+    }
+
+    .input-field-select select:focus {
+        outline: none;
+    }
+
+    /* Chevron muda de cor quando o container está em foco (marrom-quente) */
+    .input-field-select:focus-within select {
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239b3f21' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    }
+
+    .input-field-select select option {
+        background-color: var(--branco);
+        color: var(--marrom-escuro);
+    }
+
+    .input-field-select select:invalid,
+    .input-field-select select option[value=""] {
+        color: #bbb;
+    }
+
+    /* hint de localidade */
+    .bairro-hint {
+        font-size: 0.7rem;
+        color: #9b7e6e;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 1px;
+    }
+
+    .bairro-hint i { font-size: 0.65rem; }
 
     /* Botão de salvar — mobile */
     #btn-salvar-endereco {

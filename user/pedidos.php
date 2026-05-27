@@ -51,9 +51,9 @@ $historico = [];
 if (!empty($todosPedidos)) {
     try {
         $stmtItems = $conn->prepare("
-            SELECT ip.quantidade, p.nome
+            SELECT ip.quantidade, COALESCE(p.nome, 'Produto Indisponível') AS nome
             FROM item_pedido ip
-            INNER JOIN produto p ON ip.id_produto = p.id_produto
+            LEFT JOIN produto p ON ip.id_produto = p.id_produto
             WHERE ip.id_pedido = :id_pedido
         ");
 

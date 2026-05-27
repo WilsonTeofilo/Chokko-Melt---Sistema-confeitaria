@@ -156,15 +156,40 @@ if ($forma_pagamento_db === 'DINHEIRO' && isset($_POST['valor_pago_dinheiro'])) 
 try {
     $conn->beginTransaction();
 
-    // A) Insere o pedido principal
+    // Calcula o custo total do pedido a partir do custo_compra de cada produto no momento da compra
+    $custo_total = 0.00;
+    $itens_detalhados = [];
+    foreach ($itens as $item) {
+        $stmtCusto = $conn->prepare("SELECT custo_compra FROM produto WHERE id_produto = :id LIMIT 1");
+        $stmtCusto->execute(['id' => $item['id_produto']]);
+        $prodInfo = $stmtCusto->fetch();
+        $custo_unitario = $prodInfo && isset($prodInfo['custo_compra']) ? floatval($prodInfo['custo_compra']) : 0.00;
+        
+        $custo_total += $custo_unitario * $item['quantidade'];
+        
+        $itens_detalhados[] = [
+            'id_produto' => $item['id_produto'],
+            'preco_unitario' => $item['preco_unitario'],
+            'custo_unitario' => $custo_unitario,
+            'quantidade' => $item['quantidade'],
+            'observacao' => $item['observacao']
+        ];
+    }
+    
+    // Lucro líquido do pedido = subtotal - custo de compra total
+    $lucro = $subtotal - $custo_total;
+
+    // A) Insere o pedido principal com informações de custo e lucro
     $sqlPedido = "
-        INSERT INTO pedido (valor_total, subtotal, observacao, tipo_entrega, taxa_entrega, cpf_nota, id_status_pedido, id_cliente, id_endereco)
-        VALUES (:total, :subtotal, :obs, :tipo, :taxa, :cpf, 1, :id_cliente, :id_endereco)
+        INSERT INTO pedido (valor_total, subtotal, custo_total, lucro, observacao, tipo_entrega, taxa_entrega, cpf_nota, id_status_pedido, id_cliente, id_endereco)
+        VALUES (:total, :subtotal, :custo_total, :lucro, :obs, :tipo, :taxa, :cpf, 1, :id_cliente, :id_endereco)
     ";
     $stmtPedido = $conn->prepare($sqlPedido);
     $stmtPedido->execute([
         ':total'        => $total,
         ':subtotal'     => $subtotal,
+        ':custo_total'  => $custo_total,
+        ':lucro'        => $lucro,
         ':obs'          => empty($observacao_pedido) ? null : htmlspecialchars($observacao_pedido),
         ':tipo'         => $tipo_entrega_db,
         ':taxa'         => $taxa_entrega,
@@ -175,17 +200,18 @@ try {
 
     $id_pedido = $conn->lastInsertId();
 
-    // B) Insere os itens do pedido
+    // B) Insere os itens do pedido com o custo_unitario capturado (snapshot de custo)
     $sqlItem = "
-        INSERT INTO item_pedido (preco_unitario, quantidade, observacao, id_produto, id_pedido)
-        VALUES (:preco, :qtd, :obs, :id_prod, :id_ped)
+        INSERT INTO item_pedido (preco_unitario, quantidade, custo_unitario, observacao, id_produto, id_pedido)
+        VALUES (:preco, :qtd, :custo, :obs, :id_prod, :id_ped)
     ";
     $stmtItem = $conn->prepare($sqlItem);
 
-    foreach ($itens as $item) {
+    foreach ($itens_detalhados as $item) {
         $stmtItem->execute([
             ':preco'   => $item['preco_unitario'],
             ':qtd'     => $item['quantidade'],
+            ':custo'   => $item['custo_unitario'],
             ':obs'     => empty($item['observacao']) ? null : htmlspecialchars($item['observacao']),
             ':id_prod' => $item['id_produto'],
             ':id_ped'  => $id_pedido

@@ -142,19 +142,19 @@ include '../includes/admin_header.php';
             <div class="form-row">
                 <div class="form-group flex-2">
                     <label class="form-label">Nome do Produto <span class="required">*</span></label>
-                    <input type="text" id="prod-nome" name="nome" class="form-control" placeholder="Ex: Bolo de Cenoura" required autocomplete="off" value="<?php echo $produtoEditar ? htmlspecialchars($produtoEditar['nome']) : ''; ?>">
+                    <input type="text" id="prod-nome" name="nome" class="form-control" placeholder="Ex: Bolo de Cenoura" required maxlength="50" autocomplete="off" value="<?php echo $produtoEditar ? htmlspecialchars($produtoEditar['nome']) : ''; ?>">
                 </div>
                 <div class="form-group flex-1">
                     <label class="form-label">Preço Venda (R$) <span class="required">*</span></label>
                     <input type="text" id="prod-preco" name="preco" class="form-control"
-                           placeholder="0,00" required
+                           placeholder="0,00" required maxlength="10"
                            oninput="this.value = this.value.replace(/[^0-9.,]/g, '').replace('.', ',')"
                            value="<?php echo $produtoEditar ? number_format($produtoEditar['preco'], 2, ',', '.') : ''; ?>">
                 </div>
                 <div class="form-group flex-1">
-                    <label class="form-label">Custo Compra (R$)</label>
+                    <label class="form-label">Custo Compra (R$) <span class="required">*</span></label>
                     <input type="text" id="prod-custo" name="custo_compra" class="form-control"
-                           placeholder="0,00"
+                           placeholder="0,00" required maxlength="10"
                            oninput="this.value = this.value.replace(/[^0-9.,]/g, '').replace('.', ',')"
                            value="<?php echo $produtoEditar && $produtoEditar['custo_compra'] ? number_format($produtoEditar['custo_compra'], 2, ',', '.') : ''; ?>">
                 </div>
@@ -162,8 +162,8 @@ include '../includes/admin_header.php';
 
             <div class="form-row">
                 <div class="form-group flex-1">
-                    <label class="form-label">Categoria</label>
-                    <select id="prod-categoria" name="categoria" class="form-control" onchange="verificarNovaCategoria(this)">
+                    <label class="form-label">Categoria <span class="required">*</span></label>
+                    <select id="prod-categoria" name="categoria" class="form-control" required onchange="verificarNovaCategoria(this)">
                         <?php 
                         try {
                             $catObj = new Categoria(DATABASE, HOST, USER, PASS);
@@ -209,7 +209,7 @@ include '../includes/admin_header.php';
 
             <div class="form-group">
                 <label class="form-label">Descrição / Ingredientes</label>
-                <textarea class="form-control" name="descricao" id="prod-descricao" rows="3" placeholder="Descreva o produto..."><?php echo $produtoEditar ? htmlspecialchars($produtoEditar['descricao']) : ''; ?></textarea>
+                <textarea class="form-control" name="descricao" id="prod-descricao" rows="3" maxlength="500" placeholder="Descreva o produto..."><?php echo $produtoEditar ? htmlspecialchars($produtoEditar['descricao']) : ''; ?></textarea>
             </div>
 
             <h3 class="modal-subtitle mt-20">Adicionais / Complementos</h3>
@@ -234,18 +234,18 @@ include '../includes/admin_header.php';
             <h2 class="modal-title">Novo Adicional</h2>
             <button onclick="fecharModalAdicional()" class="btn-close-modal">&times;</button>
         </div>
-        <form>
+        <form onsubmit="event.preventDefault(); salvarNovoAdicional();">
             <div class="form-group">
                 <label class="form-label">Nome do Adicional <span class="required">*</span></label>
-                <input type="text" id="add-nome" class="form-control" placeholder="Ex: Granulado">
+                <input type="text" id="add-nome" class="form-control" placeholder="Ex: Granulado" required maxlength="80">
             </div>
             <div class="form-group">
                 <label class="form-label">Preço (Opcional)</label>
-                <input type="number" id="add-preco" class="form-control" placeholder="0.00" step="0.01" min="0">
+                <input type="number" id="add-preco" class="form-control" placeholder="0.00" step="0.01" min="0" maxlength="10">
             </div>
             <div class="modal-footer">
                 <button type="button" onclick="fecharModalAdicional()" class="btn-cancel">Cancelar</button>
-                <button type="button" class="btn-action-accept btn-save" onclick="salvarNovoAdicional()">
+                <button type="submit" class="btn-action-accept btn-save">
                     <i class="fa-solid fa-plus"></i> Adicionar
                 </button>
             </div>

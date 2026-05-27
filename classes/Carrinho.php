@@ -19,9 +19,25 @@ class Carrinho {
 
         // Se o cliente está logado
         if (isset($_SESSION['idlogado'])) {
-            $this->idCliente = $_SESSION['idlogado'];
-            $this->inicializarCarrinhoBanco();
-            $this->carregarItensBanco();
+            $idSessao = $_SESSION['idlogado'];
+
+            // Verifica se o cliente da sessão ainda existe no banco
+            $stmtVerifica = $this->pdo->prepare("SELECT id_cliente FROM cliente WHERE id_cliente = :id LIMIT 1");
+            $stmtVerifica->execute(['id' => $idSessao]);
+            $clienteExiste = $stmtVerifica->fetch();
+
+            if ($clienteExiste) {
+                $this->idCliente = $idSessao;
+                $this->inicializarCarrinhoBanco();
+                $this->carregarItensBanco();
+            } else {
+                // Sessão com ID inválido (ex: banco foi re-indexado) — limpa e trata como visitante
+                session_destroy();
+                session_start();
+                $this->idCliente = null;
+                $_SESSION['carrinho'] = [];
+                $this->itens = [];
+            }
         } else {
             // Visitante: usa a sessão
             $this->idCliente = null;

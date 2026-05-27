@@ -45,9 +45,10 @@ try {
     // Busca os itens do pedido
     $sqlItens = "
         SELECT ip.quantidade, ip.preco_unitario, ip.observacao,
-               p.nome, p.imagem
+               COALESCE(p.nome, 'Produto Indisponível') AS nome,
+               COALESCE(p.imagem, '') AS imagem
         FROM item_pedido ip
-        INNER JOIN produto p ON ip.id_produto = p.id_produto
+        LEFT JOIN produto p ON ip.id_produto = p.id_produto
         WHERE ip.id_pedido = :id_pedido
     ";
     $stmtItens = $conn->prepare($sqlItens);

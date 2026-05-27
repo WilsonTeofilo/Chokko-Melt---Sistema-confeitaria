@@ -2,19 +2,25 @@
 //  endereco.js — Lógica da tela de cadastro de endereço
 //  - Máscara de CEP (00000-000)
 //  - Auto-preenchimento via ViaCEP API
+//  - Bairro agora é <select> com lista restrita (Grajaú/SP)
 // ═══════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    const inputCep   = document.getElementById('cepJS');
-    const inputRua   = document.getElementById('ruaJS');
-    const inputBairro = document.getElementById('bairroJS');
+    const inputCep    = document.getElementById('cepJS');
+    const inputRua    = document.getElementById('ruaJS');
+    const selectBairro = document.getElementById('bairroJS'); // agora é <select>
 
     // ── 1. MÁSCARA DO CEP (digita 12345678 → vira 12345-678) ──
     inputCep.addEventListener('input', () => {
         let v = inputCep.value.replace(/\D/g, '').slice(0, 8);
         if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
         inputCep.value = v;
+
+        // Limpa erros e estilos customizados de borda ao digitar novamente
+        const inputField = inputCep.closest('.input-field');
+        inputField.style.borderBottomColor = '';
+        limparErroCep();
 
         // Dispara busca ao completar 8 dígitos (com ou sem hífen)
         if (v.replace('-', '').length === 8) {
@@ -24,11 +30,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── 2. BUSCA NA API VIACEP ──
     async function buscarCep(cepLimpo) {
+        const inputField = inputCep.closest('.input-field');
+        const iconeCep = inputField.querySelector('i');
+        
         // Feedback visual: ícone de loading no campo CEP
-        const iconeCep = inputCep.closest('.input-field').querySelector('i');
         iconeCep.className = 'fa-solid fa-spinner fa-spin';
-        inputRua.value   = '';
-        inputBairro.value = '';
+        iconeCep.style.color = '';
+        inputField.style.borderBottomColor = ''; // limpa borda customizada
+        inputRua.value     = '';
 
         try {
             const res  = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
@@ -38,27 +47,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 // CEP não encontrado
                 iconeCep.className = 'fa-solid fa-circle-xmark';
                 iconeCep.style.color = '#e74c3c';
-                inputCep.style.borderColor = '#e74c3c';
+                inputField.style.borderBottomColor = '#e74c3c';
                 mostrarErroCep('CEP não encontrado. Verifique e tente novamente.');
                 return;
             }
 
-            // Preenchimento automático
-            inputRua.value    = data.logradouro || '';
-            inputBairro.value = data.bairro     || '';
+            // Preenche a rua
+            inputRua.value = data.logradouro || '';
 
             // Ícone de sucesso
             iconeCep.className  = 'fa-solid fa-circle-check';
             iconeCep.style.color = '#4CAF50';
+            inputField.style.borderBottomColor = '#4CAF50';
+            limparErroCep();
 
             // Foca no campo número para o usuário completar
             document.getElementById('numeroJS').focus();
 
-            limparErroCep();
-
         } catch (err) {
             iconeCep.className  = 'fa-solid fa-circle-xmark';
             iconeCep.style.color = '#e74c3c';
+            inputField.style.borderBottomColor = '#e74c3c';
             mostrarErroCep('Erro de conexão. Verifique sua internet.');
         }
     }

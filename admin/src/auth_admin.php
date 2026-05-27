@@ -48,16 +48,15 @@ function exibirModalEVoltar($titulo, $mensagem, $url, $icone = 'fa-circle-exclam
 }
 
 $auth = new Auth(DATABASE, HOST, USER, PASS);
-
-switch (@$_REQUEST['acao']){
+switch (isset($_REQUEST['acao']) ? $_REQUEST['acao'] : ''){
 
     //----- CADASTRAR NOVO USUÁRIO ADMIN:
     case "CadastrarUsuario":
-        $nome = $_POST['usr_nome'];
-        $email = strtolower(trim($_POST['usr_email']));
-        $telefone = preg_replace('/[^0-9]/', '', $_POST['usr_telefone']);
-        $senha = $_POST['usr_senha'];
-        $tipo = $_POST['usr_tipo'];
+        $nome = isset($_POST['usr_nome']) ? trim($_POST['usr_nome']) : '';
+        $email = isset($_POST['usr_email']) ? strtolower(trim($_POST['usr_email'])) : '';
+        $telefone = isset($_POST['usr_telefone']) ? preg_replace('/[^0-9]/', '', $_POST['usr_telefone']) : '';
+        $senha = isset($_POST['usr_senha']) ? $_POST['usr_senha'] : '';
+        $tipo = isset($_POST['usr_tipo']) ? $_POST['usr_tipo'] : '';
         
         try {
             $auth->cadastrarAdmin($nome, $email, $telefone, $senha, $tipo);
@@ -70,8 +69,8 @@ switch (@$_REQUEST['acao']){
 
     //----- LOGAR ADMIN (LEGADO / RETIDO PARA COMPATIBILIDADE SE HOUVER ACESSO DIRETO):
     case "LogarAdmin":
-        $logar = strtolower(trim($_POST['email']));
-        $pass = $_POST['senha'];
+        $logar = isset($_POST['email']) ? strtolower(trim($_POST['email'])) : '';
+        $pass = isset($_POST['senha']) ? $_POST['senha'] : '';
       
         try {
             $admin = $auth->buscarAdminPorEmail($logar);
@@ -121,8 +120,8 @@ switch (@$_REQUEST['acao']){
         break;
 
     case "AtualizarPermissoes":
-        $idAtualizar  = intval($_POST['id_usuario']);
-        $novoTipo     = $_POST['tipo_usuario'] === 'ADMIN' ? 'ADMIN' : 'FUNCIONARIO';
+        $idAtualizar  = isset($_POST['id_usuario']) ? intval($_POST['id_usuario']) : 0;
+        $novoTipo     = (isset($_POST['tipo_usuario']) && $_POST['tipo_usuario'] === 'ADMIN') ? 'ADMIN' : 'FUNCIONARIO';
         $novasPerms   = isset($_POST['permissoes']) ? $_POST['permissoes'] : '';
 
         try {

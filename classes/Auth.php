@@ -50,10 +50,14 @@ class Auth {
         return false;
     }
 
-    // Busca cliente por email
-    public function buscarClientePorEmail($email) {
-        $stmt = $this->pdo->prepare("SELECT * FROM cliente WHERE email = :email LIMIT 1");
-        $stmt->execute(['email' => $email]);
+    // Busca cliente por email ou telefone
+    public function buscarClientePorEmailOuTelefone($login) {
+        $loginLimpo = preg_replace('/[^0-9]/', '', $login);
+        $stmt = $this->pdo->prepare("SELECT * FROM cliente WHERE email = :login OR (telefone = :tel AND :tel != '') LIMIT 1");
+        $stmt->execute([
+            'login' => strtolower(trim($login)),
+            'tel' => $loginLimpo
+        ]);
         return $stmt->fetch();
     }
 

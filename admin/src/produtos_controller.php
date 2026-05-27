@@ -75,15 +75,24 @@ switch ($acao) {
         $custoStr = isset($_POST['custo_compra']) ? trim($_POST['custo_compra']) : '';
         $custoStr = str_replace('.', '', $custoStr);
         $custoStr = str_replace(',', '.', $custoStr);
-        $custo = empty($custoStr) ? null : floatval($custoStr);
+        $custo = floatval($custoStr);
 
         $categoriaNome = isset($_POST['categoria']) ? trim($_POST['categoria']) : '';
 
         if (empty($nome)) {
             exibirModalEVoltar('Erro de Validação', 'O nome do produto é obrigatório.', 'javascript:window.history.back()');
         }
+        if (strlen($nome) > 50) {
+            exibirModalEVoltar('Erro de Validação', 'O nome do produto deve ter no máximo 50 caracteres.', 'javascript:window.history.back()');
+        }
         if ($preco <= 0) {
             exibirModalEVoltar('Erro de Validação', 'O preço de venda do produto deve ser maior que zero.', 'javascript:window.history.back()');
+        }
+        if ($custo <= 0) {
+            exibirModalEVoltar('Erro de Validação', 'O custo de compra do produto é obrigatório e deve ser maior que zero.', 'javascript:window.history.back()');
+        }
+        if (strlen($descricao) > 500) {
+            exibirModalEVoltar('Erro de Validação', 'A descrição deve ter no máximo 500 caracteres.', 'javascript:window.history.back()');
         }
 
         // Resolvendo o ID da Categoria a partir do Nome da Categoria selecionada

@@ -7,12 +7,42 @@ require_once '../../../includes/modal.php'; // exibirModalEVoltar() centralizada
 
 $auth = new Auth(DATABASE, HOST, USER, PASS);
 
-switch (@$_REQUEST['acao']) {
+switch (isset($_REQUEST['acao']) ? $_REQUEST['acao'] : '') {
     case 'Cadastrar':
-        $nome     = $_POST['names'];
-        $email    = strtolower(trim($_POST['emails']));
-        $telefone = preg_replace('/[^0-9]/', '', $_POST['telefone']);
-        $senha    = $_POST['senha'];
+        $nome            = isset($_POST['names']) ? trim($_POST['names']) : '';
+        $email           = isset($_POST['emails']) ? strtolower(trim($_POST['emails'])) : '';
+        $telefone        = isset($_POST['telefone']) ? preg_replace('/[^0-9]/', '', $_POST['telefone']) : '';
+        $senha           = isset($_POST['senha']) ? $_POST['senha'] : '';
+        $confirmar_senha = isset($_POST['confirmar_senha']) ? $_POST['confirmar_senha'] : '';
+
+        // Validações básicas de backend (Clean Code e Segurança)
+        if (empty($nome)) {
+            exibirModalEVoltar('Atenção', 'O nome completo é obrigatório.', 'javascript:window.history.back()');
+        }
+        if (strlen($nome) > 50) {
+            exibirModalEVoltar('Atenção', 'O nome completo deve ter no máximo 50 caracteres.', 'javascript:window.history.back()');
+        }
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            exibirModalEVoltar('Atenção', 'Digite um e-mail válido.', 'javascript:window.history.back()');
+        }
+        if (strlen($email) > 50) {
+            exibirModalEVoltar('Atenção', 'O e-mail deve ter no máximo 50 caracteres.', 'javascript:window.history.back()');
+        }
+        if (empty($telefone)) {
+            exibirModalEVoltar('Atenção', 'O telefone é obrigatório.', 'javascript:window.history.back()');
+        }
+        if (strlen($telefone) < 10 || strlen($telefone) > 11) {
+            exibirModalEVoltar('Atenção', 'O telefone deve conter DDD e número de 9 dígitos (10 ou 11 números).', 'javascript:window.history.back()');
+        }
+        if (empty($senha)) {
+            exibirModalEVoltar('Atenção', 'A senha é obrigatória.', 'javascript:window.history.back()');
+        }
+        if (strlen($senha) < 8) {
+            exibirModalEVoltar('Atenção', 'A senha deve ter no mínimo 8 caracteres.', 'javascript:window.history.back()');
+        }
+        if ($senha !== $confirmar_senha) {
+            exibirModalEVoltar('Atenção', 'A confirmação de senha não confere.', 'javascript:window.history.back()');
+        }
 
         // Destino do redirecionamento
         $redirectDestino = !empty($_POST['redirect']) ? htmlspecialchars_decode($_POST['redirect']) : 'index.php';
@@ -39,13 +69,17 @@ switch (@$_REQUEST['acao']) {
         break;
 
     case 'Logar':
-        $email = strtolower(trim($_POST['email']));
-        $senha = $_POST['senhaL'];
+        $loginInput = isset($_POST['email']) ? trim($_POST['email']) : '';
+        $senha = isset($_POST['senhaL']) ? $_POST['senhaL'] : '';
         $redirectDestino = !empty($_POST['redirect']) ? htmlspecialchars_decode($_POST['redirect']) : 'index.php';
 
+        if (empty($loginInput) || empty($senha)) {
+            exibirModalEVoltar('Acesso Negado', 'Preencha todos os campos para fazer login.', 'javascript:window.history.back()');
+        }
+
         try {
-            // 1. Tenta buscar cliente (LoginUsuario)
-            $cliente = $auth->buscarClientePorEmail($email);
+            // 1. Tenta buscar cliente (E-mail ou Telefone)
+            $cliente = $auth->buscarClientePorEmailOuTelefone($loginInput);
             if ($cliente) {
                 if (password_verify($senha, $cliente['senha'])) {
                     // Setando sessões do cliente
@@ -64,32 +98,35 @@ switch (@$_REQUEST['acao']) {
                     exibirModalEVoltar('Acesso Negado', 'Senha incorreta para o cliente.', 'javascript:window.history.back()');
                 }
             } else {
-                // 2. Tenta buscar admin/funcionário (LoginAdmin)
-                $admin = $auth->buscarAdminPorEmail($email);
-                if ($admin) {
-                    if (password_verify($senha, $admin['senha'])) {
-                        // Setando sessões do admin/funcionário
-                        $_SESSION['admin_nome'] = $admin['nome'];
-                        $_SESSION['admin_id']   = $admin['id_usuario'];
-                        $_SESSION['admin_tipo'] = $admin['tipo_usuario'];
+                // 2. Tenta buscar admin/funcionário (Apenas por E-mail)
+                if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
+                    $admin = $auth->buscarAdminPorEmail(strtolower($loginInput));
+                    if ($admin) {
+                        if (password_verify($senha, $admin['senha'])) {
+                            // Setando sessões do admin/funcionário
+                            $_SESSION['admin_nome'] = $admin['nome'];
+                            $_SESSION['admin_id']   = $admin['id_usuario'];
+                            $_SESSION['admin_tipo'] = $admin['tipo_usuario'];
 
-                        // Permissões: usa a coluna do banco se preenchida, caso contrário deriva do tipo
-                        $permString = !empty($admin['permissoes']) 
-                            ? $admin['permissoes'] 
-                            : (($admin['tipo_usuario'] === 'ADMIN' || $admin['root'] == 1) 
-                                ? 'pedidos,extrato,produtos,usuarios,config' 
-                                : 'pedidos,produtos');
-                        
-                        $_SESSION['admin_permissoes'] = $permString;
-                        $_SESSION['adminlogado'] = true;
+                            // Permissões: usa a coluna do banco se preenchida, caso contrário deriva do tipo
+                            $permString = !empty($admin['permissoes']) 
+                                ? $admin['permissoes'] 
+                                : (($admin['tipo_usuario'] === 'ADMIN' || $admin['root'] == 1) 
+                                    ? 'pedidos,extrato,produtos,usuarios,config' 
+                                    : 'pedidos,produtos');
+                            
+                            $_SESSION['admin_permissoes'] = $permString;
+                            $_SESSION['adminlogado'] = true;
 
-                        header("Location: ../../../admin/index.php");
-                        exit;
+                            header("Location: ../../../admin/index.php");
+                            exit;
+                        } else {
+                            exibirModalEVoltar('Acesso Negado', 'Senha incorreta para o administrador.', 'javascript:window.history.back()');
+                        }
                     } else {
-                        exibirModalEVoltar('Acesso Negado', 'Senha incorreta para o administrador.', 'javascript:window.history.back()');
+                        exibirModalEVoltar('Atenção', 'Conta não cadastrada na base de dados.', '../../cadastro.php');
                     }
                 } else {
-                    // Não foi encontrado em nenhuma tabela
                     exibirModalEVoltar('Atenção', 'Conta não cadastrada na base de dados.', '../../cadastro.php');
                 }
             }

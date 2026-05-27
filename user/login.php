@@ -20,7 +20,7 @@ $redirectUrl = isset($_GET['redirect']) ? htmlspecialchars($_GET['redirect']) : 
             <input type="hidden" name="redirect" value="<?= $redirectUrl ?>">
             <h1>Fazer Login</h1>
             <div class="input-box">
-                <input placeholder="E-mail" type="email" name="email" required autocomplete="on">
+                <input placeholder="E-mail ou Telefone" type="text" name="email" required autocomplete="on">
                 <i class="bx bxs-user"></i></div>
 
                 <!-- Senha :-->

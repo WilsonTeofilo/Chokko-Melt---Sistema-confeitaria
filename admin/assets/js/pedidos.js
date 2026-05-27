@@ -57,14 +57,35 @@ function verDetalhesPedido(btn) {
     document.getElementById('detalhe-tipo').innerText = tipo;
     document.getElementById('detalhe-pagamento').innerText = pagamento;
     document.getElementById('detalhe-total').innerText = total;
-    document.getElementById('detalhe-endereco').innerText = 'Rua do Cliente Fictício, 123';
+    
+    // Puxa endereço real do data-attribute
+    document.getElementById('detalhe-endereco').innerText = tr.dataset.endereco || 'Retirada ou Consumo Local';
 
+    // Monta itens reais do data-attribute
     var ulItens = document.getElementById('detalhe-itens');
-    ulItens.innerHTML =
-        '<li class="detalhe-li-border">' +
-            '<span>1x Produto Exemplo</span>' +
-            '<strong>' + total + '</strong>' +
-        '</li>';
+    ulItens.innerHTML = '';
+    
+    if (tr.dataset.itens) {
+        try {
+            var itens = JSON.parse(tr.dataset.itens);
+            itens.forEach(function(item) {
+                var li = document.createElement('li');
+                li.className = 'detalhe-li-border';
+                
+                var qtd = item.quantidade || 1;
+                var precoUnit = parseFloat(item.preco_unitario || 0);
+                var sub = qtd * precoUnit;
+                
+                li.innerHTML = '<span>' + qtd + 'x ' + item.nome + '</span>' +
+                               '<strong>R$ ' + sub.toFixed(2).replace('.', ',') + '</strong>';
+                ulItens.appendChild(li);
+            });
+        } catch (e) {
+            ulItens.innerHTML = '<li class="detalhe-li">Erro ao processar itens.</li>';
+        }
+    } else {
+        ulItens.innerHTML = '<li class="detalhe-li">Sem itens para exibir.</li>';
+    }
 
     var btnImprimir = document.getElementById('btn-imprimir-comanda');
     if (btnImprimir) {

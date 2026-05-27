@@ -13,6 +13,114 @@ require_once '../classes/Endereco.php';
 $id_cliente = $_SESSION['idlogado'];
 $enderecoCRUD = new Endereco(DATABASE, HOST, USER, PASS);
 
+// ── BAIRROS PERMITIDOS (apenas Grajaú/SP) ──────────────────────────────────
+// Somente esses bairros são aceitos. Qualquer outro valor é rejeitado.
+$bairros_permitidos = [
+    'Balsa',
+    'BNH',
+    'Cantinho do Ceu',
+    'Chacara Cocaia',
+    'Chacara do Conde',
+    'Chacara do Sol',
+    'Chacara Monte Sol',
+    'Cidade Dutra',
+    'Condomínio Palmares',
+    'Conjunto Habitacional Faria Lima',
+    'Jardim Almeida Prado',
+    'Jardim Alpino',
+    'Jardim Angelina',
+    'Jardim Aristocrata',
+    'Jardim Azano',
+    'Jardim Beatriz',
+    'Jardim Belcito',
+    'Jardim Campinas',
+    'Jardim Casa Grande',
+    'Jardim Castro Alves',
+    'Jardim Clipper',
+    'Jardim Colibri',
+    'Jardim Colonial',
+    'Jardim das Embuias',
+    'Jardim das Pedras',
+    'Jardim dos Manacas',
+    'Jardim Edda',
+    'Jardim Edi',
+    'Jardim Eliana',
+    'Jardim Ellus',
+    'Jardim Gaivotas',
+    'Jardim Guanhembu',
+    'Jardim Icarai',
+    'Jardim Ideal',
+    'Jardim Iporã',
+    'Jardim Iporanga',
+    'Jardim Itajai',
+    'Jardim Itatiaia',
+    'Jardim Kika',
+    'Jardim Kioto',
+    'Jardim Lallo',
+    'Jardim Lucelia',
+    'Jardim Malia',
+    'Jardim Maria Amalia',
+    'Jardim Maria Rita',
+    'Jardim Marilda',
+    'Jardim Monte Verde',
+    'Jardim Moraes Prado',
+    'Jardim Myrna',
+    'Jardim Noronha',
+    'Jardim Novo Horizonte',
+    'Jardim Novo Jau',
+    'Jardim Orbã',
+    'Jardim Porto Velho',
+    'Jardim Prainha',
+    'Jardim Presidente',
+    'Jardim Progresso',
+    'Jardim Ramala',
+    'Jardim Regis',
+    'Jardim Reimberg',
+    'Jardim Represa',
+    'Jardim Sabia',
+    'Jardim Santa Fe',
+    'Jardim São Bernardo',
+    'Jardim São Judas Tadeu',
+    'Jardim São Pedro',
+    'Jardim Sao Rafael',
+    'Jardim Satélite',
+    'Jardim Sete de Setembro',
+    'Jardim Shangrila',
+    'Jardim Sipramar',
+    'Jardim Somara',
+    'Jardim Tanay',
+    'Jardim Toca',
+    'Jardim Três Corações',
+    'Jardim Varginha',
+    'Jardim Zilda',
+    'Jordanópolis',
+    'Lago Azul',
+    'Palmares',
+    'Parque America',
+    'Parque Brasil',
+    'Parque Cocaia',
+    'Parque das Arvores',
+    'Parque Deizy',
+    'Parque Grajau',
+    'Parque Maria Fernandes',
+    'Parque Novo Grajau',
+    'Parque Planalto',
+    'Parque Residencial Cocaia',
+    'Parque Residencial dos Lagos',
+    'Parque Santa Cecilia',
+    'Parque São Jose',
+    'Parque São Miguel',
+    'Parque São Paulo',
+    'Rio Bonito',
+    'Terceira Divisão de Interlagos',
+    'Vila Narciso',
+    'Vila Nascente',
+    'Vila Natal',
+    'Vila Rubi',
+    'Vila São Jose'
+];
+sort($bairros_permitidos); // Mantém em ordem alfabética
+
 // Variáveis para preencher o formulário (em caso de edição ou erro)
 $dados_form = [
     'id_endereco' => '',
@@ -61,20 +169,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id_endereco_post = isset($_POST['id_endereco']) ? (int)$_POST['id_endereco'] : 0;
     
     // Captura os dados
+    $bairro_post = trim($_POST['bairro'] ?? '');
+
     $dados = [
-        'cep' => trim($_POST['cep'] ?? ''),
-        'rua' => trim($_POST['rua'] ?? ''),
-        'numero' => trim($_POST['numero'] ?? ''),
-        'bairro' => trim($_POST['bairro'] ?? ''),
-        'complemento' => trim($_POST['complemento'] ?? ''),
-        'ponto_referencia' => trim($_POST['ponto_referencia'] ?? '')
+        'cep'             => trim($_POST['cep'] ?? ''),
+        'rua'             => trim($_POST['rua'] ?? ''),
+        'numero'          => trim($_POST['numero'] ?? ''),
+        'bairro'          => $bairro_post,
+        'complemento'     => trim($_POST['complemento'] ?? ''),
+        'ponto_referencia'=> trim($_POST['ponto_referencia'] ?? '')
     ];
 
     // Mantém os dados preenchidos em caso de erro
     $dados_form = $dados;
     $dados_form['id_endereco'] = $id_endereco_post;
 
-    if (!empty($dados['cep']) && !empty($dados['rua']) && !empty($dados['numero']) && !empty($dados['bairro'])) {
+    // Valida se o bairro enviado é um dos permitidos
+    if (!in_array($bairro_post, $bairros_permitidos)) {
+        $erro = "Bairro inválido. Por favor, selecione um bairro da lista.";
+        if ($id_endereco_post > 0) $modo_edicao = true;
+    }
+
+    if (empty($erro) && !empty($dados['cep']) && !empty($dados['rua']) && !empty($dados['numero']) && !empty($dados['bairro'])) {
         try {
             if ($id_endereco_post > 0) {
                 // EDIÇÃO
@@ -165,12 +281,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                 </div>
 
-                <!-- Bairro:-->
+                <!-- Bairro (select fixo — apenas bairros do Grajaú/SP) -->
                 <div class="input-box">
                     <label for="bairroJS" class="form-label">Bairro</label>
-                    <div class="input-field">  <i class="fa-solid fa-tree-city"></i>
-                        <input type="text" name="bairro" id="bairroJS" value="<?= htmlspecialchars($dados_form['bairro']) ?>" placeholder="Ex: Jardim Shangrilá" maxlength="29" required autocomplete="off">
+                    <div class="input-field input-field-select">
+                        <i class="fa-solid fa-tree-city"></i>
+                        <?php $bairro_valido = in_array($dados_form['bairro'], $bairros_permitidos); ?>
+                        <select name="bairro" id="bairroJS" required>
+                            <option value="" disabled <?= !$bairro_valido ? 'selected' : '' ?>>Selecione o bairro</option>
+                            <?php foreach ($bairros_permitidos as $bairro_opt): ?>
+                                <option value="<?= htmlspecialchars($bairro_opt) ?>"
+                                    <?= ($dados_form['bairro'] === $bairro_opt) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($bairro_opt) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
+                    <small class="bairro-hint"><i class="fa-solid fa-circle-info"></i> Apenas bairros do Grajaú/SP são atendidos</small>
                 </div>
             </div>
 
