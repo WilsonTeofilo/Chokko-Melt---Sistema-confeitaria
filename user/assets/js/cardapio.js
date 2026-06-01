@@ -43,7 +43,17 @@ function formatarDinheiro(valor) {
 function atualizarPrecoNoBotao() {
     if (!produtoAtual) return;
 
-    var total = produtoAtual.price * quantidadeAtual;
+    var precoBase = produtoAtual.price;
+    var precoAdicionais = 0;
+
+    if (listaAddons) {
+        var checkboxesChecked = listaAddons.querySelectorAll('.addon-checkbox:checked');
+        checkboxesChecked.forEach(function(cb) {
+            precoAdicionais += parseFloat(cb.dataset.price);
+        });
+    }
+
+    var total = (precoBase + precoAdicionais) * quantidadeAtual;
     modalBtnPrecoEl.textContent = formatarDinheiro(total);
 }
 
@@ -82,9 +92,42 @@ function abrirModalProduto(card) {
         modalObs.value = '';
     }
 
-    // Esconde a seção de adicionais (não implementada ainda)
+    // Renderiza adicionais se existirem no dataset do card clicado
+    var addons = [];
+    if (card.dataset.addons) {
+        try {
+            addons = JSON.parse(card.dataset.addons);
+        } catch (e) {
+            addons = [];
+        }
+    }
+
     if (secaoAddons) {
-        secaoAddons.style.display = 'none';
+        if (addons && addons.length > 0) {
+            secaoAddons.style.display = 'block';
+            listaAddons.innerHTML = '';
+            addons.forEach(function(addon) {
+                var checkboxId = 'addon-' + addon.id_adicional;
+                var itemHtml = `
+                    <div class="addon-item" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; width: 100%;">
+                            <input type="checkbox" class="addon-checkbox" data-id="${addon.id_adicional}" data-name="${addon.nome}" data-price="${addon.preco}" id="${checkboxId}">
+                            <span style="font-size: 0.95rem; color: #424242;">${addon.nome} (+ ${formatarDinheiro(parseFloat(addon.preco))})</span>
+                        </label>
+                    </div>
+                `;
+                listaAddons.innerHTML += itemHtml;
+            });
+
+            // Adiciona evento de escuta para recalcular preço
+            var checkboxes = listaAddons.querySelectorAll('.addon-checkbox');
+            checkboxes.forEach(function(cb) {
+                cb.addEventListener('change', atualizarPrecoNoBotao);
+            });
+        } else {
+            secaoAddons.style.display = 'none';
+            listaAddons.innerHTML = '';
+        }
     }
 
     atualizarPrecoNoBotao();
@@ -139,6 +182,15 @@ botaoMais.addEventListener('click', function() {
 modalBotaoAdd.addEventListener('click', function() {
     if (!produtoAtual) return;
 
+    // Obtém os adicionais selecionados
+    var adicionaisSelecionados = [];
+    if (listaAddons) {
+        var checkboxes = listaAddons.querySelectorAll('.addon-checkbox:checked');
+        checkboxes.forEach(function(cb) {
+            adicionaisSelecionados.push(cb.dataset.id);
+        });
+    }
+
     // Monta o formulário invisível
     var form = document.createElement('form');
     form.method = 'POST';
@@ -152,7 +204,8 @@ modalBotaoAdd.addEventListener('click', function() {
         imagem         : produtoAtual.img,
         preco_unitario : produtoAtual.price,
         quantidade     : quantidadeAtual,
-        observacao     : (modalObs ? modalObs.value.trim() : '')
+        observacao     : (modalObs ? modalObs.value.trim() : ''),
+        adicionais     : adicionaisSelecionados.join(',') // passa os IDs separados por vírgula
     };
 
     // Cria um <input hidden> para cada dado e adiciona no form

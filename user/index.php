@@ -16,7 +16,7 @@ include '../includes/user_header.php';
 <!-- ── BANNER ── -->
 <div class="hero-banner">
     <h2>Cardápio Digital 🍫</h2>
-    <p>Confeitaria artesanal no Grajaú · Delivery das <span id="store-hours-text"><?php echo $horario['horario']; ?></span></p>
+    <p>Confeitaria artesanal no Grajaú · Delivery das <span id="store-hours-text"><?php echo isset($horario['horario']) ? htmlspecialchars($horario['horario']) : '15:00 às 22:00'; ?></span></p>
 </div>
 
 <!-- ── FILTROS DE CATEGORIA ── -->
@@ -46,7 +46,8 @@ include '../includes/user_header.php';
         $prodObj = new Produto(DATABASE, HOST, USER, PASS);
         $produtosAtivos = $prodObj->listarAtivos();
         foreach ($produtosAtivos as $p):
-            $addonsJson = '[]';
+            $adicionais = $prodObj->obterAdicionais($p['id_produto']);
+            $addonsJson = json_encode($adicionais);
             
             $imgSrc = $p['imagem'];
             if (empty($imgSrc)) {
@@ -148,4 +149,4 @@ include '../includes/user_header.php';
 
 
 
-
+

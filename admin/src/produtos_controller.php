@@ -57,27 +57,41 @@ function exibirModalEVoltar($titulo, $mensagem, $url, $icone = 'fa-circle-exclam
 $prod = new Produto(DATABASE, HOST, USER, PASS);
 $catClass = new Categoria(DATABASE, HOST, USER, PASS);
 
-$acao = isset($_REQUEST['acao']) ? $_REQUEST['acao'] : '';
+$acao = filter_input(INPUT_GET, 'acao', FILTER_DEFAULT);
+if ($acao === null) {
+    $acao = filter_input(INPUT_POST, 'acao', FILTER_DEFAULT);
+}
+$acao = $acao !== null ? trim($acao) : '';
 
 switch ($acao) {
     case 'salvar':
-        $id = isset($_POST['id_produto']) ? trim($_POST['id_produto']) : '';
-        $nome = isset($_POST['nome']) ? trim($_POST['nome']) : '';
-        $descricao = isset($_POST['descricao']) ? trim($_POST['descricao']) : '';
-        $dispo = isset($_POST['disponibilidade']) && $_POST['disponibilidade'] === 'ativo' ? 1 : 0;
+        $id = filter_input(INPUT_POST, 'id_produto', FILTER_SANITIZE_NUMBER_INT);
+        $id = $id !== null ? trim($id) : '';
+
+        $nome = filter_input(INPUT_POST, 'nome', FILTER_DEFAULT);
+        $nome = $nome !== null ? trim($nome) : '';
+
+        $descricao = filter_input(INPUT_POST, 'descricao', FILTER_DEFAULT);
+        $descricao = $descricao !== null ? trim($descricao) : '';
+
+        $disponibilidade = filter_input(INPUT_POST, 'disponibilidade', FILTER_DEFAULT);
+        $dispo = ($disponibilidade === 'ativo') ? 1 : 0;
         
         // Conversão amigável de preço de Real (formato brasileiro 0,00) para Float
-        $precoStr = isset($_POST['preco']) ? trim($_POST['preco']) : '';
+        $precoStr = filter_input(INPUT_POST, 'preco', FILTER_DEFAULT);
+        $precoStr = $precoStr !== null ? trim($precoStr) : '';
         $precoStr = str_replace('.', '', $precoStr); // remove pontos de milhar
         $precoStr = str_replace(',', '.', $precoStr); // converte vírgula decimal para ponto
         $preco = floatval($precoStr);
 
-        $custoStr = isset($_POST['custo_compra']) ? trim($_POST['custo_compra']) : '';
+        $custoStr = filter_input(INPUT_POST, 'custo_compra', FILTER_DEFAULT);
+        $custoStr = $custoStr !== null ? trim($custoStr) : '';
         $custoStr = str_replace('.', '', $custoStr);
         $custoStr = str_replace(',', '.', $custoStr);
         $custo = floatval($custoStr);
 
-        $categoriaNome = isset($_POST['categoria']) ? trim($_POST['categoria']) : '';
+        $categoriaNome = filter_input(INPUT_POST, 'categoria', FILTER_DEFAULT);
+        $categoriaNome = $categoriaNome !== null ? trim($categoriaNome) : '';
 
         if (empty($nome)) {
             exibirModalEVoltar('Erro de Validação', 'O nome do produto é obrigatório.', 'javascript:window.history.back()');
@@ -171,7 +185,7 @@ switch ($acao) {
         break;
 
     case 'excluir':
-        $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+        $id = (int)filter_input(INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT);
         if ($id <= 0) {
             exibirModalEVoltar('Erro de Parâmetro', 'ID de produto inválido.', '../produtos.php');
         }
@@ -185,8 +199,8 @@ switch ($acao) {
         break;
 
     case 'alterarStatus':
-        $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-        $status = isset($_GET['status']) ? intval($_GET['status']) : 0;
+        $id = (int)filter_input(INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT);
+        $status = (int)filter_input(INPUT_GET, 'status', FILTER_SANITIZE_NUMBER_INT);
         if ($id <= 0) {
             exibirModalEVoltar('Erro de Parâmetro', 'ID de produto inválido.', '../produtos.php');
         }

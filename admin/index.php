@@ -1,6 +1,60 @@
-<?php include '../includes/admin_header.php'; ?>
-<link rel="stylesheet" href="assets/css/pedidos.css">
-<link rel="stylesheet" href="assets/css/cupom_termico.css">
+<?php 
+require_once '../config/config.php';
+include '../includes/admin_header.php'; 
+
+// Carrega os pedidos reais do banco de dados
+try {
+    $sql = "
+        SELECT p.id_pedido, p.data_hora, p.valor_total, p.subtotal, p.taxa_entrega, p.observacao AS obs_pedido, p.tipo_entrega, p.cpf_nota,
+               p.motivo_cancelamento, p.cancelado_por, p.id_status_pedido,
+               sp.descricao AS status_descricao,
+               c.nome AS nome_cliente, c.email AS email_cliente, c.telefone AS telefone_cliente,
+               e.rua, e.numero, e.complemento, e.bairro, e.cep, e.ponto_referencia,
+               pg.forma_pagamento, pg.valor_entregue, pg.troco
+        FROM pedido p
+        INNER JOIN status_pedido sp ON p.id_status_pedido = sp.id_status_pedido
+        INNER JOIN cliente c ON p.id_cliente = c.id_cliente
+        LEFT JOIN endereco e ON p.id_endereco = e.id_endereco
+        LEFT JOIN pagamento pg ON pg.id_pedido = p.id_pedido
+        ORDER BY p.id_pedido DESC
+    ";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Busca itens de cada pedido
+    foreach ($pedidos as &$p) {
+        $stmtItens = $conn->prepare("
+            SELECT ip.id_item_pedido, ip.quantidade, ip.preco_unitario, ip.observacao AS obs_item,
+                   COALESCE(prod.nome, 'Produto Indisponível') AS nome_produto
+            FROM item_pedido ip
+            LEFT JOIN produto prod ON ip.id_produto = prod.id_produto
+            WHERE ip.id_pedido = :id_pedido
+        ");
+        $stmtItens->execute(['id_pedido' => $p['id_pedido']]);
+        $itensPedido = $stmtItens->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($itensPedido as &$it) {
+            // Busca os adicionais deste item do pedido
+            $stmtAd = $conn->prepare("
+                SELECT nome_snapshot, preco_unitario_snapshot
+                FROM item_pedido_adicional
+                WHERE id_item_pedido = :id_item
+            ");
+            $stmtAd->execute(['id_item' => $it['id_item_pedido']]);
+            $it['adicionais'] = $stmtAd->fetchAll(PDO::FETCH_ASSOC);
+        }
+        unset($it);
+
+        $p['itens'] = $itensPedido;
+    }
+    unset($p);
+} catch (Exception $e) {
+    $pedidos = [];
+}
+?>
+<link rel="stylesheet" href="assets/css/pedidos.css?v=<?= time() ?>">
+<link rel="stylesheet" href="assets/css/cupom_termico.css?v=<?= time() ?>">
 
 <section class="welcome-area">
     <h1>Gerenciar Pedidos</h1>
@@ -31,26 +85,86 @@
             </tr>
         </thead>
         <tbody>
-            <!-- MODELO PARA FOREACH PHP -->
-            <tr data-status="[STATUS_DO_PEDIDO]">
-                <td>#[id_pedido]</td>
-                <td>[nome_do_cliente]</td>
-                <td><i class="[icone_tipo_entrega]"></i> [tipo_entrega]</td>
-                <td>[forma_pagamento]</td>
-                <td class="bold-text">R$ [valor_total]</td>
-                <td><span class="badge [classe_badge_status]">[status_legivel]</span></td>
+            <?php foreach ($pedidos as $p): 
+                // Mapeia status legível
+                $status = $p['status_descricao'];
+                
+                // Mapeia ícones e tipos
+                $icone_tipo = 'fa-solid fa-motorcycle';
+                if ($p['tipo_entrega'] === 'RETIRADA') {
+                    $icone_tipo = 'fa-solid fa-bag-shopping';
+                } elseif ($p['tipo_entrega'] === 'LOCAL') {
+                    $icone_tipo = 'fa-solid fa-store';
+                }
+
+                // Ajusta a classe do badge
+                $badge_class = 'badge-pendente';
+                $status_legivel = 'PENDENTE';
+                if ($status === 'ACEITO') {
+                    $badge_class = 'badge-preparo';
+                    $status_legivel = 'ACEITO';
+                } elseif ($status === 'EM_PREPARO') {
+                    $badge_class = 'badge-preparo';
+                    $status_legivel = 'EM PREPARO';
+                } elseif ($status === 'ENVIADO') {
+                    $badge_class = 'badge-enviado';
+                    $status_legivel = 'ENVIADO';
+                } elseif ($status === 'ENTREGUE') {
+                    $badge_class = 'badge-entregue';
+                    $status_legivel = 'ENTREGUE';
+                } elseif (strpos($status, 'CANCELADO') === 0) {
+                    $badge_class = 'badge-cancelado';
+                    $status_legivel = 'CANCELADO';
+                    $status = 'CANCELADO'; // Unifica para o filtro do JS
+                }
+
+                // Endereço completo formatado
+                $end_formatado = '';
+                if ($p['tipo_entrega'] === 'DELIVERY' && !empty($p['rua'])) {
+                    $end_formatado = $p['rua'] . ', ' . $p['numero'];
+                    if (!empty($p['complemento'])) $end_formatado .= ' - ' . $p['complemento'];
+                    $end_formatado .= ', ' . $p['bairro'] . ' - CEP ' . $p['cep'];
+                    if (!empty($p['ponto_referencia'])) $end_formatado .= ' (Ref: ' . $p['ponto_referencia'] . ')';
+                } else {
+                    $end_formatado = ($p['tipo_entrega'] === 'RETIRADA') ? 'Retirar no Balcão' : 'Consumir no Local';
+                }
+                
+                if (!empty($p['obs_pedido'])) {
+                    $end_formatado .= ' | OBS: "' . $p['obs_pedido'] . '"';
+                }
+            ?>
+            <tr data-status="<?= htmlspecialchars($status) ?>"
+                data-endereco="<?= htmlspecialchars($end_formatado) ?>"
+                data-itens='<?= htmlspecialchars(json_encode($p['itens']), ENT_QUOTES, 'UTF-8') ?>'>
+                <td>#<?= $p['id_pedido'] ?></td>
+                <td><?= htmlspecialchars($p['nome_cliente']) ?></td>
+                <td><i class="<?= $icone_tipo ?>"></i> <?= htmlspecialchars($p['tipo_entrega']) ?></td>
+                <td>
+                    <?= htmlspecialchars($p['forma_pagamento']) ?>
+                    <?php if ($p['forma_pagamento'] === 'DINHEIRO' && $p['troco'] > 0): ?>
+                        <br><small style="color: #666;">Troco: R$ <?= number_format($p['troco'], 2, ',', '.') ?></small>
+                    <?php endif; ?>
+                </td>
+                <td class="bold-text">R$ <?= number_format($p['valor_total'], 2, ',', '.') ?></td>
+                <td><span class="badge <?= $badge_class ?>"><?= $status_legivel ?></span></td>
                 <td class="acoes-pedido">
                     <button class="btn-action-accept btn-detalhes" onclick="verDetalhesPedido(this)" title="Ver Detalhes">
                         <i class="fa-solid fa-eye"></i> Detalhes
                     </button>
-                    <!-- Exibir os botões abaixo conforme o status do pedido -->
-                    <!-- PENDENTE: Aceitar + Cancelar -->
-                    <!-- EM_PREPARO: Enviar + Cancelar -->
-                    <!-- ENVIADO: Entregue -->
-                    <!-- ENTREGUE: apenas Detalhes -->
+                    
+                    <?php if ($status === 'PENDENTE'): ?>
+                        <button class="btn-action-accept btn-aceitar" onclick="atualizarStatusPedido(this, 'EM_PREPARO')" title="Aceitar pedido"><i class="fa-solid fa-check"></i> Aceitar</button>
+                        <button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, 'CANCELADO')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+                    <?php elseif ($status === 'EM_PREPARO' || $status === 'ACEITO'): ?>
+                        <button class="btn-action-accept btn-enviar" onclick="atualizarStatusPedido(this, 'ENVIADO')" title="Marcar como enviado"><i class="fa-solid fa-paper-plane"></i> Enviar</button>
+                        <button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, 'CANCELADO')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+                    <?php elseif ($status === 'ENVIADO'): ?>
+                        <button class="btn-action-accept btn-entregar" onclick="atualizarStatusPedido(this, 'ENTREGUE')" title="Confirmar entrega"><i class="fa-solid fa-flag-checkered"></i> Entregue</button>
+                        <button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, 'CANCELADO')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+                    <?php endif; ?>
                 </td>
             </tr>
-            <!-- FIM MODELO PHP -->
+            <?php endforeach; ?>
         </tbody>
     </table>
 </section>
@@ -84,7 +198,7 @@
             </div>
         </div>
         <div class="modal-footer modal-footer-wrap">
-            <button type="button" id="btn-imprimir-comanda" class="btn-action-accept btn-print-comanda" onclick="abrirModalImpressaoCupom()"><i class="fa-solid fa-print"></i> Imprimir comanda</button>
+            <button type="button" id="btn-imprimir-comanda" class="btn-action-accept btn-print-comanda" onclick="imprimirCupom()"><i class="fa-solid fa-print"></i> Imprimir comanda</button>
             <button type="button" onclick="fecharModalDetalhes()" class="btn-fechar-modal">Fechar</button>
         </div>
     </div>

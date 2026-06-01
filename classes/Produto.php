@@ -113,6 +113,21 @@ public function atualizar($id, $nome, $descricao, $dispo, $img, $preco, $custo, 
         $deletar->execute();
         }
 
+        public function obterAdicionais($id_produto) {
+            try {
+                $stmt = $this->pdo->prepare("
+                    SELECT a.id_adicional, a.nome, a.preco, a.custo 
+                    FROM adicional a
+                    INNER JOIN produto_adicional pa ON a.id_adicional = pa.id_adicional
+                    WHERE pa.id_produto = :id_prod AND a.ativo = 1
+                ");
+                $stmt->execute(['id_prod' => $id_produto]);
+                return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (PDOException $e) {
+                return [];
+            }
+        }
+
 }
 
 

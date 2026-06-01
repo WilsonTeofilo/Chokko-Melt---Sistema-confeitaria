@@ -2,7 +2,12 @@
 // detalhes_pedido.js — Tela de ver os detalhes de um pedido já feito
 // ============================================================
 
+function imprimirComprovante() {
+    window.print();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+
     
     // Elementos do Modal de Cancelamento
     var modalCancelar = document.getElementById('modal-cancelar-cliente');
@@ -59,14 +64,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (modalSucesso) {
                 modalSucesso.classList.add('show');
             }
-        });
-    }
-
-    // Recarrega a página ao clicar em "Entendi" no modal de sucesso
-    var btnReload = document.getElementById('btn-reload-page');
-    if (btnReload) {
-        btnReload.addEventListener('click', function() {
-            window.location.reload();
         });
     }
 

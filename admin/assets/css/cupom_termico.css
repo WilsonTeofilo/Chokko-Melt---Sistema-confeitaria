@@ -9,6 +9,11 @@
  *   - O driver da POS-58 garante que 100% = 58mm na bobina.
  */
 
+/* Oculta o wrapper de comanda/cupom de impressão na tela */
+#_print-wrapper {
+    display: none !important;
+}
+
 /* ── MODAL OVERLAY (tela normal) ── */
 
 #print-cupom-modal {

@@ -15,7 +15,8 @@ var ACOES_MAP = {
         '<button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, \'CANCELADO\')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>',
     'ENVIADO':
         '<button class="btn-action-accept btn-detalhes" onclick="verDetalhesPedido(this)" title="Ver Detalhes"><i class="fa-solid fa-eye"></i> Detalhes</button> ' +
-        '<button class="btn-action-accept btn-entregar" onclick="atualizarStatusPedido(this, \'ENTREGUE\')" title="Confirmar entrega"><i class="fa-solid fa-flag-checkered"></i> Entregue</button>',
+        '<button class="btn-action-accept btn-entregar" onclick="atualizarStatusPedido(this, \'ENTREGUE\')" title="Confirmar entrega"><i class="fa-solid fa-flag-checkered"></i> Entregue</button> ' +
+        '<button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, \'CANCELADO\')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>',
     'ENTREGUE':
         '<button class="btn-action-accept btn-detalhes" onclick="verDetalhesPedido(this)" title="Ver Detalhes"><i class="fa-solid fa-eye"></i> Detalhes</button>',
     'CANCELADO':
@@ -74,9 +75,26 @@ function verDetalhesPedido(btn) {
                 
                 var qtd = item.quantidade || 1;
                 var precoUnit = parseFloat(item.preco_unitario || 0);
-                var sub = qtd * precoUnit;
                 
-                li.innerHTML = '<span>' + qtd + 'x ' + item.nome + '</span>' +
+                var precoAdicionais = 0;
+                var htmlAdicionais = '';
+                if (item.adicionais && item.adicionais.length > 0) {
+                    var nomesAd = [];
+                    item.adicionais.forEach(function(ad) {
+                        precoAdicionais += parseFloat(ad.preco_unitario_snapshot);
+                        nomesAd.push(ad.nome_snapshot + ' (+R$ ' + parseFloat(ad.preco_unitario_snapshot).toFixed(2).replace('.', ',') + ')');
+                    });
+                    htmlAdicionais = '<br><span style="font-size: 0.8rem; color: #757575;">Adicionais: ' + nomesAd.join(', ') + '</span>';
+                }
+
+                var htmlObs = '';
+                if (item.obs_item && item.obs_item.trim() !== '') {
+                    htmlObs = '<br><span style="font-size: 0.8rem; font-style: italic; color: #d32f2f; font-weight: bold;">Obs: "' + item.obs_item.trim() + '"</span>';
+                }
+                
+                var sub = qtd * (precoUnit + precoAdicionais);
+                
+                li.innerHTML = '<div><span>' + qtd + 'x ' + item.nome_produto + '</span>' + htmlAdicionais + htmlObs + '</div>' +
                                '<strong>R$ ' + sub.toFixed(2).replace('.', ',') + '</strong>';
                 ulItens.appendChild(li);
             });
@@ -108,13 +126,21 @@ function coletarDadosCupom() {
     var itens = [];
     var lis = document.getElementById('detalhe-itens').querySelectorAll('li');
     for (var i = 0; i < lis.length; i++) {
-        var span = lis[i].querySelector('span');
         var strong = lis[i].querySelector('strong');
-        if (span) {
+        var divDesc = lis[i].querySelector('div');
+        if (divDesc) {
             itens.push({
-                desc: span.innerText.trim(),
+                desc: divDesc.innerText.trim().replace(/\n/g, ' '),
                 preco: strong ? strong.innerText.trim() : ''
             });
+        } else {
+            var span = lis[i].querySelector('span');
+            if (span) {
+                itens.push({
+                    desc: span.innerText.trim(),
+                    preco: strong ? strong.innerText.trim() : ''
+                });
+            }
         }
     }
 
@@ -178,6 +204,19 @@ function imprimirCupom() {
         document.body.appendChild(wrapper);
     }
     wrapper.innerHTML = montarHtmlCupom(dados);
+
+    // Ajusta o tamanho da folha fisicamente para 58mm (padrão POS-58)
+    document.body.classList.remove('print-sheet-58', 'print-sheet-80');
+    document.body.classList.add('print-sheet-58');
+    
+    var styleId = 'dynamic-print-page-size';
+    var styleEl = document.getElementById(styleId);
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = styleId;
+        document.head.appendChild(styleEl);
+    }
+    styleEl.innerHTML = '@media print { @page { size: 58mm auto !important; margin: 0 !important; } }';
 
     window.print();
 }
@@ -267,12 +306,9 @@ function confirmarCancelamentoAdmin() {
         alert('O motivo do cancelamento é obrigatório.');
         return;
     }
-    document.getElementById('modal-cancelar-pedido').style.display = 'none';
-    if (_btnCancelarTemp) executarMudancaStatus(_btnCancelarTemp, 'CANCELADO');
-
-    document.getElementById('modal-sucesso-msg').innerText =
-        'Pedido cancelado. Motivo: ' + motivo;
-    document.getElementById('modal-sucesso').style.display = 'flex';
+    if (_btnCancelarTemp) {
+        executarMudancaStatus(_btnCancelarTemp, 'CANCELADO');
+    }
 }
 
 function executarMudancaStatus(btn, novoStatus) {
@@ -280,25 +316,63 @@ function executarMudancaStatus(btn, novoStatus) {
     var tr = btn.closest('tr');
     if (!tr) return;
 
-    tr.dataset.status = novoStatus;
-
-    var badgeMap = {
-        'EM_PREPARO': ['badge-preparo', 'EM PREPARO'],
-        'ENVIADO':    ['badge-enviado', 'ENVIADO'],
-        'ENTREGUE':   ['badge-entregue', 'ENTREGUE'],
-        'CANCELADO':  ['badge-cancelado', 'CANCELADO'],
-        'PENDENTE':   ['badge-pendente', 'PENDENTE']
-    };
-
-    var info = badgeMap[novoStatus] || ['badge-pendente', 'PENDENTE'];
-    var badge = tr.querySelector('.badge');
-    if (badge) {
-        badge.className = 'badge ' + info[0];
-        badge.textContent = info[1];
+    var id_pedido = tr.cells[0].innerText.replace('#', '').trim();
+    var motivo = '';
+    if (novoStatus === 'CANCELADO') {
+        motivo = document.getElementById('motivo-cancelamento-admin').value.trim();
     }
 
-    var acoes = tr.querySelector('.acoes-pedido');
-    if (acoes) acoes.innerHTML = ACOES_MAP[novoStatus] || '';
+    var formData = new FormData();
+    formData.append('id_pedido', id_pedido);
+    formData.append('novo_status', novoStatus);
+    formData.append('motivo', motivo);
+
+    // Faz chamada Fetch AJAX para o backend atualizar o banco
+    fetch('src/atualizar_status_pedido.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.sucesso) {
+            tr.dataset.status = novoStatus;
+
+            var badgeMap = {
+                'EM_PREPARO': ['badge-preparo', 'EM PREPARO'],
+                'ENVIADO':    ['badge-enviado', 'ENVIADO'],
+                'ENTREGUE':   ['badge-entregue', 'ENTREGUE'],
+                'CANCELADO':  ['badge-cancelado', 'CANCELADO'],
+                'PENDENTE':   ['badge-pendente', 'PENDENTE']
+            };
+
+            var info = badgeMap[novoStatus] || ['badge-pendente', 'PENDENTE'];
+            var badge = tr.querySelector('.badge');
+            if (badge) {
+                badge.className = 'badge ' + info[0];
+                badge.textContent = info[1];
+            }
+
+            var acoes = tr.querySelector('.acoes-pedido');
+            if (acoes) acoes.innerHTML = ACOES_MAP[novoStatus] || '';
+
+            // Se for cancelamento, fecha o modal e exibe a justificativa no modal de sucesso
+            if (novoStatus === 'CANCELADO') {
+                document.getElementById('modal-cancelar-pedido').style.display = 'none';
+                document.getElementById('modal-sucesso-msg').innerText =
+                    'Pedido #' + id_pedido + ' cancelado. Motivo: ' + motivo;
+            } else {
+                document.getElementById('modal-sucesso-msg').innerText =
+                    'Pedido #' + id_pedido + ' atualizado para ' + info[1] + ' com sucesso!';
+            }
+            document.getElementById('modal-sucesso').style.display = 'flex';
+        } else {
+            alert('Erro ao atualizar no banco: ' + data.erro);
+        }
+    })
+    .catch(error => {
+        console.error('Erro na requisição AJAX:', error);
+        alert('Erro ao conectar ao servidor para atualizar o status do pedido.');
+    });
 }
 
 // ── INIT ──

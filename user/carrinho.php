@@ -88,8 +88,30 @@ $total        = $subtotal + $taxa_entrega;
                                 <p class="item-obs">"<?= htmlspecialchars($item['observacao']) ?>"</p>
                             <?php endif; ?>
 
-                            <p class="item-price">
-                                R$ <?= number_format($item['preco_unitario'] * $item['quantidade'], 2, ',', '.') ?>
+                            <?php if (!empty($item['adicionais'])): ?>
+                                <div class="item-addons" style="font-size: 0.8rem; color: #757575; margin-top: 4px;">
+                                    <span style="font-weight: 600; color: #5d4037;">Adicionais:</span>
+                                    <?php 
+                                    $addonsNomes = [];
+                                    foreach ($item['adicionais'] as $ad) {
+                                        $addonsNomes[] = htmlspecialchars($ad['nome']) . ' (+ R$ ' . number_format($ad['preco'], 2, ',', '.') . ')';
+                                    }
+                                    echo implode(', ', $addonsNomes);
+                                    ?>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php 
+                            $precoTotalItem = $item['preco_unitario'];
+                            if (!empty($item['adicionais'])) {
+                                foreach ($item['adicionais'] as $ad) {
+                                    $precoTotalItem += (float)$ad['preco'];
+                                }
+                            }
+                            $precoTotalItem *= $item['quantidade'];
+                            ?>
+                            <p class="item-price" style="margin-top: 6px;">
+                                R$ <?= number_format($precoTotalItem, 2, ',', '.') ?>
                             </p>
                         </div>
                     </div>

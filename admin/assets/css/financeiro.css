@@ -101,3 +101,11 @@
     color: #2E7D32;
     border-color: #A5D6A7;
 }
+
+/* Card de total de pedidos entregues */
+.fin-pedidos-card {
+    color: var(--marrom);
+}
+.fin-pedidos-card:hover {
+    border-color: var(--marrom);
+}

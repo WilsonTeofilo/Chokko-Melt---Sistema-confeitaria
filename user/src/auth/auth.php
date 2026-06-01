@@ -9,11 +9,20 @@ $auth = new Auth(DATABASE, HOST, USER, PASS);
 
 switch (isset($_REQUEST['acao']) ? $_REQUEST['acao'] : '') {
     case 'Cadastrar':
-        $nome            = isset($_POST['names']) ? trim($_POST['names']) : '';
-        $email           = isset($_POST['emails']) ? strtolower(trim($_POST['emails'])) : '';
-        $telefone        = isset($_POST['telefone']) ? preg_replace('/[^0-9]/', '', $_POST['telefone']) : '';
-        $senha           = isset($_POST['senha']) ? $_POST['senha'] : '';
-        $confirmar_senha = isset($_POST['confirmar_senha']) ? $_POST['confirmar_senha'] : '';
+        $nome            = filter_input(INPUT_POST, 'names', FILTER_DEFAULT);
+        $nome            = $nome !== null ? trim($nome) : '';
+        
+        $email           = filter_input(INPUT_POST, 'emails', FILTER_SANITIZE_EMAIL);
+        $email           = $email !== null ? strtolower(trim($email)) : '';
+        
+        $telefone        = filter_input(INPUT_POST, 'telefone', FILTER_DEFAULT);
+        $telefone        = $telefone !== null ? preg_replace('/[^0-9]/', '', $telefone) : '';
+        
+        $senha           = filter_input(INPUT_POST, 'senha', FILTER_DEFAULT);
+        $senha           = $senha !== null ? $senha : '';
+        
+        $confirmar_senha = filter_input(INPUT_POST, 'confirmar_senha', FILTER_DEFAULT);
+        $confirmar_senha = $confirmar_senha !== null ? $confirmar_senha : '';
 
         // Validações básicas de backend (Clean Code e Segurança)
         if (empty($nome)) {
@@ -45,7 +54,8 @@ switch (isset($_REQUEST['acao']) ? $_REQUEST['acao'] : '') {
         }
 
         // Destino do redirecionamento
-        $redirectDestino = !empty($_POST['redirect']) ? htmlspecialchars_decode($_POST['redirect']) : 'index.php';
+        $redirectDestino = filter_input(INPUT_POST, 'redirect', FILTER_DEFAULT);
+        $redirectDestino = $redirectDestino !== null ? htmlspecialchars_decode($redirectDestino) : 'index.php';
 
         try {
             $novoId = $auth->cadastrarCliente($nome, $email, $telefone, $senha);
@@ -69,9 +79,14 @@ switch (isset($_REQUEST['acao']) ? $_REQUEST['acao'] : '') {
         break;
 
     case 'Logar':
-        $loginInput = isset($_POST['email']) ? trim($_POST['email']) : '';
-        $senha = isset($_POST['senhaL']) ? $_POST['senhaL'] : '';
-        $redirectDestino = !empty($_POST['redirect']) ? htmlspecialchars_decode($_POST['redirect']) : 'index.php';
+        $loginInput = filter_input(INPUT_POST, 'email', FILTER_DEFAULT);
+        $loginInput = $loginInput !== null ? trim($loginInput) : '';
+
+        $senha = filter_input(INPUT_POST, 'senhaL', FILTER_DEFAULT);
+        $senha = $senha !== null ? $senha : '';
+
+        $redirectDestino = filter_input(INPUT_POST, 'redirect', FILTER_DEFAULT);
+        $redirectDestino = $redirectDestino !== null ? htmlspecialchars_decode($redirectDestino) : 'index.php';
 
         if (empty($loginInput) || empty($senha)) {
             exibirModalEVoltar('Acesso Negado', 'Preencha todos os campos para fazer login.', 'javascript:window.history.back()');
@@ -142,9 +157,15 @@ switch (isset($_REQUEST['acao']) ? $_REQUEST['acao'] : '') {
         }
 
         $id_cliente = intval($_SESSION['idlogado']);
-        $nome       = trim($_POST['nome'] ?? '');
-        $telefone   = preg_replace('/[^0-9]/', '', $_POST['telefone'] ?? '');
-        $nova_senha = $_POST['nova_senha'] ?? '';
+        
+        $nome = filter_input(INPUT_POST, 'nome', FILTER_DEFAULT);
+        $nome = $nome !== null ? trim($nome) : '';
+        
+        $telefone = filter_input(INPUT_POST, 'telefone', FILTER_DEFAULT);
+        $telefone = $telefone !== null ? preg_replace('/[^0-9]/', '', $telefone) : '';
+        
+        $nova_senha = filter_input(INPUT_POST, 'nova_senha', FILTER_DEFAULT);
+        $nova_senha = $nova_senha !== null ? $nova_senha : '';
 
         if (empty($nome) || empty($telefone)) {
             exibirModalEVoltar('Atenção', 'Nome e telefone são campos obrigatórios.', 'javascript:window.history.back()');

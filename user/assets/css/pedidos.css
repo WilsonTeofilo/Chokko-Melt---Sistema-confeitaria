@@ -721,3 +721,153 @@
     color: var(--cinza-medio);
     text-decoration: line-through;
 }
+
+/* ── Banner de Cancelamento Premium (Destaque) ── */
+.det-cancel-banner {
+    background: #FFF5F5;
+    border: 1.5px solid #FEB2B2;
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin-top: 14px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    box-shadow: var(--shadow-sm);
+    animation: pulseCancel 2s infinite alternate;
+}
+.det-cancel-banner i {
+    font-size: 1.6rem;
+    color: #E53E3E;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+.det-cancel-banner-content {
+    flex: 1;
+}
+.det-cancel-banner-title {
+    font-size: .95rem;
+    font-weight: 700;
+    color: #9B2C2C;
+    margin: 0 0 5px 0;
+}
+.det-cancel-banner-reason {
+    font-size: .86rem;
+    color: #C53030;
+    margin: 0;
+    line-height: 1.4;
+    font-weight: 500;
+}
+
+@keyframes pulseCancel {
+    0% { border-color: #FEB2B2; box-shadow: 0 2px 4px rgba(229,62,62,0.04); }
+    100% { border-color: #FC8181; box-shadow: 0 4px 12px rgba(229,62,62,0.12); }
+}
+
+/* ── Botão Imprimir Comprovante ── */
+.btn-imprimir {
+    gap: 7px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   COMPROVANTE DE IMPRESSÃO — oculto na tela
+   ══════════════════════════════════════════════════════════ */
+#comprovante-cliente {
+    display: none !important;
+}
+
+@media print {
+
+    /* Oculta tudo */
+    body > * { display: none !important; }
+
+    /* Exibe só o comprovante */
+    #comprovante-cliente {
+        display: block !important;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 11px;
+        color: #000;
+        width: 72mm;
+        margin: 0 auto;
+        padding: 6px 4px;
+    }
+
+    .cv-titulo {
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+        text-transform: uppercase;
+        margin: 4px 0 2px;
+    }
+
+    .cv-sub {
+        text-align: center;
+        font-size: 9px;
+        margin: 0 0 5px;
+    }
+
+    .cv-hr {
+        border: none;
+        border-top: 1px dashed #000;
+        margin: 5px 0;
+    }
+
+    .cv-linha {
+        font-size: 10px;
+        line-height: 1.4;
+        margin: 2px 0;
+    }
+
+    .cv-tabela {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10px;
+        margin: 4px 0;
+    }
+
+    .cv-tabela th,
+    .cv-tabela td {
+        padding: 3px 0;
+        vertical-align: top;
+        border-bottom: 1px dotted #aaa;
+    }
+
+    .cv-tabela th {
+        font-weight: bold;
+        border-bottom: 1px solid #000;
+    }
+
+    .cv-desc {
+        width: auto;
+        word-break: break-word;
+        padding-right: 4px;
+    }
+
+    .cv-val {
+        width: 1%;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .cv-total {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        font-weight: bold;
+        padding: 3px 0;
+    }
+
+    .cv-total-final {
+        font-size: 12px;
+        border-top: 2px solid #000;
+        padding-top: 4px;
+        margin-top: 2px;
+    }
+
+    .cv-centro {
+        text-align: center;
+        font-size: 10px;
+        margin: 6px 0 2px;
+    }
+}
+

@@ -23,10 +23,13 @@ if (!isset($_SESSION['idlogado'])) {
 $id_cliente = intval($_SESSION['idlogado']);
 
 // Tratamento da Ação de Cancelar Pedido
-$acao = trim($_POST['acao'] ?? '');
+$acao = filter_input(INPUT_POST, 'acao', FILTER_DEFAULT);
+$acao = $acao !== null ? trim($acao) : '';
+
 if ($acao === 'cancelar_pedido') {
-    $id_pedido = intval($_POST['id_pedido'] ?? 0);
-    $motivo = trim($_POST['motivo'] ?? '');
+    $id_pedido = (int)filter_input(INPUT_POST, 'id_pedido', FILTER_SANITIZE_NUMBER_INT);
+    $motivo = filter_input(INPUT_POST, 'motivo', FILTER_DEFAULT);
+    $motivo = $motivo !== null ? trim($motivo) : '';
 
     if ($id_pedido <= 0 || empty($motivo)) {
         header("Location: ../pedidos.php");
@@ -78,11 +81,19 @@ if (empty($itens)) {
 }
 
 // 3. Recebe e sanitiza os dados do formulário
-$tipo_entrega       = trim($_POST['tipo_entrega'] ?? 'delivery');
-$id_endereco        = intval($_POST['id_endereco'] ?? 0);
-$pagamento          = trim($_POST['pagamento'] ?? 'credito');
-$cpf_nota           = trim($_POST['cpf_nota'] ?? '');
-$observacao_pedido  = trim($_POST['observacao'] ?? '');
+$tipo_entrega = filter_input(INPUT_POST, 'tipo_entrega', FILTER_DEFAULT);
+$tipo_entrega = $tipo_entrega !== null ? trim($tipo_entrega) : 'delivery';
+
+$id_endereco = (int)filter_input(INPUT_POST, 'id_endereco', FILTER_SANITIZE_NUMBER_INT);
+
+$pagamento = filter_input(INPUT_POST, 'pagamento', FILTER_DEFAULT);
+$pagamento = $pagamento !== null ? trim($pagamento) : 'credito';
+
+$cpf_nota = filter_input(INPUT_POST, 'cpf_nota', FILTER_DEFAULT);
+$cpf_nota = $cpf_nota !== null ? trim($cpf_nota) : '';
+
+$observacao_pedido = filter_input(INPUT_POST, 'observacao', FILTER_DEFAULT);
+$observacao_pedido = $observacao_pedido !== null ? trim($observacao_pedido) : '';
 
 // Higieniza o CPF para deixar apenas dígitos
 $cpf_nota = preg_replace('/[^0-9]/', '', $cpf_nota);
@@ -137,8 +148,9 @@ if ($pagamento === 'pix') {
 $valor_entregue = null;
 $troco = 0.00;
 
-if ($forma_pagamento_db === 'DINHEIRO' && isset($_POST['valor_pago_dinheiro'])) {
-    $valor_pago_dinheiro_raw = trim($_POST['valor_pago_dinheiro']);
+if ($forma_pagamento_db === 'DINHEIRO') {
+    $valor_pago_dinheiro_raw = filter_input(INPUT_POST, 'valor_pago_dinheiro', FILTER_DEFAULT);
+    $valor_pago_dinheiro_raw = $valor_pago_dinheiro_raw !== null ? trim($valor_pago_dinheiro_raw) : '';
     if (!empty($valor_pago_dinheiro_raw)) {
         // Converte formato BR ("50,00") para Float
         $valor_pago_dinheiro_raw = str_replace('.', '', $valor_pago_dinheiro_raw);
@@ -156,7 +168,7 @@ if ($forma_pagamento_db === 'DINHEIRO' && isset($_POST['valor_pago_dinheiro'])) 
 try {
     $conn->beginTransaction();
 
-    // Calcula o custo total do pedido a partir do custo_compra de cada produto no momento da compra
+    // Calcula o custo total do pedido a partir do custo_compra de cada produto e de seus adicionais
     $custo_total = 0.00;
     $itens_detalhados = [];
     foreach ($itens as $item) {
@@ -165,14 +177,22 @@ try {
         $prodInfo = $stmtCusto->fetch();
         $custo_unitario = $prodInfo && isset($prodInfo['custo_compra']) ? floatval($prodInfo['custo_compra']) : 0.00;
         
-        $custo_total += $custo_unitario * $item['quantidade'];
+        $custo_item_acumulado = $custo_unitario;
+        if (!empty($item['adicionais'])) {
+            foreach ($item['adicionais'] as $ad) {
+                $custo_item_acumulado += isset($ad['custo']) ? floatval($ad['custo']) : 0.00;
+            }
+        }
+        
+        $custo_total += $custo_item_acumulado * $item['quantidade'];
         
         $itens_detalhados[] = [
             'id_produto' => $item['id_produto'],
             'preco_unitario' => $item['preco_unitario'],
             'custo_unitario' => $custo_unitario,
             'quantidade' => $item['quantidade'],
-            'observacao' => $item['observacao']
+            'observacao' => $item['observacao'],
+            'adicionais' => $item['adicionais'] ?? []
         ];
     }
     
@@ -216,6 +236,24 @@ try {
             ':id_prod' => $item['id_produto'],
             ':id_ped'  => $id_pedido
         ]);
+        $idItemPedido = $conn->lastInsertId();
+
+        // Insere os adicionais deste item na tabela `item_pedido_adicional`
+        if (!empty($item['adicionais'])) {
+            foreach ($item['adicionais'] as $ad) {
+                $stmtInsAd = $conn->prepare("
+                    INSERT INTO item_pedido_adicional (id_item_pedido, id_adicional, nome_snapshot, preco_unitario_snapshot, custo_unitario_snapshot, quantidade)
+                    VALUES (:id_item, :id_ad, :nome, :preco, :custo, 1)
+                ");
+                $stmtInsAd->execute([
+                    'id_item' => $idItemPedido,
+                    'id_ad'   => $ad['id_adicional'],
+                    'nome'    => $ad['nome'],
+                    'preco'   => $ad['preco'],
+                    'custo'   => $ad['custo']
+                ]);
+            }
+        }
     }
 
     // C) Insere o registro de pagamento (pendente na entrega)

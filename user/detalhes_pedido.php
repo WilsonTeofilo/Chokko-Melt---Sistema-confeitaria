@@ -44,7 +44,7 @@ try {
 
     // Busca os itens do pedido
     $sqlItens = "
-        SELECT ip.quantidade, ip.preco_unitario, ip.observacao,
+        SELECT ip.id_item_pedido, ip.quantidade, ip.preco_unitario, ip.observacao,
                COALESCE(p.nome, 'Produto Indisponível') AS nome,
                COALESCE(p.imagem, '') AS imagem
         FROM item_pedido ip
@@ -100,7 +100,7 @@ $pi = pagamentoInfo($pedido['forma_pagamento'] ?? '');
 
 include '../includes/user_header.php'; 
 ?>
-<link rel="stylesheet" href="assets/css/pedidos.css">
+<link rel="stylesheet" href="assets/css/pedidos.css?v=<?= time() ?>">
 
 <div class="page-header-wrap">
 <header class="page-header">
@@ -138,10 +138,16 @@ include '../includes/user_header.php';
     <div class="det-section-label">Status</div>
     <span class="order-status <?= $si['classe'] ?> det-status-badge"><?= $si['texto'] ?></span>
 
-    <?php if (in_array($status, ['CANCELADO_CLIENTE', 'CANCELADO_LOJA']) && !empty($pedido['motivo_cancelamento'])): ?>
-        <div class="det-obs-box" style="margin-top: 10px;">
-            <i class="fa-solid fa-circle-info"></i>
-            <span>Motivo: <?= htmlspecialchars($pedido['motivo_cancelamento']) ?></span>
+    <?php if (in_array($status, ['CANCELADO_CLIENTE', 'CANCELADO_LOJA'])): 
+        $titulo_cancel = ($status === 'CANCELADO_LOJA') ? 'Pedido Cancelado pela Confeitaria' : 'Pedido Cancelado por Você';
+        $motivo_cancel = !empty($pedido['motivo_cancelamento']) ? $pedido['motivo_cancelamento'] : (($status === 'CANCELADO_LOJA') ? 'Nenhum motivo informado pela loja.' : 'Cancelamento solicitado pelo cliente.');
+    ?>
+        <div class="det-cancel-banner">
+            <i class="fa-solid fa-circle-xmark"></i>
+            <div class="det-cancel-banner-content">
+                <h4 class="det-cancel-banner-title"><?= htmlspecialchars($titulo_cancel) ?></h4>
+                <p class="det-cancel-banner-reason"><strong>Motivo:</strong> <?= htmlspecialchars($motivo_cancel) ?></p>
+            </div>
         </div>
     <?php endif; ?>
 
@@ -237,11 +243,41 @@ include '../includes/user_header.php';
                 $imgSrc = '../admin/' . $imgSrc;
             }
         ?>
+            <?php
+            // Busca adicionais deste item do pedido
+            $stmtAd = $conn->prepare("
+                SELECT nome_snapshot, preco_unitario_snapshot 
+                FROM item_pedido_adicional 
+                WHERE id_item_pedido = :id_item
+            ");
+            $stmtAd->execute(['id_item' => $item['id_item_pedido']]);
+            $adicionais = $stmtAd->fetchAll();
+
+            $precoTotalItem = $item['preco_unitario'];
+            if (!empty($adicionais)) {
+                foreach ($adicionais as $ad) {
+                    $precoTotalItem += (float)$ad['preco_unitario_snapshot'];
+                }
+            }
+            $precoTotalItem *= $item['quantidade'];
+            ?>
             <div class="det-item">
                 <img class="det-item-img" src="<?= htmlspecialchars($imgSrc) ?>" alt="<?= htmlspecialchars($item['nome']) ?>">
                 <div class="det-item-info">
                     <p class="det-item-name"><?= $item['quantidade'] ?>x <?= htmlspecialchars($item['nome']) ?></p>
-                    <p class="det-item-price">R$ <?= number_format($item['preco_unitario'] * $item['quantidade'], 2, ',', '.') ?></p>
+                    <?php if (!empty($adicionais)): ?>
+                        <p style="font-size: 0.8rem; color: #757575; margin-top: 2px;">
+                            <span style="font-weight: 600;">Adicionais:</span>
+                            <?php 
+                            $addonsList = [];
+                            foreach ($adicionais as $ad) {
+                                $addonsList[] = htmlspecialchars($ad['nome_snapshot']) . ' (+ R$ ' . number_format($ad['preco_unitario_snapshot'], 2, ',', '.') . ')';
+                            }
+                            echo implode(', ', $addonsList);
+                            ?>
+                        </p>
+                    <?php endif; ?>
+                    <p class="det-item-price" style="margin-top: 4px;">R$ <?= number_format($precoTotalItem, 2, ',', '.') ?></p>
                 </div>
             </div>
             <?php if (!empty($item['observacao'])): ?>
@@ -318,6 +354,9 @@ include '../includes/user_header.php';
                 </button>
             </form>
         <?php endif; ?>
+        <button class="btn btn-outline btn-imprimir" onclick="imprimirComprovante()">
+            <i class="fa-solid fa-print"></i> Imprimir Comprovante
+        </button>
         <button class="btn btn-ghost" onclick="window.location.href='pedidos.php'">
             Voltar aos meus pedidos
         </button>
@@ -367,3 +406,69 @@ include '../includes/user_header.php';
 
 <?php include '../includes/user_footer.php'; ?>
 <script src="assets/js/detalhes_pedido.js"></script>
+
+<!-- ══ COMPROVANTE DE IMPRESSÃO (oculto na tela, exibido no print) ══ -->
+<div id="comprovante-cliente">
+    <p class="cv-titulo">CHOKKO MELT</p>
+    <p class="cv-sub">Comprovante de Pedido</p>
+    <hr class="cv-hr">
+    <p class="cv-linha"><b>Pedido:</b> #<?= $pedido_id ?></p>
+    <p class="cv-linha"><b>Data:</b> <?= date('d/m/Y H:i', strtotime($pedido['data_hora'])) ?></p>
+    <p class="cv-linha"><b>Status:</b> <?= htmlspecialchars($si['texto']) ?></p>
+    <hr class="cv-hr">
+    <p class="cv-linha"><b>Entrega:</b> <?= htmlspecialchars($ei['titulo']) ?></p>
+    <?php if ($pedido['tipo_entrega'] === 'DELIVERY' && !empty($pedido['rua'])): ?>
+    <p class="cv-linha"><?= htmlspecialchars($pedido['rua'] . ', ' . $pedido['numero']) ?>, <?= htmlspecialchars($pedido['bairro']) ?></p>
+    <?php endif; ?>
+    <p class="cv-linha"><b>Pagamento:</b> <?= htmlspecialchars($pedido['forma_pagamento'] ?? '—') ?></p>
+    <?php if (!empty($pedido['troco']) && $pedido['troco'] > 0): ?>
+    <p class="cv-linha">Troco: R$ <?= number_format($pedido['troco'], 2, ',', '.') ?></p>
+    <?php endif; ?>
+    <hr class="cv-hr">
+    <table class="cv-tabela">
+        <thead><tr><th class="cv-desc">Item</th><th class="cv-val">Valor</th></tr></thead>
+        <tbody>
+        <?php foreach ($itens as $cvItem):
+            $stmtCvAd = $conn->prepare("SELECT nome_snapshot, preco_unitario_snapshot FROM item_pedido_adicional WHERE id_item_pedido = :id");
+            $stmtCvAd->execute(['id' => $cvItem['id_item_pedido']]);
+            $cvAdicionais = $stmtCvAd->fetchAll();
+            $cvPrecoItem = $cvItem['preco_unitario'];
+            foreach ($cvAdicionais as $ad) { $cvPrecoItem += (float)$ad['preco_unitario_snapshot']; }
+            $cvPrecoItem *= $cvItem['quantidade'];
+        ?>
+        <tr>
+            <td class="cv-desc">
+                <?= $cvItem['quantidade'] ?>x <?= htmlspecialchars($cvItem['nome']) ?>
+                <?php if (!empty($cvAdicionais)): ?>
+                <br><small>+ <?php $nomes = []; foreach($cvAdicionais as $ad) { $nomes[] = htmlspecialchars($ad['nome_snapshot']); } echo implode(', ', $nomes); ?></small>
+                <?php endif; ?>
+                <?php if (!empty($cvItem['observacao'])): ?>
+                <br><small><i>Obs: <?= htmlspecialchars($cvItem['observacao']) ?></i></small>
+                <?php endif; ?>
+            </td>
+            <td class="cv-val">R$ <?= number_format($cvPrecoItem, 2, ',', '.') ?></td>
+        </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+    <hr class="cv-hr">
+    <?php if (!empty($pedido['observacao'])): ?>
+    <p class="cv-linha"><i>Obs. pedido: <?= htmlspecialchars($pedido['observacao']) ?></i></p>
+    <?php endif; ?>
+    <div class="cv-total">
+        <span>Subtotal</span>
+        <span>R$ <?= number_format($pedido['subtotal'] ?? 0, 2, ',', '.') ?></span>
+    </div>
+    <?php if ($pedido['taxa_entrega'] > 0): ?>
+    <div class="cv-total" style="font-weight:normal; font-size:10px;">
+        <span>Taxa de entrega</span>
+        <span>R$ <?= number_format($pedido['taxa_entrega'], 2, ',', '.') ?></span>
+    </div>
+    <?php endif; ?>
+    <div class="cv-total cv-total-final">
+        <span>TOTAL</span>
+        <span>R$ <?= number_format($pedido['valor_total'], 2, ',', '.') ?></span>
+    </div>
+    <hr class="cv-hr">
+    <p class="cv-centro">Obrigado pela preferência! — Chokko Melt</p>
+</div>

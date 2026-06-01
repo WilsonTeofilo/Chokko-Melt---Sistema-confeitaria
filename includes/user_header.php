@@ -24,7 +24,7 @@ try {
             'hora_fecha' => $hora_fecha
         ];
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     // Silencioso, mantém padrão
 }
 ?>

@@ -20,11 +20,25 @@ $acao = $_POST['acao'];
 
 // ── AÇÃO: Adicionar produto ao carrinho ───────────────────────
 if ($acao === 'adicionar') {
-    $id_produto = intval($_POST['id_produto'] ?? 0);
-    $quantidade = intval($_POST['quantidade'] ?? 1);
-    $observacao = trim($_POST['observacao'] ?? '');
+    $id_produto = (int)filter_input(INPUT_POST, 'id_produto', FILTER_SANITIZE_NUMBER_INT);
+    $quantidade = (int)filter_input(INPUT_POST, 'quantidade', FILTER_SANITIZE_NUMBER_INT);
+    
+    $observacao = filter_input(INPUT_POST, 'observacao', FILTER_DEFAULT);
+    $observacao = $observacao !== null ? trim($observacao) : '';
 
-    $carrinho->adicionar($id_produto, $quantidade, $observacao);
+    $adicionais_raw = filter_input(INPUT_POST, 'adicionais', FILTER_DEFAULT);
+    $adicionais_raw = $adicionais_raw !== null ? trim($adicionais_raw) : '';
+
+    $adicionais = [];
+    if (!empty($adicionais_raw)) {
+        $adicionais = array_map('intval', explode(',', $adicionais_raw));
+    }
+
+    if ($quantidade <= 0) {
+        $quantidade = 1;
+    }
+
+    $carrinho->adicionar($id_produto, $quantidade, $observacao, $adicionais);
 
     // Volta pra vitrine
     header('Location: ../index.php');
@@ -33,8 +47,10 @@ if ($acao === 'adicionar') {
 
 // ── AÇÃO: Alterar quantidade (+1 ou -1) ───────────────────────
 if ($acao === 'alterar_quantidade') {
-    $chave = $_POST['chave'] ?? '';
-    $delta = intval($_POST['delta'] ?? 0); // +1 ou -1
+    $chave = filter_input(INPUT_POST, 'chave', FILTER_DEFAULT);
+    $chave = $chave !== null ? trim($chave) : '';
+    
+    $delta = (int)filter_input(INPUT_POST, 'delta', FILTER_SANITIZE_NUMBER_INT);
 
     if (!empty($chave)) {
         $carrinho->alterarQuantidade($chave, $delta);
@@ -46,7 +62,8 @@ if ($acao === 'alterar_quantidade') {
 
 // ── AÇÃO: Remover item do carrinho ────────────────────────────
 if ($acao === 'remover') {
-    $chave = $_POST['chave'] ?? '';
+    $chave = filter_input(INPUT_POST, 'chave', FILTER_DEFAULT);
+    $chave = $chave !== null ? trim($chave) : '';
 
     if (!empty($chave)) {
         $carrinho->remover($chave);
@@ -58,16 +75,16 @@ if ($acao === 'remover') {
 
 // ── AÇÃO: Repetir pedido anterior ────────────────────────
 if ($acao === 'repetir_pedido') {
-    $id_pedido = intval($_POST['id_pedido'] ?? 0);
+    $id_pedido = (int)filter_input(INPUT_POST, 'id_pedido', FILTER_SANITIZE_NUMBER_INT);
 
     if ($id_pedido > 0 && isset($_SESSION['idlogado'])) {
-        $id_cliente = intval($_SESSION['idlogado']);
+        $id_cliente = (int)$_SESSION['idlogado'];
 
         try {
             // $conn vem do config.php já incluído acima
             // Valida que o pedido pertence ao cliente logado
             $sql = "
-                SELECT ip.id_produto, ip.quantidade, ip.observacao
+                SELECT ip.id_item_pedido, ip.id_produto, ip.quantidade, ip.observacao
                 FROM item_pedido ip
                 INNER JOIN pedido p ON p.id_pedido = ip.id_pedido
                 WHERE ip.id_pedido = :id_pedido
@@ -78,14 +95,25 @@ if ($acao === 'repetir_pedido') {
             $itens = $stmt->fetchAll();
 
             foreach ($itens as $item) {
+                // Busca adicionais associados a este item de pedido anterior
+                $stmtAds = $conn->prepare("
+                    SELECT id_adicional 
+                    FROM item_pedido_adicional 
+                    WHERE id_item_pedido = :id_item
+                ");
+                $stmtAds->execute(['id_item' => $item['id_item_pedido']]);
+                // Pega apenas a coluna id_adicional como array de inteiros
+                $ads = $stmtAds->fetchAll(PDO::FETCH_COLUMN);
+
                 $carrinho->adicionar(
-                    intval($item['id_produto']),
-                    intval($item['quantidade']),
-                    trim($item['observacao'] ?? '')
+                    (int)$item['id_produto'],
+                    (int)$item['quantidade'],
+                    $item['observacao'] !== null ? trim($item['observacao']) : '',
+                    $ads ? $ads : []
                 );
             }
         } catch (Exception $e) {
-            // Se der erro, manda pro carrinho com o que tem
+            // Se der erro, mantém o que já foi adicionado
         }
     }
 

@@ -76,7 +76,23 @@ class Carrinho {
 
         $this->itens = [];
         foreach ($rows as $row) {
-            $chave = $row['id_produto'] . '|' . $row['observacao'];
+            // Busca adicionais deste item do carrinho
+            $stmtAd = $this->pdo->prepare("
+                SELECT id_adicional, nome_snapshot AS nome, preco_unitario_snapshot AS preco, custo_unitario_snapshot AS custo
+                FROM item_carrinho_adicional
+                WHERE id_item_carrinho = :id_item_carrinho
+            ");
+            $stmtAd->execute(['id_item_carrinho' => $row['id_item_carrinho']]);
+            $adicionais = $stmtAd->fetchAll();
+
+            $adicionaisIds = [];
+            foreach ($adicionais as $ad) {
+                $adicionaisIds[] = (int)$ad['id_adicional'];
+            }
+            sort($adicionaisIds);
+            
+            $chave = $row['id_produto'] . '|' . $row['observacao'] . '|' . implode(',', $adicionaisIds);
+
             $this->itens[] = [
                 'id_item_carrinho' => $row['id_item_carrinho'],
                 'chave'          => $chave,
@@ -85,17 +101,22 @@ class Carrinho {
                 'imagem'         => $row['imagem'],
                 'preco_unitario' => (float)$row['preco_unitario'],
                 'quantidade'     => (int)$row['quantidade'],
-                'observacao'     => $row['observacao']
+                'observacao'     => $row['observacao'],
+                'adicionais'     => $adicionais
             ];
         }
     }
 
-    public function adicionar($idProduto, $quantidade, $observacao = '') {
+    public function adicionar($idProduto, $quantidade, $observacao = '', $adicionais = []) {
         $quantidade = (int)$quantidade;
         if ($quantidade <= 0) return;
 
-        // Limite de 10 por produto/observacao
-        $chave = $idProduto . '|' . $observacao;
+        // Limita o array de adicionais
+        $adicionaisIds = array_map('intval', $adicionais);
+        sort($adicionaisIds);
+
+        // Limite de 10 por produto/observacao/adicionais
+        $chave = $idProduto . '|' . $observacao . '|' . implode(',', $adicionaisIds);
         $itemExistenteIndex = -1;
         foreach ($this->itens as $idx => $item) {
             if ($item['chave'] === $chave) {
@@ -133,6 +154,30 @@ class Carrinho {
                     'id_prod' => $idProduto,
                     'id_carrinho' => $this->idCarrinho
                 ]);
+                $idItemCarrinho = $this->pdo->lastInsertId();
+
+                // Agora insere os adicionais na tabela `item_carrinho_adicional`
+                if (!empty($adicionaisIds)) {
+                    foreach ($adicionaisIds as $idAdicional) {
+                        // Busca dados do adicional para snapshot
+                        $stmtAd = $this->pdo->prepare("SELECT nome, preco, custo FROM adicional WHERE id_adicional = :id LIMIT 1");
+                        $stmtAd->execute(['id' => $idAdicional]);
+                        $ad = $stmtAd->fetch();
+                        if ($ad) {
+                            $stmtInsAd = $this->pdo->prepare("
+                                INSERT INTO item_carrinho_adicional (id_item_carrinho, id_adicional, nome_snapshot, preco_unitario_snapshot, custo_unitario_snapshot, quantidade)
+                                VALUES (:id_item, :id_ad, :nome, :preco, :custo, 1)
+                            ");
+                            $stmtInsAd->execute([
+                                'id_item' => $idItemCarrinho,
+                                'id_ad' => $idAdicional,
+                                'nome' => $ad['nome'],
+                                'preco' => $ad['preco'],
+                                'custo' => $ad['custo']
+                            ]);
+                        }
+                    }
+                }
             }
             $this->carregarItensBanco();
         } else {
@@ -149,6 +194,24 @@ class Carrinho {
                 $precoUnitario = $prod ? (float)$prod['preco'] : 0.0;
                 $imagem = $prod ? $prod['imagem'] : '';
 
+                // Carrega adicionais para a sessão
+                $addonsSession = [];
+                if (!empty($adicionaisIds)) {
+                    foreach ($adicionaisIds as $idAdicional) {
+                        $stmtAd = $this->pdo->prepare("SELECT nome, preco, custo FROM adicional WHERE id_adicional = :id LIMIT 1");
+                        $stmtAd->execute(['id' => $idAdicional]);
+                        $ad = $stmtAd->fetch();
+                        if ($ad) {
+                            $addonsSession[] = [
+                                'id_adicional' => (int)$idAdicional,
+                                'nome' => $ad['nome'],
+                                'preco' => (float)$ad['preco'],
+                                'custo' => $ad['custo'] !== null ? (float)$ad['custo'] : null
+                            ];
+                        }
+                    }
+                }
+
                 $_SESSION['carrinho'][] = [
                     'chave'          => $chave,
                     'id_produto'     => $idProduto,
@@ -156,7 +219,8 @@ class Carrinho {
                     'imagem'         => $imagem,
                     'preco_unitario' => $precoUnitario,
                     'quantidade'     => min(10, $quantidade),
-                    'observacao'     => $observacao
+                    'observacao'     => $observacao,
+                    'adicionais'     => $addonsSession
                 ];
             }
             $this->itens = $_SESSION['carrinho'];
@@ -239,7 +303,13 @@ class Carrinho {
     public function calcularSubtotal() {
         $subtotal = 0.0;
         foreach ($this->itens as $item) {
-            $subtotal += $item['preco_unitario'] * $item['quantidade'];
+            $precoItem = $item['preco_unitario'];
+            if (!empty($item['adicionais'])) {
+                foreach ($item['adicionais'] as $ad) {
+                    $precoItem += (float)$ad['preco'];
+                }
+            }
+            $subtotal += $precoItem * $item['quantidade'];
         }
         return $subtotal;
     }
@@ -261,31 +331,27 @@ class Carrinho {
 
         if (isset($_SESSION['carrinho']) && !empty($_SESSION['carrinho'])) {
             foreach ($_SESSION['carrinho'] as $itemSessao) {
-                // Verifica se já existe o mesmo item no banco
-                $chave = $itemSessao['id_produto'] . '|' . $itemSessao['observacao'];
-                $stmtCheck = $this->pdo->prepare("
-                    SELECT id_item_carrinho, quantidade
-                    FROM item_carrinho
-                    WHERE id_carrinho = :id_carrinho AND id_produto = :id_prod AND observacao = :obs
-                    LIMIT 1
-                ");
-                $stmtCheck->execute([
-                    'id_carrinho' => $this->idCarrinho,
-                    'id_prod' => $itemSessao['id_produto'],
-                    'obs' => $itemSessao['observacao']
-                ]);
-                $itemBanco = $stmtCheck->fetch();
+                // Como itens com adicionais diferentes são itens separados,
+                // vamos carregar o que está no banco e procurar pelo item com a mesma chave.
+                $this->carregarItensBanco();
+                $itemBancoEncontrado = null;
+                foreach ($this->itens as $itemB) {
+                    if ($itemB['chave'] === $itemSessao['chave']) {
+                        $itemBancoEncontrado = $itemB;
+                        break;
+                    }
+                }
 
-                if ($itemBanco) {
+                if ($itemBancoEncontrado) {
                     // Se já existe, soma as quantidades e limita a 10
-                    $novaQtd = min(10, $itemBanco['quantidade'] + $itemSessao['quantidade']);
+                    $novaQtd = min(10, $itemBancoEncontrado['quantidade'] + $itemSessao['quantidade']);
                     $stmtUpdate = $this->pdo->prepare("UPDATE item_carrinho SET quantidade = :qtd WHERE id_item_carrinho = :id");
                     $stmtUpdate->execute([
                         'qtd' => $novaQtd,
-                        'id' => $itemBanco['id_item_carrinho']
+                        'id' => $itemBancoEncontrado['id_item_carrinho']
                     ]);
                 } else {
-                    // Se não existe, insere
+                    // Se não existe, insere o item
                     $stmtInsert = $this->pdo->prepare("
                         INSERT INTO item_carrinho (preco_unitario, quantidade, observacao, id_produto, id_carrinho)
                         VALUES (:preco, :qtd, :obs, :id_prod, :id_carrinho)
@@ -297,6 +363,24 @@ class Carrinho {
                         'id_prod' => $itemSessao['id_produto'],
                         'id_carrinho' => $this->idCarrinho
                     ]);
+                    $idItemCarrinho = $this->pdo->lastInsertId();
+
+                    // E insere os adicionais associados
+                    if (!empty($itemSessao['adicionais'])) {
+                        foreach ($itemSessao['adicionais'] as $ad) {
+                            $stmtInsAd = $this->pdo->prepare("
+                                INSERT INTO item_carrinho_adicional (id_item_carrinho, id_adicional, nome_snapshot, preco_unitario_snapshot, custo_unitario_snapshot, quantidade)
+                                VALUES (:id_item, :id_ad, :nome, :preco, :custo, 1)
+                            ");
+                            $stmtInsAd->execute([
+                                'id_item' => $idItemCarrinho,
+                                'id_ad' => $ad['id_adicional'],
+                                'nome' => $ad['nome'],
+                                'preco' => $ad['preco'],
+                                'custo' => $ad['custo']
+                            ]);
+                        }
+                    }
                 }
             }
             // Limpa o carrinho da sessão
