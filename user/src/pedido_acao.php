@@ -158,7 +158,9 @@ if ($forma_pagamento_db === 'DINHEIRO') {
         $valor_entregue = floatval($valor_pago_dinheiro_raw);
 
         if ($valor_entregue < $total) {
-            $valor_entregue = $total;
+            $_SESSION['erro_checkout'] = "O valor para o troco (R$ " . number_format($valor_entregue, 2, ',', '.') . ") não pode ser menor que o total do pedido (R$ " . number_format($total, 2, ',', '.') . ").";
+            header("Location: ../finalizarPedido.php");
+            exit;
         }
         $troco = $valor_entregue - $total;
     }

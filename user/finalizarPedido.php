@@ -84,6 +84,14 @@ include '../includes/user_header.php';
         <input type="hidden" name="tipo_entrega" value="<?= htmlspecialchars($forma_entrega) ?>">
         <input type="hidden" name="id_endereco" id="id_endereco_input" value="<?= htmlspecialchars($endereco_selecionado['id_endereco'] ?? '') ?>">
 
+        <?php if (isset($_SESSION['erro_checkout'])): ?>
+            <div class="checkout-error-banner" style="background: #FFCDD2; color: #B71C1C; padding: 12px 15px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span><?= htmlspecialchars($_SESSION['erro_checkout']) ?></span>
+                <?php unset($_SESSION['erro_checkout']); ?>
+            </div>
+        <?php endif; ?>
+
         <!-- AVISO DE CONTA -->
         <div class="aviso-conta">
             <i class="fa-solid fa-circle-user icon-user"></i>
