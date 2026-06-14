@@ -8,6 +8,37 @@ require_once '../../config/config.php';
 require_once '../../classes/Carrinho.php';
 require_once '../../classes/Endereco.php';
 
+/**
+ * Converte de forma robusta uma string de moeda (formato BR ou US) em float.
+ */
+function parseCurrency($value) {
+    if ($value === null || $value === '') {
+        return 0.00;
+    }
+    // Remove qualquer símbolo monetário e espaços
+    $value = trim($value);
+    $value = preg_replace('/[^\d.,]/', '', $value);
+
+    // Se possui pontos e vírgulas (ex: 1.000,00 ou 1,000.00)
+    if (strpos($value, '.') !== false && strpos($value, ',') !== false) {
+        if (strrpos($value, '.') > strrpos($value, ',')) {
+            // Ponto vem depois (estilo US: 1,000.00)
+            $value = str_replace(',', '', $value);
+        } else {
+            // Vírgula vem depois (estilo BR: 1.000,00)
+            $value = str_replace('.', '', $value);
+            $value = str_replace(',', '.', $value);
+        }
+    } else {
+        // Se possui apenas vírgula (ex: 100,00)
+        if (strpos($value, ',') !== false) {
+            $value = str_replace(',', '.', $value);
+        }
+        // Se possui apenas ponto (ex: 100.00), já está no formato correto
+    }
+    return floatval($value);
+}
+
 // Só aceita requisições POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: ../index.php");
@@ -23,13 +54,11 @@ if (!isset($_SESSION['idlogado'])) {
 $id_cliente = intval($_SESSION['idlogado']);
 
 // Tratamento da Ação de Cancelar Pedido
-$acao = filter_input(INPUT_POST, 'acao', FILTER_DEFAULT);
-$acao = $acao !== null ? trim($acao) : '';
+$acao = isset($_POST['acao']) ? trim($_POST['acao']) : '';
 
 if ($acao === 'cancelar_pedido') {
-    $id_pedido = (int)filter_input(INPUT_POST, 'id_pedido', FILTER_SANITIZE_NUMBER_INT);
-    $motivo = filter_input(INPUT_POST, 'motivo', FILTER_DEFAULT);
-    $motivo = $motivo !== null ? trim($motivo) : '';
+    $id_pedido = isset($_POST['id_pedido']) ? intval($_POST['id_pedido']) : 0;
+    $motivo = isset($_POST['motivo']) ? trim($_POST['motivo']) : '';
 
     if ($id_pedido <= 0 || empty($motivo)) {
         header("Location: ../pedidos.php");
@@ -81,19 +110,11 @@ if (empty($itens)) {
 }
 
 // 3. Recebe e sanitiza os dados do formulário
-$tipo_entrega = filter_input(INPUT_POST, 'tipo_entrega', FILTER_DEFAULT);
-$tipo_entrega = $tipo_entrega !== null ? trim($tipo_entrega) : 'delivery';
-
-$id_endereco = (int)filter_input(INPUT_POST, 'id_endereco', FILTER_SANITIZE_NUMBER_INT);
-
-$pagamento = filter_input(INPUT_POST, 'pagamento', FILTER_DEFAULT);
-$pagamento = $pagamento !== null ? trim($pagamento) : 'credito';
-
-$cpf_nota = filter_input(INPUT_POST, 'cpf_nota', FILTER_DEFAULT);
-$cpf_nota = $cpf_nota !== null ? trim($cpf_nota) : '';
-
-$observacao_pedido = filter_input(INPUT_POST, 'observacao', FILTER_DEFAULT);
-$observacao_pedido = $observacao_pedido !== null ? trim($observacao_pedido) : '';
+$tipo_entrega = isset($_POST['tipo_entrega']) ? trim($_POST['tipo_entrega']) : 'delivery';
+$id_endereco = isset($_POST['id_endereco']) ? intval($_POST['id_endereco']) : 0;
+$pagamento = isset($_POST['pagamento']) ? trim($_POST['pagamento']) : 'credito';
+$cpf_nota = isset($_POST['cpf_nota']) ? trim($_POST['cpf_nota']) : '';
+$observacao_pedido = isset($_POST['observacao']) ? trim($_POST['observacao']) : '';
 
 // Higieniza o CPF para deixar apenas dígitos
 $cpf_nota = preg_replace('/[^0-9]/', '', $cpf_nota);
@@ -149,21 +170,30 @@ $valor_entregue = null;
 $troco = 0.00;
 
 if ($forma_pagamento_db === 'DINHEIRO') {
-    $valor_pago_dinheiro_raw = filter_input(INPUT_POST, 'valor_pago_dinheiro', FILTER_DEFAULT);
-    $valor_pago_dinheiro_raw = $valor_pago_dinheiro_raw !== null ? trim($valor_pago_dinheiro_raw) : '';
-    if (!empty($valor_pago_dinheiro_raw)) {
-        // Converte formato BR ("50,00") para Float
-        $valor_pago_dinheiro_raw = str_replace('.', '', $valor_pago_dinheiro_raw);
-        $valor_pago_dinheiro_raw = str_replace(',', '.', $valor_pago_dinheiro_raw);
-        $valor_entregue = floatval($valor_pago_dinheiro_raw);
+    $valor_pago_dinheiro_raw = isset($_POST['valor_pago_dinheiro']) ? trim($_POST['valor_pago_dinheiro']) : '';
 
-        if ($valor_entregue < $total) {
-            $_SESSION['erro_checkout'] = "O valor para o troco (R$ " . number_format($valor_entregue, 2, ',', '.') . ") não pode ser menor que o total do pedido (R$ " . number_format($total, 2, ',', '.') . ").";
-            header("Location: ../finalizarPedido.php");
-            exit;
-        }
-        $troco = $valor_entregue - $total;
+    if ($valor_pago_dinheiro_raw === '') {
+        $_SESSION['erro_checkout'] = "Por favor, preencha o valor em dinheiro que será entregue.";
+        header("Location: ../finalizarPedido.php");
+        exit;
     }
+
+    $valor_entregue = parseCurrency($valor_pago_dinheiro_raw);
+
+    if ($valor_entregue <= 0) {
+        $_SESSION['erro_checkout'] = "Por favor, insira um valor em dinheiro válido.";
+        header("Location: ../finalizarPedido.php");
+        exit;
+    }
+
+    // Tolerância de ponto flutuante para comparação (0.01 centavo)
+    if (($valor_entregue - $total) < -0.01) {
+        $_SESSION['erro_checkout'] = "O valor em dinheiro (R$ " . number_format($valor_entregue, 2, ',', '.') . ") é insuficiente para pagar o total do pedido (R$ " . number_format($total, 2, ',', '.') . ").";
+        header("Location: ../finalizarPedido.php");
+        exit;
+    }
+    
+    $troco = $valor_entregue - $total;
 }
 
 // 5. Inicia gravação com transação no banco para garantir consistência total

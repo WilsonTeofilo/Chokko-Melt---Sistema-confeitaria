@@ -275,4 +275,4 @@ include '../includes/user_header.php';
 
 <?php include '../includes/user_footer.php'; ?>
 
-<script src="assets/js/finalizar_pedido.js"></script>
+<script src="assets/js/finalizar_pedido.js?v=<?= time() ?>"></script>
