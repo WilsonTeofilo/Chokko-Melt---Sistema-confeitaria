@@ -23,7 +23,7 @@ function obterHtmlAcoes(status, tipoEntrega) {
         botoes += '<button class="btn-action-accept btn-entregar" onclick="atualizarStatusPedido(this, \'ENTREGUE\')" title="Confirmar entrega"><i class="fa-solid fa-flag-checkered"></i> Entregue</button> ' +
                   '<button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, \'CANCELADO\')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>';
     } else if (status === 'ENTREGUE') {
-        botoes += '<button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, \'CANCELADO\')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>';
+        botoes += '<button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, \'CANCELADO\')" title="Estornar pedido"><i class="fa-solid fa-arrow-rotate-left"></i> Estornar</button>';
     }
     
     return botoes;
@@ -307,9 +307,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function atualizarStatusPedido(btn, novoStatus) {
     if (novoStatus === 'CANCELADO') {
-        if (!confirm('Deseja realmente cancelar este pedido?')) {
+        var tr = btn.closest('tr');
+        var statusAtual = tr ? tr.dataset.status : '';
+        var msgConfirm = (statusAtual === 'ENTREGUE') 
+            ? 'Deseja realmente estornar este pedido?' 
+            : 'Deseja realmente cancelar este pedido?';
+
+        if (!confirm(msgConfirm)) {
             return;
         }
+
+        // Ajusta os textos do modal conforme statusAtual
+        var modalTitle = document.querySelector('.cancel-title');
+        var modalText = document.querySelector('.cancel-p');
+        var modalBtn = document.querySelector('.btn-confirm-cancel');
+        
+        if (statusAtual === 'ENTREGUE') {
+            if (modalTitle) modalTitle.innerText = 'Estornar Pedido';
+            if (modalText) modalText.innerText = 'Informe o motivo do estorno para o cliente (obrigatório):';
+            if (modalBtn) modalBtn.innerText = 'Confirmar Estorno';
+        } else {
+            if (modalTitle) modalTitle.innerText = 'Cancelar Pedido';
+            if (modalText) modalText.innerText = 'Informe o motivo do cancelamento para o cliente (obrigatório):';
+            if (modalBtn) modalBtn.innerText = 'Confirmar Cancelamento';
+        }
+
         document.getElementById('motivo-cancelamento-admin').value = '';
         document.getElementById('contador-cancelamento-admin').innerText = '0';
         document.getElementById('modal-cancelar-pedido').style.display = 'flex';
@@ -322,7 +344,9 @@ function atualizarStatusPedido(btn, novoStatus) {
 function confirmarCancelamentoAdmin() {
     var motivo = document.getElementById('motivo-cancelamento-admin').value.trim();
     if (!motivo) {
-        alert('O motivo do cancelamento é obrigatório.');
+        var modalTitle = document.querySelector('.cancel-title');
+        var isEstorno = modalTitle && modalTitle.innerText.indexOf('Estornar') !== -1;
+        alert(isEstorno ? 'O motivo do estorno é obrigatório.' : 'O motivo do cancelamento é obrigatório.');
         return;
     }
     if (_btnCancelarTemp) {
@@ -385,9 +409,17 @@ function executarMudancaStatus(btn, novoStatus) {
 
             // Se for cancelamento, fecha o modal e exibe a justificativa no modal de sucesso
             if (novoStatus === 'CANCELADO') {
+                var modalTitle = document.querySelector('.cancel-title');
+                var isEstorno = modalTitle && modalTitle.innerText.indexOf('Estornar') !== -1;
                 document.getElementById('modal-cancelar-pedido').style.display = 'none';
-                document.getElementById('modal-sucesso-msg').innerText =
-                    'Pedido #' + id_pedido + ' cancelado. Motivo: ' + motivo;
+                
+                if (isEstorno) {
+                    document.getElementById('modal-sucesso-msg').innerText =
+                        'Pedido #' + id_pedido + ' estornado. Motivo: ' + motivo;
+                } else {
+                    document.getElementById('modal-sucesso-msg').innerText =
+                        'Pedido #' + id_pedido + ' cancelado. Motivo: ' + motivo;
+                }
             } else {
                 document.getElementById('modal-sucesso-msg').innerText =
                     'Pedido #' + id_pedido + ' atualizado para ' + info[1] + ' com sucesso!';
