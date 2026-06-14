@@ -22,6 +22,7 @@ try {
         SELECT p.id_pedido, p.data_hora, p.valor_total, p.subtotal, p.taxa_entrega,
                p.observacao, p.tipo_entrega, p.cpf_nota,
                p.motivo_cancelamento, p.cancelado_por,
+               p.aceito_em, p.enviado_em, p.entregue_em,
                sp.descricao AS status_descricao,
                e.rua, e.numero, e.complemento, e.bairro, e.cep,
                pg.forma_pagamento, pg.valor_entregue, pg.troco
@@ -180,7 +181,7 @@ include '../includes/user_header.php';
             <span class="det-tl-dot"><i class="fa-solid fa-fire-burner"></i></span>
             <div class="det-tl-content">
                 <span class="det-tl-label">Pedido em produção</span>
-                <span class="det-tl-time">—</span>
+                <span class="det-tl-time"><?= !empty($pedido['aceito_em']) ? date('H:i', strtotime($pedido['aceito_em'])) : '—' ?></span>
             </div>
         </li>
         <?php if ($pedido['tipo_entrega'] === 'DELIVERY'): ?>
@@ -188,7 +189,7 @@ include '../includes/user_header.php';
             <span class="det-tl-dot"><i class="fa-solid fa-motorcycle"></i></span>
             <div class="det-tl-content">
                 <span class="det-tl-label">Saiu para entrega</span>
-                <span class="det-tl-time">—</span>
+                <span class="det-tl-time"><?= !empty($pedido['enviado_em']) ? date('H:i', strtotime($pedido['enviado_em'])) : '—' ?></span>
             </div>
         </li>
         <?php endif; ?>
@@ -196,7 +197,7 @@ include '../includes/user_header.php';
             <span class="det-tl-dot"><i class="fa-solid fa-flag-checkered"></i></span>
             <div class="det-tl-content">
                 <span class="det-tl-label">Pedido finalizado</span>
-                <span class="det-tl-time">—</span>
+                <span class="det-tl-time"><?= !empty($pedido['entregue_em']) ? date('H:i', strtotime($pedido['entregue_em'])) : '—' ?></span>
             </div>
         </li>
     </ul>

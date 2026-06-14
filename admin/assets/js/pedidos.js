@@ -50,6 +50,16 @@ function filtrarPedidos(status, btn) {
 
 // ── MODAL DETALHES ──
 
+function formatarDataHora(str) {
+    if (!str) return '';
+    var partes = str.split(' ');
+    if (partes.length < 2) return str;
+    var dataPartes = partes[0].split('-');
+    var horaPartes = partes[1].split(':');
+    if (dataPartes.length < 3 || horaPartes.length < 2) return str;
+    return dataPartes[2] + '/' + dataPartes[1] + '/' + dataPartes[0] + ' ' + horaPartes[0] + ':' + horaPartes[1];
+}
+
 function verDetalhesPedido(btn) {
     var tr = btn.closest('tr');
     var id = tr.cells[0].innerText;
@@ -58,9 +68,11 @@ function verDetalhesPedido(btn) {
     var pagamento = tr.cells[3].innerText;
     var total = tr.cells[4].innerText;
     var status = tr.dataset.status;
+    var dataHora = tr.dataset.dataHora || '';
 
     document.getElementById('detalhe-id').innerText = id;
     document.getElementById('detalhe-cliente').innerText = cliente;
+    document.getElementById('detalhe-data-hora').innerText = formatarDataHora(dataHora);
     document.getElementById('detalhe-tipo').innerText = tipo;
     document.getElementById('detalhe-pagamento').innerText = pagamento;
     document.getElementById('detalhe-total').innerText = total;
@@ -150,9 +162,7 @@ function coletarDadosCupom() {
         }
     }
 
-    var agora = new Date();
-    var data = agora.getDate() + '/' + (agora.getMonth() + 1) + '/' + agora.getFullYear()
-        + ' ' + agora.getHours() + ':' + String(agora.getMinutes()).padStart(2, '0');
+    var data = document.getElementById('detalhe-data-hora').innerText.trim();
 
     return {
         id:        document.getElementById('detalhe-id').innerText.trim(),
@@ -297,6 +307,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function atualizarStatusPedido(btn, novoStatus) {
     if (novoStatus === 'CANCELADO') {
+        if (!confirm('Deseja realmente cancelar este pedido?')) {
+            return;
+        }
         document.getElementById('motivo-cancelamento-admin').value = '';
         document.getElementById('contador-cancelamento-admin').innerText = '0';
         document.getElementById('modal-cancelar-pedido').style.display = 'flex';
@@ -392,6 +405,64 @@ function executarMudancaStatus(btn, novoStatus) {
 
 // ── INIT ──
 
+var _ultimoIdPedido = 0;
+var _audioNotification = null;
+
+function iniciarChecagemNovosPedidos() {
+    // Acha o maior ID de pedido na tabela
+    var trs = document.querySelectorAll('#tabela-pedidos tbody tr');
+    for (var i = 0; i < trs.length; i++) {
+        var idText = trs[i].cells[0].innerText.replace('#', '').trim();
+        var idVal = parseInt(idText);
+        if (idVal > _ultimoIdPedido) {
+            _ultimoIdPedido = idVal;
+        }
+    }
+
+    // Cria o elemento de áudio
+    _audioNotification = new Audio('assets/notification%20fah.mp3');
+
+    // Checa a cada 10 segundos
+    setInterval(function() {
+        fetch('src/checar_novos_pedidos.php?ultimo_id=' + _ultimoIdPedido)
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.sucesso && data.tem_novo) {
+                    _ultimoIdPedido = data.novo_id;
+                    
+                    // Toca a notificação sonora
+                    if (_audioNotification) {
+                        _audioNotification.play().catch(function(e) {
+                            console.log('Autoplay do som de notificação bloqueado pelo navegador. Interaja com a página primeiro.', e);
+                        });
+                    }
+                    
+                    // Exibe aviso visual
+                    var welcome = document.querySelector('.welcome-area');
+                    if (welcome) {
+                        var alertDiv = document.createElement('div');
+                        alertDiv.style.background = '#43A047';
+                        alertDiv.style.color = '#fff';
+                        alertDiv.style.padding = '12px 20px';
+                        alertDiv.style.borderRadius = '8px';
+                        alertDiv.style.marginTop = '15px';
+                        alertDiv.style.fontWeight = 'bold';
+                        alertDiv.className = 'new-order-alert';
+                        alertDiv.innerHTML = '<i class="fa-solid fa-bell fa-shake"></i> Novo pedido recebido! Recarregando painel...';
+                        welcome.appendChild(alertDiv);
+                    }
+                    
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2500);
+                }
+            })
+            .catch(function(err) {
+                console.error('Erro ao verificar novos pedidos:', err);
+            });
+    }, 10000);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // Contador do textarea de cancelamento
     var txtAdmin = document.getElementById('motivo-cancelamento-admin');
@@ -400,4 +471,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('contador-cancelamento-admin').innerText = this.value.length;
         });
     }
+    
+    // Inicia a verificação de novos pedidos
+    iniciarChecagemNovosPedidos();
 });
