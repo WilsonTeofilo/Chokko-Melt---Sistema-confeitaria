@@ -171,6 +171,7 @@ function obterStatusFormatado($status_db) {
                         <a href="detalhes_pedido.php?id=<?= $pedido['id_pedido'] ?>" class="btn-detalhes">
                             Detalhes <i class="fa-solid fa-chevron-right"></i>
                         </a>
+                        <?php if (!$cancelado): ?>
                         <form action="src/carrinho_acao.php" method="POST" style="display:inline;">
                             <input type="hidden" name="acao" value="repetir_pedido">
                             <input type="hidden" name="id_pedido" value="<?= $pedido['id_pedido'] ?>">
@@ -178,6 +179,7 @@ function obterStatusFormatado($status_db) {
                                 <i class="fa-solid fa-rotate-right"></i> Repetir
                             </button>
                         </form>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

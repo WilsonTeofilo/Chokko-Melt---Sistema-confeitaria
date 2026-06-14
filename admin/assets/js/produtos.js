@@ -125,6 +125,11 @@ function abrirModalProduto(edit, btnEl) {
             imgPreview.src = '';
         }
         if (inputFile) inputFile.value = '';
+        
+        var checkboxes = document.querySelectorAll('#adicionais-list input[type="checkbox"]');
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = false;
+        }
     } else if (btnEl) {
         var tr = btnEl.closest('tr');
         if (!tr || !tr.dataset.produtoId) {
@@ -357,7 +362,8 @@ function fecharModalAdicional() {
 
 function salvarNovoAdicional() {
     var nome = document.getElementById('add-nome').value.trim();
-    var preco = parseFloat(document.getElementById('add-preco').value);
+    var precoVal = document.getElementById('add-preco').value.trim().replace(',', '.');
+    var precoNum = parseFloat(precoVal);
 
     if (!nome) {
         alert('O nome do adicional é obrigatório.');
@@ -365,15 +371,19 @@ function salvarNovoAdicional() {
     }
 
     var textoPreco = '';
-    if (!isNaN(preco) && preco > 0) {
-        textoPreco = ' (+ R$ ' + preco.toFixed(2).replace('.', ',') + ')';
+    if (!isNaN(precoNum) && precoNum > 0) {
+        textoPreco = ' (+ R$ ' + precoNum.toFixed(2).replace('.', ',') + ')';
+    } else {
+        precoNum = 0;
     }
+
+    var valorAdicional = 'novo:' + nome + ':' + precoNum;
 
     var lista = document.getElementById('adicionais-list');
     var label = document.createElement('label');
     label.className = 'adicional-item';
     label.innerHTML = 
-        '<input type="checkbox" style="width:18px;height:18px;accent-color:var(--marrom);">' +
+        '<input type="checkbox" name="adicionais[]" value="' + valorAdicional + '" checked style="width:18px;height:18px;accent-color:var(--marrom);">' +
         '<span>' + nome + textoPreco + '</span>';
 
     var btnCriar = lista.querySelector('.btn-text-add');

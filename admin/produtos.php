@@ -214,6 +214,27 @@ include '../includes/admin_header.php';
 
             <h3 class="modal-subtitle mt-20">Adicionais / Complementos</h3>
             <div class="adicionais-list" id="adicionais-list">
+                <?php 
+                try {
+                    $todosAdicionais = $listarProd->listarTodosAdicionais();
+                    $adicionaisSelecionados = [];
+                    if ($produtoEditar) {
+                        $selecionados = $listarProd->obterAdicionais($produtoEditar['id_produto']);
+                        $adicionaisSelecionados = array_column($selecionados, 'id_adicional');
+                    }
+                    foreach ($todosAdicionais as $ad) {
+                        $checked = in_array($ad['id_adicional'], $adicionaisSelecionados) ? 'checked' : '';
+                        $textoPreco = $ad['preco'] > 0 ? ' (+ R$ ' . number_format($ad['preco'], 2, ',', '.') . ')' : '';
+                        echo '
+                        <label class="adicional-item">
+                            <input type="checkbox" name="adicionais[]" value="' . $ad['id_adicional'] . '" ' . $checked . ' style="width:18px;height:18px;accent-color:var(--marrom);">
+                            <span>' . htmlspecialchars($ad['nome']) . $textoPreco . '</span>
+                        </label>';
+                    }
+                } catch (Exception $e) {
+                    // Silencioso
+                }
+                ?>
                 <button type="button" class="btn-text-add" onclick="abrirModalAdicional()">+ Criar novo adicional</button>
             </div>
 

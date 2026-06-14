@@ -216,7 +216,7 @@ function imprimirCupom() {
         styleEl.id = styleId;
         document.head.appendChild(styleEl);
     }
-    styleEl.innerHTML = '@media print { @page { size: 58mm auto !important; margin: 0 !important; } }';
+    styleEl.innerHTML = '@media print { @page { margin: 0 !important; } }';
 
     window.print();
 }
@@ -276,7 +276,7 @@ function executarImpressaoCupom() {
         styleEl.id = styleId;
         document.head.appendChild(styleEl);
     }
-    styleEl.innerHTML = '@media print { @page { size: ' + w + ' auto !important; margin: 0 !important; } }';
+    styleEl.innerHTML = '@media print { @page { margin: 0 !important; } }';
 
     window.print();
 }

@@ -107,7 +107,7 @@ include '../includes/user_header.php';
             <span class="modal-product-price" id="modalPriceDisplay"></span>
 
             <!-- Acompanhamentos (gerados via JS) -->
-            <div id="modalAddonsSection" class="hide">
+            <div id="modalAddonsSection" style="display: none;">
                 <div class="modal-section-title">Acompanhamentos</div>
                 <p class="modal-section-sub">Escolha os extras (opcional)</p>
                 <div id="modalAddonsList"></div>
