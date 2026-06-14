@@ -65,13 +65,25 @@ $is_finalizado = in_array($status, ['ENTREGUE', 'CANCELADO_CLIENTE', 'CANCELADO_
 $pode_cancelar = ($status === 'PENDENTE');
 
 // Monta texto e classe do badge de status
-function statusInfo($status) {
+function statusInfo($status, $tipo_entrega = 'DELIVERY') {
     switch ($status) {
         case 'PENDENTE':    return ['texto' => 'Aguardando',         'classe' => 'aguardando'];
         case 'ACEITO':      return ['texto' => 'Aceito pela Loja',   'classe' => 'em-preparo'];
         case 'EM_PREPARO':  return ['texto' => 'Em Produção',        'classe' => 'em-preparo'];
-        case 'ENVIADO':     return ['texto' => 'Saiu para Entrega',  'classe' => 'saiu-entrega'];
-        case 'ENTREGUE':    return ['texto' => 'Entregue',           'classe' => 'entregue'];
+        case 'ENVIADO':
+            if ($tipo_entrega === 'RETIRADA') {
+                return ['texto' => 'Pronto para Retirada', 'classe' => 'saiu-entrega'];
+            } elseif ($tipo_entrega === 'LOCAL') {
+                return ['texto' => 'Pronto', 'classe' => 'saiu-entrega'];
+            } else {
+                return ['texto' => 'Saiu para Entrega',  'classe' => 'saiu-entrega'];
+            }
+        case 'ENTREGUE':
+            if ($tipo_entrega === 'LOCAL') {
+                return ['texto' => 'Consumido / Servido', 'classe' => 'entregue'];
+            } else {
+                return ['texto' => 'Entregue',           'classe' => 'entregue'];
+            }
         default:            return ['texto' => 'Cancelado',          'classe' => 'cancelado'];
     }
 }
@@ -94,7 +106,7 @@ function pagamentoInfo($forma) {
     }
 }
 
-$si = statusInfo($status);
+$si = statusInfo($status, $pedido['tipo_entrega']);
 $ei = entregaInfo($pedido['tipo_entrega']);
 $pi = pagamentoInfo($pedido['forma_pagamento'] ?? '');
 

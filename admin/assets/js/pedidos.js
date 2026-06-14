@@ -4,24 +4,30 @@
 
 var _btnCancelarTemp = null;
 
-var ACOES_MAP = {
-    'PENDENTE':
-        '<button class="btn-action-accept btn-detalhes" onclick="verDetalhesPedido(this)" title="Ver Detalhes"><i class="fa-solid fa-eye"></i> Detalhes</button> ' +
-        '<button class="btn-action-accept btn-aceitar" onclick="atualizarStatusPedido(this, \'EM_PREPARO\')" title="Aceitar pedido"><i class="fa-solid fa-check"></i> Aceitar</button> ' +
-        '<button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, \'CANCELADO\')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>',
-    'EM_PREPARO':
-        '<button class="btn-action-accept btn-detalhes" onclick="verDetalhesPedido(this)" title="Ver Detalhes"><i class="fa-solid fa-eye"></i> Detalhes</button> ' +
-        '<button class="btn-action-accept btn-enviar" onclick="atualizarStatusPedido(this, \'ENVIADO\')" title="Marcar como enviado"><i class="fa-solid fa-paper-plane"></i> Enviar</button> ' +
-        '<button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, \'CANCELADO\')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>',
-    'ENVIADO':
-        '<button class="btn-action-accept btn-detalhes" onclick="verDetalhesPedido(this)" title="Ver Detalhes"><i class="fa-solid fa-eye"></i> Detalhes</button> ' +
-        '<button class="btn-action-accept btn-entregar" onclick="atualizarStatusPedido(this, \'ENTREGUE\')" title="Confirmar entrega"><i class="fa-solid fa-flag-checkered"></i> Entregue</button> ' +
-        '<button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, \'CANCELADO\')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>',
-    'ENTREGUE':
-        '<button class="btn-action-accept btn-detalhes" onclick="verDetalhesPedido(this)" title="Ver Detalhes"><i class="fa-solid fa-eye"></i> Detalhes</button>',
-    'CANCELADO':
-        '<button class="btn-action-accept btn-detalhes" onclick="verDetalhesPedido(this)" title="Ver Detalhes"><i class="fa-solid fa-eye"></i> Detalhes</button>'
-};
+function obterHtmlAcoes(status, tipoEntrega) {
+    var botoes = '<button class="btn-action-accept btn-detalhes" onclick="verDetalhesPedido(this)" title="Ver Detalhes"><i class="fa-solid fa-eye"></i> Detalhes</button> ';
+    
+    if (status === 'PENDENTE') {
+        botoes += '<button class="btn-action-accept btn-aceitar" onclick="atualizarStatusPedido(this, \'EM_PREPARO\')" title="Aceitar pedido"><i class="fa-solid fa-check"></i> Aceitar</button> ' +
+                  '<button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, \'CANCELADO\')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>';
+    } else if (status === 'EM_PREPARO' || status === 'ACEITO') {
+        if (tipoEntrega === 'DELIVERY') {
+            botoes += '<button class="btn-action-accept btn-enviar" onclick="atualizarStatusPedido(this, \'ENVIADO\')" title="Marcar como enviado"><i class="fa-solid fa-paper-plane"></i> Enviar</button> ';
+        } else if (tipoEntrega === 'RETIRADA') {
+            botoes += '<button class="btn-action-accept btn-enviar btn-pronto-retirar" onclick="atualizarStatusPedido(this, \'ENVIADO\')" title="Marcar como pronto para retirada"><i class="fa-solid fa-box"></i> Pronto p/ Retirada</button> ';
+        } else { // LOCAL
+            botoes += '<button class="btn-action-accept btn-enviar btn-pronto-local" onclick="atualizarStatusPedido(this, \'ENVIADO\')" title="Marcar como servido"><i class="fa-solid fa-utensils"></i> Servido</button> ';
+        }
+        botoes += '<button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, \'CANCELADO\')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>';
+    } else if (status === 'ENVIADO') {
+        botoes += '<button class="btn-action-accept btn-entregar" onclick="atualizarStatusPedido(this, \'ENTREGUE\')" title="Confirmar entrega"><i class="fa-solid fa-flag-checkered"></i> Entregue</button> ' +
+                  '<button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, \'CANCELADO\')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>';
+    } else if (status === 'ENTREGUE') {
+        botoes += '<button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, \'CANCELADO\')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>';
+    }
+    
+    return botoes;
+}
 
 // ── TABS ──
 
@@ -107,7 +113,7 @@ function verDetalhesPedido(btn) {
 
     var btnImprimir = document.getElementById('btn-imprimir-comanda');
     if (btnImprimir) {
-        btnImprimir.style.display = (status === 'PENDENTE' || status === 'CANCELADO') ? 'none' : 'inline-block';
+        btnImprimir.style.display = 'inline-block';
     }
 
     document.getElementById('modal-detalhes-pedido').style.display = 'flex';
@@ -337,9 +343,18 @@ function executarMudancaStatus(btn, novoStatus) {
         if (data.sucesso) {
             tr.dataset.status = novoStatus;
 
+            var textoBadgeEnviado = 'ENVIADO';
+            var tipoEntrega = tr.dataset.tipoEntrega || 'DELIVERY';
+            if (tipoEntrega === 'RETIRADA') {
+                textoBadgeEnviado = 'PRONTO P/ RETIRADA';
+            } else if (tipoEntrega === 'LOCAL') {
+                textoBadgeEnviado = 'SERVIDO';
+            }
+
             var badgeMap = {
+                'ACEITO':     ['badge-preparo', 'EM PREPARO'],
                 'EM_PREPARO': ['badge-preparo', 'EM PREPARO'],
-                'ENVIADO':    ['badge-enviado', 'ENVIADO'],
+                'ENVIADO':    ['badge-enviado', textoBadgeEnviado],
                 'ENTREGUE':   ['badge-entregue', 'ENTREGUE'],
                 'CANCELADO':  ['badge-cancelado', 'CANCELADO'],
                 'PENDENTE':   ['badge-pendente', 'PENDENTE']
@@ -353,7 +368,7 @@ function executarMudancaStatus(btn, novoStatus) {
             }
 
             var acoes = tr.querySelector('.acoes-pedido');
-            if (acoes) acoes.innerHTML = ACOES_MAP[novoStatus] || '';
+            if (acoes) acoes.innerHTML = obterHtmlAcoes(novoStatus, tr.dataset.tipoEntrega);
 
             // Se for cancelamento, fecha o modal e exibe a justificativa no modal de sucesso
             if (novoStatus === 'CANCELADO') {
