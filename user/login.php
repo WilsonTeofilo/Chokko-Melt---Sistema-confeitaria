@@ -37,16 +37,6 @@ $redirectUrl = isset($_GET['redirect']) ? htmlspecialchars($_GET['redirect']) : 
 
 
      <input type="submit" value="Entrar" class="login" id="btn-login">
-            <div class="divider">
-                <hr>
-                <span>OU</span>
-                <hr>
-            </div>
-
-            <button type="button" class="btn-google" id="btn-google">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google">
-                CONECTAR COM GOOGLE
-            </button>
 
             <div class="register-link">
                 <p>Não tem uma conta? <a href="cadastro.php<?= isset($_GET['redirect']) ? '?redirect=' . htmlspecialchars($_GET['redirect']) : '' ?>">Cadastre-se</a></p>
