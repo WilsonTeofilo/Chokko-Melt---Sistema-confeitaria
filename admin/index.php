@@ -174,7 +174,7 @@ try {
                         <button class="btn-action-accept btn-entregar" onclick="atualizarStatusPedido(this, 'ENTREGUE')" title="Confirmar entrega"><i class="fa-solid fa-flag-checkered"></i> Entregue</button>
                         <button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, 'CANCELADO')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>
                     <?php elseif ($status === 'ENTREGUE'): ?>
-                        <button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, 'CANCELADO')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+                        <button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, 'CANCELADO')" title="Estornar pedido"><i class="fa-solid fa-arrow-rotate-left"></i> Estornar</button>
                     <?php endif; ?>
                 </td>
             </tr>
