@@ -787,9 +787,11 @@
         font-family: "Courier New", Courier, monospace;
         font-size: 11px;
         color: #000;
-        width: 72mm;
-        margin: 0 auto;
-        padding: 6px 4px;
+        width: 100% !important;
+        max-width: 72mm !important; /* Limite seguro para POS-80 ou POS-58 redimensionado */
+        margin: 0 auto !important; /* Centraliza a folha */
+        padding: 6px 3mm !important; /* Adiciona respiro lateral de segurança de 3mm */
+        box-sizing: border-box !important;
     }
 
     .cv-titulo {

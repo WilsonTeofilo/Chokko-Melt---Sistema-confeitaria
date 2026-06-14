@@ -235,20 +235,22 @@
     body.print-sheet-58,
     body.print-sheet-58 #_print-wrapper,
     body.print-sheet-58 #cupom-para-impressao {
-        width: 48mm !important; /* 48mm é o padrão real de impressão de uma POS-58 */
+        width: 100% !important;
         max-width: 48mm !important;
-        margin: 0 auto !important; /* Centraliza para garantir que a margem mecânica não atrapalhe */
-        padding: 0 !important;
+        margin: 0 auto !important; /* Centraliza a área útil na bobina */
+        padding: 0 3mm !important; /* Margem interna de segurança contra cortes nas pontas */
+        box-sizing: border-box !important;
     }
 
     /* Bobina de 80mm tem área útil de impressão de 72mm */
     body.print-sheet-80,
     body.print-sheet-80 #_print-wrapper,
     body.print-sheet-80 #cupom-para-impressao {
-        width: 72mm !important;
+        width: 100% !important;
         max-width: 72mm !important;
         margin: 0 auto !important;
-        padding: 0 !important;
+        padding: 0 4mm !important; /* Margem interna de segurança contra cortes nas pontas */
+        box-sizing: border-box !important;
     }
 
     #_print-wrapper {

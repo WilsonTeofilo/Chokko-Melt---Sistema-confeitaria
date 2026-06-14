@@ -117,14 +117,19 @@ class Auth {
     }
 
     // Cadastra novo administrador/funcionario (com validação cruzada)
-    public function cadastrarAdmin($nome, $email, $telefone, $senha, $tipo) {
+    public function cadastrarAdmin($nome, $email, $telefone, $senha, $tipo, $permissoes = null) {
         if ($this->verificarDuplicidade($email, $telefone)) {
             throw new Exception("Esse e-mail ou número de telefone já pertence a uma conta (pode ser de um cliente ou de outro administrador).");
         }
 
         $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
         $is_root = ($tipo === 'ADMIN') ? 1 : 0;
-        $permissoes_string = ($tipo === 'ADMIN') ? 'pedidos,extrato,produtos,usuarios,config' : 'pedidos,produtos';
+        
+        if ($permissoes !== null) {
+            $permissoes_string = $permissoes;
+        } else {
+            $permissoes_string = ($tipo === 'ADMIN') ? 'pedidos,extrato,produtos,usuarios,config' : 'pedidos,produtos';
+        }
 
         $stmt = $this->pdo->prepare("INSERT INTO usuario (nome, email, telefone, senha, tipo_usuario, root, permissoes) VALUES (:nome, :email, :telefone, :senha, :tipo, :root, :permissoes)");
         

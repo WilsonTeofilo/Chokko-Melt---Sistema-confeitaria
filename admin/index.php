@@ -13,7 +13,7 @@ try {
                pg.forma_pagamento, pg.valor_entregue, pg.troco
         FROM pedido p
         INNER JOIN status_pedido sp ON p.id_status_pedido = sp.id_status_pedido
-        INNER JOIN cliente c ON p.id_cliente = c.id_cliente
+        LEFT JOIN cliente c ON p.id_cliente = c.id_cliente
         LEFT JOIN endereco e ON p.id_endereco = e.id_endereco
         LEFT JOIN pagamento pg ON pg.id_pedido = p.id_pedido
         ORDER BY p.id_pedido DESC
@@ -137,7 +137,7 @@ try {
                 data-endereco="<?= htmlspecialchars($end_formatado) ?>"
                 data-itens='<?= htmlspecialchars(json_encode($p['itens']), ENT_QUOTES, 'UTF-8') ?>'>
                 <td>#<?= $p['id_pedido'] ?></td>
-                <td><?= htmlspecialchars($p['nome_cliente']) ?></td>
+                <td><?= htmlspecialchars($p['nome_cliente'] ?? 'Cliente Excluído') ?></td>
                 <td><i class="<?= $icone_tipo ?>"></i> <?= htmlspecialchars($p['tipo_entrega']) ?></td>
                 <td>
                     <?= htmlspecialchars($p['forma_pagamento']) ?>
@@ -198,7 +198,7 @@ try {
             </div>
         </div>
         <div class="modal-footer modal-footer-wrap">
-            <button type="button" id="btn-imprimir-comanda" class="btn-action-accept btn-print-comanda" onclick="imprimirCupom()"><i class="fa-solid fa-print"></i> Imprimir comanda</button>
+            <button type="button" id="btn-imprimir-comanda" class="btn-action-accept btn-print-comanda" onclick="abrirModalImpressaoCupom()"><i class="fa-solid fa-print"></i> Imprimir comanda</button>
             <button type="button" onclick="fecharModalDetalhes()" class="btn-fechar-modal">Fechar</button>
         </div>
     </div>

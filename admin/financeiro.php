@@ -57,7 +57,7 @@ try {
                c.nome AS nome_cliente,
                pg.forma_pagamento
         FROM pedido p
-        INNER JOIN cliente c ON c.id_cliente = p.id_cliente
+        LEFT JOIN cliente c ON c.id_cliente = p.id_cliente
         LEFT JOIN pagamento pg ON pg.id_pedido = p.id_pedido
         WHERE p.id_status_pedido = 5
           AND DATE(p.data_hora) BETWEEN :inicio AND :fim
@@ -177,7 +177,7 @@ function iconePagamento($forma) {
             <tr>
                 <td>#<?= intval($row['id_pedido']) ?></td>
                 <td><?= date('d/m/Y H:i', strtotime($row['data_hora'])) ?></td>
-                <td><?= htmlspecialchars($row['nome_cliente']) ?></td>
+                <td><?= htmlspecialchars($row['nome_cliente'] ?? 'Cliente Excluído') ?></td>
                 <td><i class="<?= iconePagamento($row['forma_pagamento']) ?>"></i> <?= htmlspecialchars($row['forma_pagamento'] ?? '—') ?></td>
                 <td class="bold-text">R$ <?= number_format($row['valor_total'], 2, ',', '.') ?></td>
                 <td class="bold-text" style="color: #2E7D32;">R$ <?= number_format($row['lucro'] ?? 0, 2, ',', '.') ?></td>

@@ -58,8 +58,13 @@ switch (isset($_REQUEST['acao']) ? $_REQUEST['acao'] : ''){
         $senha = isset($_POST['usr_senha']) ? $_POST['usr_senha'] : '';
         $tipo = isset($_POST['usr_tipo']) ? $_POST['usr_tipo'] : '';
         
+        $permissoes = null;
+        if (isset($_POST['permissoes']) && is_array($_POST['permissoes'])) {
+            $permissoes = implode(',', $_POST['permissoes']);
+        }
+        
         try {
-            $auth->cadastrarAdmin($nome, $email, $telefone, $senha, $tipo);
+            $auth->cadastrarAdmin($nome, $email, $telefone, $senha, $tipo, $permissoes);
             exibirModalEVoltar('Sucesso!', 'Usuário administrativo cadastrado com sucesso!', '../usuarios.php', 'fa-check-circle', '#2ecc71');
         } catch (Exception $e) {
             exibirModalEVoltar('Conflito de Dados', $e->getMessage(), 'javascript:window.history.back()');

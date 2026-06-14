@@ -18,7 +18,7 @@ class Produto {
         }
     }
 
-    public function Cadastrar($nome,$descricao,$dispo,$img,$preco,$custo,$categoria) {
+    public function Cadastrar($nome,$descricao,$dispo,$img,$preco,$custo,$categoria, $adicionais = []) {
 
         $cadastro = $this->pdo->prepare("INSERT INTO produto (nome,descricao,disponibilidade,imagem,preco,custo_compra,id_categoria) VALUES (:n,:descri,:dispo,:imag,:preco,:custo,:idCAT)");
         $cadastro->execute(
@@ -31,7 +31,13 @@ class Produto {
             ':idCAT'=>$categoria
         ]);
 
-        
+        $id_produto = $this->pdo->lastInsertId();
+
+        if (!empty($adicionais) && is_array($adicionais)) {
+            $this->salvarAdicionaisProduto($id_produto, $adicionais);
+        }
+
+        return $id_produto;
     }
 
  //Lista todos os produtos.
@@ -80,7 +86,7 @@ class Produto {
     
 
  
-public function atualizar($id, $nome, $descricao, $dispo, $img, $preco, $custo, $categoria) {
+public function atualizar($id, $nome, $descricao, $dispo, $img, $preco, $custo, $categoria, $adicionais = null) {
     $sql = "UPDATE produto SET 
             nome = :n, 
             descricao = :descri, 
@@ -104,6 +110,10 @@ public function atualizar($id, $nome, $descricao, $dispo, $img, $preco, $custo, 
         ':categoria'=> $categoria,
         ':id'       => $id
     ]);
+
+    if ($adicionais !== null && is_array($adicionais)) {
+        $this->salvarAdicionaisProduto($id, $adicionais);
+    }
 }
 
  
@@ -126,6 +136,50 @@ public function atualizar($id, $nome, $descricao, $dispo, $img, $preco, $custo, 
             } catch (PDOException $e) {
                 return [];
             }
+        }
+
+        public function salvarAdicionaisProduto($id_produto, $adicionais) {
+            $stmtDel = $this->pdo->prepare("DELETE FROM produto_adicional WHERE id_produto = :id_produto");
+            $stmtDel->execute([':id_produto' => $id_produto]);
+
+            if (!empty($adicionais)) {
+                $stmtIns = $this->pdo->prepare("INSERT INTO produto_adicional (id_produto, id_adicional) VALUES (:id_produto, :id_adicional)");
+                foreach ($adicionais as $id_adicional) {
+                    $stmtIns->execute([
+                        ':id_produto' => $id_produto,
+                        ':id_adicional' => (int)$id_adicional
+                    ]);
+                }
+            }
+        }
+
+        public function listarTodosAdicionais() {
+            $stmt = $this->pdo->prepare("SELECT * FROM adicional WHERE ativo = 1 ORDER BY nome ASC");
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        public function cadastrarNovoAdicional($nome, $preco, $custo = null) {
+            $stmtCheck = $this->pdo->prepare("SELECT id_adicional FROM adicional WHERE LOWER(nome) = LOWER(:nome) LIMIT 1");
+            $stmtCheck->execute([':nome' => $nome]);
+            $existente = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+            
+            if ($existente) {
+                $stmtAct = $this->pdo->prepare("UPDATE adicional SET ativo = 1, preco = :preco WHERE id_adicional = :id");
+                $stmtAct->execute([
+                    ':preco' => $preco,
+                    ':id' => $existente['id_adicional']
+                ]);
+                return $existente['id_adicional'];
+            }
+
+            $stmtIns = $this->pdo->prepare("INSERT INTO adicional (nome, preco, custo, ativo) VALUES (:nome, :preco, :custo, 1)");
+            $stmtIns->execute([
+                ':nome' => $nome,
+                ':preco' => $preco,
+                ':custo' => $custo
+            ]);
+            return $this->pdo->lastInsertId();
         }
 
 }

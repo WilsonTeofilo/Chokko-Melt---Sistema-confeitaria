@@ -169,14 +169,34 @@ switch ($acao) {
             }
         }
 
+        $adicionais = isset($_POST['adicionais']) && is_array($_POST['adicionais']) ? $_POST['adicionais'] : [];
+        $adicionais_ids = [];
+        foreach ($adicionais as $ad) {
+            if (strpos($ad, 'novo:') === 0) {
+                $partes = explode(':', $ad);
+                $nome_ad = isset($partes[1]) ? trim($partes[1]) : '';
+                $preco_ad = isset($partes[2]) ? floatval($partes[2]) : 0.00;
+                if (!empty($nome_ad)) {
+                    try {
+                        $id_novo = $prod->cadastrarNovoAdicional($nome_ad, $preco_ad, null);
+                        $adicionais_ids[] = $id_novo;
+                    } catch (Exception $ex) {
+                        // Silencioso em caso de erro
+                    }
+                }
+            } else {
+                $adicionais_ids[] = intval($ad);
+            }
+        }
+
         try {
             if (empty($id)) {
                 // Novo Produto
-                $prod->Cadastrar($nome, $descricao, $dispo, $imgLink, $preco, $custo, $id_categoria);
+                $prod->Cadastrar($nome, $descricao, $dispo, $imgLink, $preco, $custo, $id_categoria, $adicionais_ids);
                 exibirModalEVoltar('Sucesso!', 'Produto cadastrado com sucesso!', '../produtos.php', 'fa-check-circle', '#2ecc71');
             } else {
                 // Editar Produto Existente
-                $prod->atualizar($id, $nome, $descricao, $dispo, $imgLink, $preco, $custo, $id_categoria);
+                $prod->atualizar($id, $nome, $descricao, $dispo, $imgLink, $preco, $custo, $id_categoria, $adicionais_ids);
                 exibirModalEVoltar('Sucesso!', 'Produto atualizado com sucesso!', '../produtos.php', 'fa-check-circle', '#2ecc71');
             }
         } catch (Exception $e) {
