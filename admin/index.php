@@ -140,7 +140,8 @@ try {
             <tr data-status="<?= htmlspecialchars($status) ?>"
                 data-endereco="<?= htmlspecialchars($end_formatado) ?>"
                 data-itens='<?= htmlspecialchars(json_encode($p['itens']), ENT_QUOTES, 'UTF-8') ?>'
-                data-tipo-entrega="<?= htmlspecialchars($p['tipo_entrega']) ?>">
+                data-tipo-entrega="<?= htmlspecialchars($p['tipo_entrega']) ?>"
+                data-data-hora="<?= htmlspecialchars($p['data_hora']) ?>">
                 <td>#<?= $p['id_pedido'] ?></td>
                 <td><?= htmlspecialchars($p['nome_cliente'] ?? 'Cliente Excluído') ?></td>
                 <td><i class="<?= $icone_tipo ?>"></i> <?= htmlspecialchars($p['tipo_entrega']) ?></td>
@@ -191,6 +192,7 @@ try {
         </div>
         <div class="detalhes-body detalhe-body-wrap">
             <p class="detalhe-p"><strong>Cliente:</strong> <span id="detalhe-cliente">...</span></p>
+            <p class="detalhe-p"><strong>Data/Hora:</strong> <span id="detalhe-data-hora">...</span></p>
             <p class="detalhe-p"><strong>Pagamento:</strong> <span id="detalhe-pagamento">...</span></p>
             <p class="detalhe-p"><strong>Tipo:</strong> <span id="detalhe-tipo">...</span></p>
             <p class="detalhe-p"><strong>Endereço / Observação:</strong> <span id="detalhe-endereco">Rua Fictícia, 123 - Centro</span></p>
@@ -270,6 +272,6 @@ try {
 </div>
 
 <!-- pedidos.js: status, cupom térmico, modais; cada ação deve ter endpoint PHP (ex.: api/atualizar_status_pedido.php). INTEGRACAO_JS_PHP.txt -->
-<script src="assets/js/pedidos.js"></script>
+<script src="assets/js/pedidos.js?v=<?= time() ?>"></script>
 
 <?php include '../includes/admin_footer.php'; ?>

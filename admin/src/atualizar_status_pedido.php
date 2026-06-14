@@ -71,7 +71,19 @@ try {
         $stmtPag->execute(['id' => $id_pedido]);
     } else {
         // Outros status (EM_PREPARO, ENVIADO, ENTREGUE)
-        $sql = "UPDATE pedido SET id_status_pedido = :status WHERE id_pedido = :id";
+        $sql = "UPDATE pedido SET id_status_pedido = :status";
+        
+        // Atualiza os timestamps correspondentes a cada etapa
+        if ($id_status_pedido === 3) {
+            $sql .= ", aceito_em = COALESCE(aceito_em, NOW())";
+        } elseif ($id_status_pedido === 4) {
+            $sql .= ", enviado_em = COALESCE(enviado_em, NOW())";
+        } elseif ($id_status_pedido === 5) {
+            $sql .= ", entregue_em = COALESCE(entregue_em, NOW())";
+        }
+        
+        $sql .= " WHERE id_pedido = :id";
+        
         $stmt = $conn->prepare($sql);
         $stmt->execute([
             'status' => $id_status_pedido,
