@@ -96,20 +96,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 var campoTroco = document.getElementById('valor_pago_dinheiro');
                 if (campoTroco) {
                     var totalTexto = document.getElementById('fin-total').innerText;
-                    var totalVal = parseFloat(totalTexto.replace('R$', '').replace(/\./g, '').replace(',', '.').trim());
-                    
                     var pagoTexto = campoTroco.value.trim();
-                    if (pagoTexto === '') return; // Deixa o required do HTML lidar se estiver vazio
-
-                    var pagoVal = parseFloat(pagoTexto.replace(/\./g, '').replace(',', '.').trim());
                     
-                    if (isNaN(pagoVal)) {
+                    if (pagoTexto === '') {
+                        alert('Por favor, insira o valor em dinheiro que será entregue.');
+                        e.preventDefault();
+                        return;
+                    }
+
+                    // Função auxiliar para parsing robusto de moeda
+                    function parseCurrencyJS(valueStr) {
+                        valueStr = valueStr.trim().replace(/[^\d.,]/g, '');
+                        var temPonto = valueStr.indexOf('.') !== -1;
+                        var temVirgula = valueStr.indexOf(',') !== -1;
+                        
+                        if (temPonto && temVirgula) {
+                            if (valueStr.lastIndexOf('.') > valueStr.lastIndexOf(',')) {
+                                // US style: 1,000.00
+                                valueStr = valueStr.replace(/,/g, '');
+                            } else {
+                                // BR style: 1.000,00
+                                valueStr = valueStr.replace(/\./g, '').replace(',', '.');
+                            }
+                        } else if (temVirgula) {
+                            // Apenas vírgula: 100,00 -> 100.00
+                            valueStr = valueStr.replace(',', '.');
+                        }
+                        return parseFloat(valueStr);
+                    }
+
+                    var totalVal = parseCurrencyJS(totalTexto);
+                    var pagoVal = parseCurrencyJS(pagoTexto);
+                    
+                    if (isNaN(pagoVal) || pagoVal <= 0) {
                         alert('Por favor, insira um valor válido para o pagamento em dinheiro.');
                         e.preventDefault();
                         return;
                     }
                     
-                    if (pagoVal < totalVal) {
+                    if ((pagoVal - totalVal) < -0.01) {
                         alert('O valor em dinheiro (R$ ' + pagoVal.toFixed(2).replace('.', ',') + ') não pode ser menor que o total do pedido (R$ ' + totalVal.toFixed(2).replace('.', ',') + ').');
                         e.preventDefault();
                         return;
