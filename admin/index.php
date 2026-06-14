@@ -100,15 +100,19 @@ try {
                 // Ajusta a classe do badge
                 $badge_class = 'badge-pendente';
                 $status_legivel = 'PENDENTE';
-                if ($status === 'ACEITO') {
-                    $badge_class = 'badge-preparo';
-                    $status_legivel = 'ACEITO';
-                } elseif ($status === 'EM_PREPARO') {
+                if ($status === 'ACEITO' || $status === 'EM_PREPARO') {
                     $badge_class = 'badge-preparo';
                     $status_legivel = 'EM PREPARO';
+                    $status = 'EM_PREPARO'; // Unifica para o filtro do JS
                 } elseif ($status === 'ENVIADO') {
                     $badge_class = 'badge-enviado';
-                    $status_legivel = 'ENVIADO';
+                    if ($p['tipo_entrega'] === 'RETIRADA') {
+                        $status_legivel = 'PRONTO P/ RETIRADA';
+                    } elseif ($p['tipo_entrega'] === 'LOCAL') {
+                        $status_legivel = 'SERVIDO';
+                    } else {
+                        $status_legivel = 'ENVIADO';
+                    }
                 } elseif ($status === 'ENTREGUE') {
                     $badge_class = 'badge-entregue';
                     $status_legivel = 'ENTREGUE';
@@ -135,7 +139,8 @@ try {
             ?>
             <tr data-status="<?= htmlspecialchars($status) ?>"
                 data-endereco="<?= htmlspecialchars($end_formatado) ?>"
-                data-itens='<?= htmlspecialchars(json_encode($p['itens']), ENT_QUOTES, 'UTF-8') ?>'>
+                data-itens='<?= htmlspecialchars(json_encode($p['itens']), ENT_QUOTES, 'UTF-8') ?>'
+                data-tipo-entrega="<?= htmlspecialchars($p['tipo_entrega']) ?>">
                 <td>#<?= $p['id_pedido'] ?></td>
                 <td><?= htmlspecialchars($p['nome_cliente'] ?? 'Cliente Excluído') ?></td>
                 <td><i class="<?= $icone_tipo ?>"></i> <?= htmlspecialchars($p['tipo_entrega']) ?></td>
@@ -156,10 +161,18 @@ try {
                         <button class="btn-action-accept btn-aceitar" onclick="atualizarStatusPedido(this, 'EM_PREPARO')" title="Aceitar pedido"><i class="fa-solid fa-check"></i> Aceitar</button>
                         <button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, 'CANCELADO')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>
                     <?php elseif ($status === 'EM_PREPARO' || $status === 'ACEITO'): ?>
-                        <button class="btn-action-accept btn-enviar" onclick="atualizarStatusPedido(this, 'ENVIADO')" title="Marcar como enviado"><i class="fa-solid fa-paper-plane"></i> Enviar</button>
+                        <?php if ($p['tipo_entrega'] === 'DELIVERY'): ?>
+                            <button class="btn-action-accept btn-enviar" onclick="atualizarStatusPedido(this, 'ENVIADO')" title="Marcar como enviado"><i class="fa-solid fa-paper-plane"></i> Enviar</button>
+                        <?php elseif ($p['tipo_entrega'] === 'RETIRADA'): ?>
+                            <button class="btn-action-accept btn-enviar btn-pronto-retirar" onclick="atualizarStatusPedido(this, 'ENVIADO')" title="Marcar como pronto para retirada"><i class="fa-solid fa-box"></i> Pronto p/ Retirada</button>
+                        <?php else: /* LOCAL */ ?>
+                            <button class="btn-action-accept btn-enviar btn-pronto-local" onclick="atualizarStatusPedido(this, 'ENVIADO')" title="Marcar como servido"><i class="fa-solid fa-utensils"></i> Servido</button>
+                        <?php endif; ?>
                         <button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, 'CANCELADO')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>
                     <?php elseif ($status === 'ENVIADO'): ?>
                         <button class="btn-action-accept btn-entregar" onclick="atualizarStatusPedido(this, 'ENTREGUE')" title="Confirmar entrega"><i class="fa-solid fa-flag-checkered"></i> Entregue</button>
+                        <button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, 'CANCELADO')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+                    <?php elseif ($status === 'ENTREGUE'): ?>
                         <button class="btn-action-accept btn-cancelar" onclick="atualizarStatusPedido(this, 'CANCELADO')" title="Cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>
                     <?php endif; ?>
                 </td>

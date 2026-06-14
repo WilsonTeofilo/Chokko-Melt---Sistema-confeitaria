@@ -74,7 +74,7 @@ if (!empty($todosPedidos)) {
 }
 
 // Função auxiliar para formatar status de exibição
-function obterStatusFormatado($status_db) {
+function obterStatusFormatado($status_db, $tipo_entrega = 'DELIVERY') {
     switch ($status_db) {
         case 'PENDENTE':
             return ['class' => 'aguardando', 'texto' => 'Aguardando'];
@@ -83,9 +83,19 @@ function obterStatusFormatado($status_db) {
         case 'EM_PREPARO':
             return ['class' => 'em-preparo', 'texto' => 'Em Preparo'];
         case 'ENVIADO':
-            return ['class' => 'saiu-entrega', 'texto' => 'Saiu para Entrega'];
+            if ($tipo_entrega === 'RETIRADA') {
+                return ['class' => 'saiu-entrega', 'texto' => 'Pronto para Retirada'];
+            } elseif ($tipo_entrega === 'LOCAL') {
+                return ['class' => 'saiu-entrega', 'texto' => 'Pronto'];
+            } else {
+                return ['class' => 'saiu-entrega', 'texto' => 'Saiu para Entrega'];
+            }
         case 'ENTREGUE':
-            return ['class' => 'entregue', 'texto' => 'Entregue'];
+            if ($tipo_entrega === 'LOCAL') {
+                return ['class' => 'entregue', 'texto' => 'Consumido / Servido'];
+            } else {
+                return ['class' => 'entregue', 'texto' => 'Entregue'];
+            }
         case 'CANCELADO_CLIENTE':
         case 'CANCELADO_LOJA':
             return ['class' => 'cancelado', 'texto' => 'Cancelado'];
@@ -111,7 +121,7 @@ function obterStatusFormatado($status_db) {
         <p class="orders-section-label">Em Andamento</p>
         
         <?php foreach ($ativos as $pedido): 
-            $statusInfo = obterStatusFormatado($pedido['status_descricao']);
+            $statusInfo = obterStatusFormatado($pedido['status_descricao'], $pedido['tipo_entrega']);
             $data_formatada = date('d/m/Y H:i', strtotime($pedido['data_hora']));
         ?>
             <div class="order-card order-card--active" data-pedido-id="<?= $pedido['id_pedido'] ?>">
@@ -144,7 +154,7 @@ function obterStatusFormatado($status_db) {
         <p class="orders-section-label mt-24">Histórico</p>
 
         <?php foreach ($historico as $pedido): 
-            $statusInfo = obterStatusFormatado($pedido['status_descricao']);
+            $statusInfo = obterStatusFormatado($pedido['status_descricao'], $pedido['tipo_entrega']);
             $data_formatada = date('d/m/Y H:i', strtotime($pedido['data_hora']));
             $cancelado = in_array($pedido['status_descricao'], ['CANCELADO_CLIENTE', 'CANCELADO_LOJA']);
         ?>
