@@ -86,4 +86,36 @@ document.addEventListener('DOMContentLoaded', function() {
         // Roda uma vez no início para garantir o estado inicial
         gerenciarTroco();
     }
+
+    // Validação no envio do formulário (Bloqueia troco menor que o total)
+    var form = document.getElementById('checkoutForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            var selecionado = document.querySelector('input[name="pagamento"]:checked');
+            if (selecionado && selecionado.value === 'dinheiro') {
+                var campoTroco = document.getElementById('valor_pago_dinheiro');
+                if (campoTroco) {
+                    var totalTexto = document.getElementById('fin-total').innerText;
+                    var totalVal = parseFloat(totalTexto.replace('R$', '').replace(/\./g, '').replace(',', '.').trim());
+                    
+                    var pagoTexto = campoTroco.value.trim();
+                    if (pagoTexto === '') return; // Deixa o required do HTML lidar se estiver vazio
+
+                    var pagoVal = parseFloat(pagoTexto.replace(/\./g, '').replace(',', '.').trim());
+                    
+                    if (isNaN(pagoVal)) {
+                        alert('Por favor, insira um valor válido para o pagamento em dinheiro.');
+                        e.preventDefault();
+                        return;
+                    }
+                    
+                    if (pagoVal < totalVal) {
+                        alert('O valor em dinheiro (R$ ' + pagoVal.toFixed(2).replace('.', ',') + ') não pode ser menor que o total do pedido (R$ ' + totalVal.toFixed(2).replace('.', ',') + ').');
+                        e.preventDefault();
+                        return;
+                    }
+                }
+            }
+        });
+    }
 });
